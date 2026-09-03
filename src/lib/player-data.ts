@@ -1,3 +1,4 @@
+
 import { DocumentData } from "firebase/firestore";
 
 export interface Player extends DocumentData {
@@ -33,4 +34,14 @@ export interface Squad extends DocumentData {
     budgetStatus: 'OK' | 'OVER';
     eligibilityStatus: string;
     totalPoints: number | 'N/A';
+}
+
+export interface ActiveAuctionState extends DocumentData {
+  setId: string;
+  currentPlayerId: string | null;
+  currentBid: number;
+  isSold: boolean;
+  isUnsold: boolean;
+  status: 'idle' | 'drawing' | 'active' | 'sold' | 'unsold';
+  updatedAt?: any;
 }

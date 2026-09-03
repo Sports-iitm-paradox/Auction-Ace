@@ -5,8 +5,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
-import { X, Gavel, Users, ChevronsLeft, ChevronsRight, Timer, Plus, RefreshCw, Trophy, Ban } from 'lucide-react';
-import { Player, PlayerSet } from '@/lib/player-data';
+import { X, Gavel, Users, ChevronsLeft, ChevronsRight, Timer, Plus, RefreshCw, Trophy, Ban, Share2 } from 'lucide-react';
+import { Player, PlayerSet, ActiveAuctionState } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
@@ -15,6 +15,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import Image from 'next/image';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 
 interface FullScreenViewProps {
     players: Player[];
@@ -27,7 +29,6 @@ interface DrawnPlayer extends Player {
     finalPrice?: number;
 }
 
-// Sound Effect URLs
 const SOUNDS = {
     REVEAL: 'https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-beep-221.mp3',
     SOLD: 'https://assets.mixkit.co/sfx/preview/mixkit-gavel-hammer-thump-2293.mp3',
@@ -43,8 +44,8 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   const [isDrawing, setIsDrawing] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
+  const firestore = useFirestore();
   
-  // Bidding State
   const [currentBid, setCurrentBid] = useState<number>(0);
   const [timer, setTimer] = useState<number>(30);
   const [isTimerActive, setIsTimerActive] = useState(false);
@@ -53,9 +54,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
   const drawingInterval = useRef<NodeJS.Timeout>();
   const timerInterval = useRef<NodeJS.Timeout>();
-  const [drawingDisplayPlayer, setDrawingDisplayPlayer] = useState<Player | null>(null);
 
-  // Audio refs
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({
     reveal: typeof Audio !== 'undefined' ? new Audio(SOUNDS.REVEAL) : null,
     sold: typeof Audio !== 'undefined' ? new Audio(SOUNDS.SOLD) : null,
@@ -68,9 +67,30 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     const audio = audioRefs.current[key];
     if (audio) {
         audio.currentTime = 0;
-        audio.play().catch(() => {}); // Catch browser blocking autoplay
+        audio.play().catch(() => {});
     }
   };
+
+  // Sync to Firestore for Live View
+  const syncState = useCallback((overrides: Partial<ActiveAuctionState> = {}) => {
+    if (!firestore || !set.id) return;
+    const auctionRef = doc(firestore, 'activeAuctions', set.id);
+    const state: ActiveAuctionState = {
+      setId: set.id,
+      currentPlayerId: currentPlayer?.id || null,
+      currentBid: currentBid,
+      isSold: isSold,
+      isUnsold: isUnsold,
+      status: isDrawing ? 'drawing' : (isSold ? 'sold' : (isUnsold ? 'unsold' : (currentPlayer ? 'active' : 'idle'))),
+      updatedAt: serverTimestamp(),
+      ...overrides
+    };
+    setDoc(auctionRef, state, { merge: true });
+  }, [firestore, set.id, currentPlayer, currentBid, isSold, isUnsold, isDrawing]);
+
+  useEffect(() => {
+    syncState();
+  }, [syncState, currentPlayer, currentBid, isSold, isUnsold, isDrawing]);
 
   useEffect(() => {
     setUndrawnPlayers([...players]);
@@ -78,7 +98,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setCurrentPlayer(null);
   }, [players]);
 
-  // Timer logic
   useEffect(() => {
     if (isTimerActive && timer > 0) {
         timerInterval.current = setInterval(() => {
@@ -102,7 +121,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         clearInterval(drawingInterval.current);
         drawingInterval.current = undefined;
     }
-    setDrawingDisplayPlayer(null);
   }, []);
 
   const handleDrawPlayer = useCallback(() => {
@@ -115,9 +133,9 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setIsTimerActive(false);
     setTimer(30);
 
+    syncState({ status: 'drawing', currentPlayerId: null });
+
     drawingInterval.current = setInterval(() => {
-        const randomIndex = Math.floor(Math.random() * undrawnPlayers.length);
-        setDrawingDisplayPlayer(undrawnPlayers[randomIndex]);
     }, 100);
 
     setTimeout(() => {
@@ -130,28 +148,32 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       setUndrawnPlayers(prev => prev.filter(p => p.id !== newDrawnPlayer.id));
       setIsDrawing(false);
       playSound('reveal');
+      syncState({ status: 'active', currentPlayerId: newDrawnPlayer.id, currentBid: newDrawnPlayer.reservePrice || 0 });
     }, 2500);
-  }, [isDrawing, undrawnPlayers, stopDrawingAnimation]);
+  }, [isDrawing, undrawnPlayers, stopDrawingAnimation, syncState]);
   
   const resetAuction = () => {
     stopDrawingAnimation();
     onReset();
     setIsDrawing(false);
+    syncState({ status: 'idle', currentPlayerId: null, currentBid: 0 });
   };
 
   const getIncrement = (value: number) => {
-    if (value < 100) return 5; // Up to 1 Cr: 5L
-    if (value < 200) return 10; // 1-2 Cr: 10L
-    if (value < 500) return 20; // 2-5 Cr: 20L
-    return 50; // Above 5 Cr: 50L
+    if (value < 100) return 5;
+    if (value < 200) return 10;
+    if (value < 500) return 20;
+    return 50;
   };
 
   const handleIncreaseBid = () => {
     if (isSold || isUnsold) return;
     const inc = getIncrement(currentBid);
-    setCurrentBid(prev => prev + inc);
+    const newBid = currentBid + inc;
+    setCurrentBid(newBid);
     setTimer(30);
     setIsTimerActive(true);
+    syncState({ currentBid: newBid });
   };
 
   const handleSold = () => {
@@ -160,6 +182,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setIsTimerActive(false);
     setDrawnPlayers(prev => [{ ...currentPlayer, status: 'sold', finalPrice: currentBid } as DrawnPlayer, ...prev]);
     playSound('sold');
+    syncState({ status: 'sold', isSold: true });
   };
 
   const handleUnsold = () => {
@@ -168,6 +191,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setIsTimerActive(false);
     setDrawnPlayers(prev => [{ ...currentPlayer, status: 'unsold' } as DrawnPlayer, ...prev]);
     playSound('unsold');
+    syncState({ status: 'unsold', isUnsold: true });
   };
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -196,6 +220,12 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     };
   }, [handleKeyDown, stopDrawingAnimation]);
 
+  const copyLiveLink = () => {
+    const url = `${window.location.origin}/live/${set.id}`;
+    navigator.clipboard.writeText(url);
+    alert('Public Live Link copied to clipboard!');
+  };
+
   const cardVariants = {
     hidden: { opacity: 0, y: 50, scale: 0.95 },
     visible: {
@@ -206,15 +236,9 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     },
     exit: { opacity: 0, y: -50, scale: 0.95 },
   };
-  
-  const statItemVariant = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { opacity: 1, scale: 1 },
-  };
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center p-4 overflow-hidden">
-      {/* Sound preloader - hidden */}
+    <div className="fixed inset-0 flex flex-col items-center justify-center p-4 overflow-hidden bg-background">
       <div className="hidden">
         {Object.entries(SOUNDS).map(([key, url]) => (
             <audio key={key} src={url} preload="auto" />
@@ -234,7 +258,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                 Lot Roster
               </h3>
               <ul className="space-y-2 h-[calc(100%-4rem)] overflow-y-auto pr-2 custom-scrollbar">
-                {drawnPlayers.map((player, index) => (
+                {drawnPlayers.map((player) => (
                   <li key={player.id} className={cn(
                       "flex flex-col gap-1 p-3 border",
                       player.status === 'sold' ? "bg-primary/10 border-primary" : "bg-destructive/10 border-destructive/50"
@@ -271,16 +295,27 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         </CollapsibleTrigger>
       </Collapsible>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => router.push('/')}
-        className="absolute top-6 right-6 h-12 w-12 rounded-none z-40 border-2 border-primary bg-background/50 text-primary hover:bg-primary hover:text-primary-foreground"
-      >
-        <X className="h-8 w-8" />
-      </Button>
+      <div className="absolute top-6 right-6 flex gap-2 z-40">
+        <Button
+            variant="ghost"
+            size="icon"
+            onClick={copyLiveLink}
+            title="Copy Public Link"
+            className="h-12 w-12 rounded-none border-2 border-primary bg-background/50 text-primary hover:bg-primary hover:text-primary-foreground"
+        >
+            <Share2 className="h-6 w-6" />
+        </Button>
+        <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push('/')}
+            className="h-12 w-12 rounded-none border-2 border-primary bg-background/50 text-primary hover:bg-primary hover:text-primary-foreground"
+        >
+            <X className="h-8 w-8" />
+        </Button>
+      </div>
 
-      <div className="w-full max-w-5xl flex-1 flex flex-col justify-center items-center relative py-4">
+      <div className="w-full max-w-4xl flex-1 flex flex-col justify-center items-center relative py-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPlayer ? currentPlayer.id : 'waiting'}
@@ -290,23 +325,20 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
             exit="exit"
             className="w-full"
           >
-            <Card className="w-full ornate-border bg-card/90 backdrop-blur-md shadow-[0_0_60px_rgba(0,0,0,0.6)]">
-              <CardContent className="p-4 sm:p-8 w-full relative min-h-[400px] flex items-center justify-center">
+            <Card className="w-full ornate-border bg-card/90 backdrop-blur-md shadow-2xl">
+              <CardContent className="p-4 sm:p-8 w-full relative min-h-[350px] flex items-center justify-center overflow-hidden">
                 
-                {/* Timer Overlay */}
                 {currentPlayer && !isSold && !isUnsold && isTimerActive && (
                     <div className="absolute top-4 right-4 flex flex-col items-center">
                         <div className={cn(
-                            "w-12 h-12 rounded-full border-4 flex items-center justify-center font-bold text-xl transition-colors",
+                            "w-12 h-12 rounded-full border-4 flex items-center justify-center font-bold text-xl",
                             timer <= 5 ? "border-destructive text-destructive animate-pulse" : "border-primary text-primary"
                         )}>
                             {timer}
                         </div>
-                        <span className="text-[8px] uppercase font-bold tracking-widest mt-1 text-muted-foreground">Clock</span>
                     </div>
                 )}
 
-                {/* Status Overlays */}
                 {(isSold || isUnsold) && (
                     <motion.div 
                         initial={{ opacity: 0, scale: 2 }}
@@ -318,7 +350,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                             isSold ? "border-primary" : "border-destructive"
                         )}>
                             <h2 className={cn(
-                                "text-6xl font-serif font-black uppercase tracking-tighter",
+                                "text-6xl font-serif font-black uppercase",
                                 isSold ? "text-primary" : "text-destructive"
                             )}>
                                 {isSold ? 'SOLD' : 'UNSOLD'}
@@ -329,16 +361,13 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
                 {isDrawing ? (
                    <div className="text-center flex flex-col justify-center items-center">
-                      <div className="w-24 h-24 border-4 border-primary border-t-transparent animate-spin rounded-full mb-6" />
-                      <h1 className="text-4xl sm:text-6xl text-primary font-bold font-serif animate-pulse">
-                        Consulting...
-                      </h1>
+                      <div className="w-16 h-16 border-4 border-primary border-t-transparent animate-spin rounded-full mb-4" />
+                      <h1 className="text-4xl text-primary font-bold font-serif animate-pulse">Consulting...</h1>
                     </div>
                 ) : currentPlayer ? (
-                  <div className="flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-12 w-full">
-                    {/* Artistic Image Frame */}
+                  <div className="flex flex-col lg:flex-row items-center justify-center gap-6 w-full">
                     <div className="w-full lg:w-1/3 flex-shrink-0">
-                        <div className="relative aspect-[3/4] max-w-[280px] mx-auto lg:mx-0 ornate-border">
+                        <div className="relative aspect-[3/4] max-w-[220px] mx-auto lg:mx-0 ornate-border">
                             <div className="bg-background w-full h-full flex items-center justify-center overflow-hidden">
                                 {currentPlayer.imageUrl ? (
                                     <Image src={currentPlayer.imageUrl} alt={currentPlayer.playerName} fill className="object-cover" />
@@ -346,67 +375,46 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                     <span className="font-serif text-8xl text-primary/20">{currentPlayer.playerName[0]}</span>
                                 )}
                             </div>
-                            <div className="absolute bottom-0 left-0 w-full bg-primary py-1.5 text-center text-primary-foreground font-bold tracking-widest text-[10px] uppercase">
-                                List Sr.No {currentPlayer.playerNumber}
-                            </div>
                         </div>
                     </div>
 
-                    {/* Details in SAAVAN Style */}
-                    <div className="w-full lg:w-2/3 flex flex-col items-center lg:items-start text-center lg:text-left space-y-4">
-                        <div className="space-y-0">
-                          <p className="font-serif text-lg text-primary/80 tracking-widest uppercase">Lot Profile</p>
-                          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold font-serif leading-tight text-foreground filter drop-shadow-[2px_2px_0px_rgba(0,0,0,0.8)]">
+                    <div className="w-full lg:w-2/3 flex flex-col items-center lg:items-start text-center lg:text-left space-y-3">
+                        <div>
+                          <p className="font-serif text-sm text-primary/80 uppercase tracking-widest">Lot Profile</p>
+                          <h1 className="text-4xl lg:text-5xl font-bold font-serif text-foreground drop-shadow-md">
                             {currentPlayer.playerName}
                           </h1>
                         </div>
                         
-                        <div className="w-full grid grid-cols-2 gap-2 mt-2">
+                        <div className="w-full grid grid-cols-2 gap-2">
                             {[
                               { label: 'Origin', value: currentPlayer.country },
                               { label: 'Specialism', value: currentPlayer.specialism },
                               { label: 'Category', value: currentPlayer.cua },
                               { label: 'Points', value: currentPlayer.points },
-                              { label: 'Reserve Price', value: `${currentPlayer.reservePrice} Lakh` },
-                            ].map((stat, i) => (stat.value !== undefined && stat.value !== null && stat.value !== '') && (
-                              <motion.div 
-                                key={i}
-                                variants={statItemVariant}
-                                initial="hidden"
-                                animate="visible"
-                                transition={{ delay: 0.05 * i }}
-                                className="flex flex-col p-2 bg-secondary/30 border-l-4 border-primary"
-                              >
-                                <span className="text-[9px] text-primary font-bold uppercase tracking-tighter mb-0.5">{stat.label}</span>
-                                <span className="font-serif text-lg text-foreground">{stat.value}</span>
-                              </motion.div>
+                            ].map((stat, i) => stat.value && (
+                              <div key={i} className="flex flex-col p-2 bg-secondary/30 border-l-4 border-primary">
+                                <span className="text-[9px] text-primary font-bold uppercase mb-0.5">{stat.label}</span>
+                                <span className="font-serif text-base text-foreground">{stat.value}</span>
+                              </div>
                             ))}
                         </div>
 
-                        {/* Live Bidding Display */}
-                        <div className="w-full mt-4 p-3 border-2 border-primary bg-background/50 flex flex-col items-center lg:items-start">
-                             <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-1">Live Bidding Status</span>
-                             <div className="flex items-baseline gap-3">
-                                <span className="text-5xl font-mono font-black text-foreground">{currentBid}</span>
-                                <span className="text-xl font-serif text-primary">Lakh</span>
+                        <div className="w-full p-3 border-2 border-primary bg-background/50 flex flex-col items-center lg:items-start">
+                             <span className="text-[9px] font-bold text-primary uppercase mb-1">Live Bidding</span>
+                             <div className="flex items-baseline gap-2">
+                                <span className="text-4xl font-mono font-black text-foreground">{currentBid}</span>
+                                <span className="text-lg font-serif text-primary">Lakh</span>
                              </div>
-                             {!isSold && !isUnsold && (
-                                <div className="mt-1 flex items-center gap-2 text-muted-foreground text-xs font-medium">
-                                    <Plus className="h-3 w-3" /> Next Valid Bid: <span className="text-foreground font-bold">{currentBid + getIncrement(currentBid)} Lakh</span>
-                                </div>
-                             )}
                         </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center flex flex-col justify-center items-center space-y-6">
-                    <Gavel className="h-24 w-24 text-primary animate-bounce" />
-                    <h1 className="text-4xl sm:text-6xl font-bold font-serif text-primary">
+                  <div className="text-center flex flex-col justify-center items-center space-y-4">
+                    <Trophy className="h-16 w-16 text-primary" />
+                    <h1 className="text-4xl font-bold font-serif text-primary">
                       {undrawnPlayers.length > 0 ? 'Commence Bidding' : 'Auction Concluded'}
                     </h1>
-                     <p className="text-foreground/70 text-lg font-medium">
-                       {undrawnPlayers.length > 0 ? 'The hammer awaits the first lot.' : 'All portfolios have been allocated.'}
-                    </p>
                   </div>
                 )}
               </CardContent>
@@ -415,14 +423,13 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         </AnimatePresence>
       </div>
 
-      {/* Bidding Console Controls */}
       <div className="w-full max-w-4xl p-4 flex flex-col items-center gap-3 z-10">
         {currentPlayer && !isSold && !isUnsold ? (
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-2">
                 <Button
                     onClick={handleIncreaseBid}
                     size="lg"
-                    className="h-14 px-6 text-lg font-bold font-serif rounded-none border-4 border-primary shadow-xl hover:scale-105 transition-transform"
+                    className="h-12 px-6 font-bold font-serif rounded-none border-2 border-primary shadow-xl"
                 >
                     <Plus className="mr-2 h-5 w-5" /> Raise Bid ({getIncrement(currentBid)}L)
                 </Button>
@@ -430,59 +437,43 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                 <Button
                     onClick={() => { setTimer(30); setIsTimerActive(true); }}
                     variant="secondary"
-                    size="lg"
-                    className="h-14 px-6 text-lg font-bold font-serif rounded-none border-4 border-primary/30"
+                    className="h-12 px-6 font-bold font-serif rounded-none border-2 border-primary/30"
                 >
-                    <RefreshCw className="mr-2 h-5 w-5" /> Reset Clock
+                    <RefreshCw className="mr-2 h-5 w-5" /> Timer
                 </Button>
 
                 <Button
                     onClick={handleSold}
                     variant="destructive"
-                    size="lg"
-                    className="h-14 px-6 text-lg font-bold font-serif rounded-none border-4 border-destructive/50 shadow-xl"
+                    className="h-12 px-6 font-bold font-serif rounded-none border-2 border-destructive/50"
                 >
-                    <Gavel className="mr-2 h-5 w-5" /> Final Sold
+                    <Gavel className="mr-2 h-5 w-5" /> SOLD
                 </Button>
 
                 <Button
                     onClick={handleUnsold}
                     variant="ghost"
-                    size="lg"
-                    className="h-14 px-6 text-lg font-bold font-serif rounded-none border-4 border-destructive/20 text-destructive/70 hover:text-destructive hover:border-destructive"
+                    className="h-12 px-6 font-bold font-serif rounded-none border-2 border-destructive/20 text-destructive/70"
                 >
-                    <Ban className="mr-2 h-5 w-5" /> Unsold
+                    <Ban className="mr-2 h-5 w-5" /> UNSOLD
                 </Button>
             </div>
         ) : undrawnPlayers.length > 0 ? (
           <Button
             onClick={handleDrawPlayer}
             disabled={isDrawing}
-            size="lg"
-            className="h-16 w-72 text-2xl font-bold font-serif rounded-none border-4 border-primary shadow-2xl hover:scale-105 transition-transform"
+            className="h-14 w-64 text-xl font-bold font-serif rounded-none border-4 border-primary shadow-2xl"
           >
-            {isDrawing ? 'Consulting...' : drawnPlayers.length === 0 ? 'Reveal First Lot' : 'Next Lot'}
+            {isDrawing ? 'Consulting...' : 'Reveal Next Lot'}
           </Button>
         ) : (
-            <div className="flex flex-col items-center gap-3">
-                 <div className="flex items-center gap-2 text-primary font-serif text-xl mb-1">
-                    <Trophy className="h-6 w-6" /> Session Complete
-                </div>
-                <Button
-                    onClick={resetAuction}
-                    size="lg"
-                    variant="outline"
-                    className="h-14 w-72 text-xl font-bold font-serif rounded-none border-4"
-                >
-                    Restart Session
-                </Button>
-            </div>
-        )}
-        
-        {currentPlayer && (
-            <div className="px-4 py-1.5 bg-primary text-primary-foreground font-bold tracking-widest text-[10px] shadow-xl">
-                {undrawnPlayers.length} LOTS REMAINING IN SET
-            </div>
+            <Button
+                onClick={resetAuction}
+                variant="outline"
+                className="h-12 w-64 font-bold font-serif rounded-none border-2"
+            >
+                Restart Session
+            </Button>
         )}
       </div>
     </div>
