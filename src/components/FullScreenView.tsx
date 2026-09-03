@@ -154,11 +154,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     playSound('unsold');
   };
 
-  // Automated Hammer Sequence Logic
   useEffect(() => {
     if (finalCallStatus !== 'none' && !isSold && !isUnsold) {
-      const stepDuration = 2500; // 2.5 seconds per step
-      const timer = setTimeout(() => {
+      const stepDuration = 2500;
+      const hammerTimer = setTimeout(() => {
         if (finalCallStatus === 'once') {
           setFinalCallStatus('twice');
           playSound('tick');
@@ -170,7 +169,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         }
       }, stepDuration);
       
-      return () => clearTimeout(timer);
+      return () => clearTimeout(hammerTimer);
     }
   }, [finalCallStatus, isSold, isUnsold, handleSold, playSound]);
 
@@ -179,14 +178,14 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     const newBid = nextValidBid;
     setCurrentBid(newBid);
     setTimer(30);
-    setFinalCallStatus('none'); // Resets sequence on new bid
+    setFinalCallStatus('none');
     setIsTimerActive(true);
   };
 
   const startHammerSequence = () => {
     if (isSold || isUnsold || !currentPlayer) return;
     setFinalCallStatus('once');
-    setIsTimerActive(false); // Stop normal timer during hammer down
+    setIsTimerActive(false);
     playSound('tick');
   };
 
@@ -352,7 +351,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
               exit={{ opacity: 0, scale: 1.02 }}
               className="relative w-full max-w-[900px] bg-[#1a0202]/80 backdrop-blur-md p-1 shadow-2xl border border-primary/40"
             >
-              {/* Sold/Unsold Overlay - Digital Certificate Style */}
+              {/* Sold/Unsold Overlay */}
               <AnimatePresence>
                 {(isSold || isUnsold) && (
                     <motion.div 
@@ -479,14 +478,14 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                           </div>
 
                           {/* Auctioneer HUD */}
-                          <div className="flex flex-col items-center gap-4 border-l border-white/10 pl-6 ml-6">
+                          <div className="flex flex-col items-center gap-6 border-l border-white/10 pl-8 ml-6 min-w-[200px]">
                              {/* Timer Circle */}
                              {isTimerActive && !isSold && !isUnsold && finalCallStatus === 'none' && (
                                 <div className={cn(
-                                    "relative flex items-center justify-center transition-transform",
+                                    "relative flex items-center justify-center transition-transform scale-125",
                                     timer <= 5 && "animate-[shake_0.2s_infinite]"
                                 )}>
-                                    <svg className="w-16 h-16 transform -rotate-90">
+                                    <svg className="w-20 h-20 transform -rotate-90">
                                         <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-white/5" />
                                         <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="3" fill="transparent" 
                                             className={cn("transition-all duration-1000", timer <= 10 ? "text-red-600" : "text-primary")}
@@ -494,7 +493,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                         />
                                     </svg>
                                     <span className={cn(
-                                        "absolute font-bold text-xl font-mono",
+                                        "absolute font-bold text-2xl font-mono",
                                         timer <= 5 ? "text-red-600 scale-125" : "text-white"
                                     )}>
                                         {timer}
@@ -502,28 +501,40 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                 </div>
                              )}
 
-                             {/* Final Call Status Indicator */}
-                             <div className="flex flex-col items-center gap-1">
-                                <div className="flex gap-2">
+                             {/* Final Call Status Indicator - ENLARGED */}
+                             <div className="flex flex-col items-center gap-4 w-full">
+                                <div className="flex gap-3 justify-center">
                                     <div className={cn(
-                                        "w-8 h-2 rounded-full transition-all duration-300", 
-                                        finalCallStatus !== 'none' ? "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]" : "bg-white/10"
+                                        "w-12 h-3 rounded-full transition-all duration-500", 
+                                        finalCallStatus !== 'none' ? "bg-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.8)]" : "bg-white/10"
                                     )} />
                                     <div className={cn(
-                                        "w-8 h-2 rounded-full transition-all duration-300", 
-                                        finalCallStatus === 'twice' || finalCallStatus === 'final' ? "bg-orange-600 shadow-[0_0_10px_rgba(234,88,12,0.5)]" : "bg-white/10"
+                                        "w-12 h-3 rounded-full transition-all duration-500", 
+                                        finalCallStatus === 'twice' || finalCallStatus === 'final' ? "bg-orange-600 shadow-[0_0_20px_rgba(234,88,12,0.8)]" : "bg-white/10"
                                     )} />
                                     <div className={cn(
-                                        "w-8 h-2 rounded-full transition-all duration-300", 
-                                        finalCallStatus === 'final' ? "bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]" : "bg-white/10"
+                                        "w-12 h-3 rounded-full transition-all duration-500", 
+                                        finalCallStatus === 'final' ? "bg-red-600 shadow-[0_0_20px_rgba(220,38,38,0.8)]" : "bg-white/10"
                                     )} />
                                 </div>
-                                <span className={cn(
-                                    "text-[8px] font-black tracking-[0.4em] uppercase mt-2 text-center h-4",
-                                    finalCallStatus !== 'none' ? "text-primary animate-pulse" : "text-white/20"
-                                )}>
-                                    {finalCallStatus === 'none' ? 'Bidding' : finalCallStatus === 'once' ? 'Going Once' : finalCallStatus === 'twice' ? 'Going Twice' : 'Final Call'}
-                                </span>
+                                <div className="h-10 flex items-center justify-center w-full">
+                                    <AnimatePresence mode="wait">
+                                        {finalCallStatus !== 'none' && (
+                                            <motion.span 
+                                                key={finalCallStatus}
+                                                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                                                animate={{ opacity: 1, scale: 1.1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 1.2, y: -10 }}
+                                                className="text-lg font-black tracking-[0.4em] uppercase text-primary text-center whitespace-nowrap drop-shadow-[0_0_10px_rgba(255,204,0,0.5)]"
+                                            >
+                                                {finalCallStatus === 'once' ? 'GOING ONCE' : finalCallStatus === 'twice' ? 'GOING TWICE' : 'FINAL CALL'}
+                                            </motion.span>
+                                        )}
+                                        {finalCallStatus === 'none' && isTimerActive && (
+                                             <span className="text-xs font-black tracking-[0.5em] uppercase text-white/20 text-center">BIDDING ACTIVE</span>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                              </div>
                           </div>
                       </div>
