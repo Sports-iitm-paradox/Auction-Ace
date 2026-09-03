@@ -13,7 +13,7 @@ const Footer = () => {
             Krish Gupta
           </p>
           <p className="text-sm text-muted-foreground italic">
-            Deputy Core — Sports Department, IIT Madras Paradox
+            Sports Department, IIT Madras Paradox&apos;27
           </p>
         </div>
         
