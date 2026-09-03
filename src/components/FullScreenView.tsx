@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
-import { X, Gavel, Users, ChevronsLeft, ChevronsRight, Timer, Plus, RefreshCw, Trophy } from 'lucide-react';
+import { X, Gavel, Users, ChevronsLeft, ChevronsRight, Timer, Plus, RefreshCw, Trophy, Ban } from 'lucide-react';
 import { Player, PlayerSet } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -22,17 +22,23 @@ interface FullScreenViewProps {
     onReset: () => void;
 }
 
+interface DrawnPlayer extends Player {
+    status: 'sold' | 'unsold';
+    finalPrice?: number;
+}
+
 // Sound Effect URLs
 const SOUNDS = {
     REVEAL: 'https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-beep-221.mp3',
     SOLD: 'https://assets.mixkit.co/sfx/preview/mixkit-gavel-hammer-thump-2293.mp3',
     BUZZER: 'https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3',
-    TICK: 'https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3'
+    TICK: 'https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3',
+    UNSOLD: 'https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-947.mp3'
 };
 
 export default function FullScreenView({ players, set, onReset }: FullScreenViewProps) {
   const [undrawnPlayers, setUndrawnPlayers] = useState<Player[]>([...players]);
-  const [drawnPlayers, setDrawnPlayers] = useState<Player[]>([]);
+  const [drawnPlayers, setDrawnPlayers] = useState<DrawnPlayer[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -43,6 +49,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   const [timer, setTimer] = useState<number>(30);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isSold, setIsSold] = useState(false);
+  const [isUnsold, setIsUnsold] = useState(false);
 
   const drawingInterval = useRef<NodeJS.Timeout>();
   const timerInterval = useRef<NodeJS.Timeout>();
@@ -54,6 +61,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     sold: typeof Audio !== 'undefined' ? new Audio(SOUNDS.SOLD) : null,
     buzzer: typeof Audio !== 'undefined' ? new Audio(SOUNDS.BUZZER) : null,
     tick: typeof Audio !== 'undefined' ? new Audio(SOUNDS.TICK) : null,
+    unsold: typeof Audio !== 'undefined' ? new Audio(SOUNDS.UNSOLD) : null,
   });
 
   const playSound = (key: string) => {
@@ -103,6 +111,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setIsDrawing(true);
     setCurrentPlayer(null);
     setIsSold(false);
+    setIsUnsold(false);
     setIsTimerActive(false);
     setTimer(30);
 
@@ -118,7 +127,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       
       setCurrentPlayer(newDrawnPlayer);
       setCurrentBid(newDrawnPlayer.reservePrice || 0);
-      setDrawnPlayers(prev => [newDrawnPlayer, ...prev]);
       setUndrawnPlayers(prev => prev.filter(p => p.id !== newDrawnPlayer.id));
       setIsDrawing(false);
       playSound('reveal');
@@ -139,7 +147,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   };
 
   const handleIncreaseBid = () => {
-    if (isSold) return;
+    if (isSold || isUnsold) return;
     const inc = getIncrement(currentBid);
     setCurrentBid(prev => prev + inc);
     setTimer(30);
@@ -147,9 +155,19 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   };
 
   const handleSold = () => {
+    if (!currentPlayer) return;
     setIsSold(true);
     setIsTimerActive(false);
+    setDrawnPlayers(prev => [{ ...currentPlayer, status: 'sold', finalPrice: currentBid } as DrawnPlayer, ...prev]);
     playSound('sold');
+  };
+
+  const handleUnsold = () => {
+    if (!currentPlayer) return;
+    setIsUnsold(true);
+    setIsTimerActive(false);
+    setDrawnPlayers(prev => [{ ...currentPlayer, status: 'unsold' } as DrawnPlayer, ...prev]);
+    playSound('unsold');
   };
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -157,15 +175,17 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         event.preventDefault();
         if (!currentPlayer) {
             handleDrawPlayer();
-        } else if (!isSold) {
+        } else if (!isSold && !isUnsold) {
             handleIncreaseBid();
         }
       } else if (event.key === 'Escape') {
         router.push('/');
-      } else if (event.key === 's' && currentPlayer && !isSold) {
+      } else if (event.key === 's' && currentPlayer && !isSold && !isUnsold) {
         handleSold();
+      } else if (event.key === 'u' && currentPlayer && !isSold && !isUnsold) {
+        handleUnsold();
       }
-    }, [handleDrawPlayer, router, currentPlayer, isSold]
+    }, [handleDrawPlayer, router, currentPlayer, isSold, isUnsold]
   );
 
   useEffect(() => {
@@ -211,13 +231,23 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
           >
             <div className="h-full w-full bg-card/95 backdrop-blur-md border-r-4 border-primary p-4 space-y-4 shadow-2xl">
               <h3 className="text-2xl font-bold text-primary font-serif border-b-2 border-primary pb-2">
-                Sold Roster
+                Lot Roster
               </h3>
               <ul className="space-y-2 h-[calc(100%-4rem)] overflow-y-auto pr-2 custom-scrollbar">
                 {drawnPlayers.map((player, index) => (
-                  <li key={player.id} className="flex items-center gap-3 p-3 rounded-none bg-secondary/50 border border-primary/30">
-                    <span className="text-xs font-bold text-primary">{drawnPlayers.length - index}.</span>
-                    <span className="font-medium truncate text-foreground">{player.playerName}</span>
+                  <li key={player.id} className={cn(
+                      "flex flex-col gap-1 p-3 border",
+                      player.status === 'sold' ? "bg-primary/10 border-primary" : "bg-destructive/10 border-destructive/50"
+                  )}>
+                    <div className="flex items-center gap-2">
+                        <span className={cn("text-[10px] font-bold px-1 rounded-sm uppercase", player.status === 'sold' ? "bg-primary text-primary-foreground" : "bg-destructive text-destructive-foreground")}>
+                            {player.status}
+                        </span>
+                        <span className="font-medium truncate text-foreground text-sm">{player.playerName}</span>
+                    </div>
+                    {player.status === 'sold' && (
+                        <span className="text-xs font-mono text-primary font-bold">{player.finalPrice} Lakh</span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -261,10 +291,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
             className="w-full"
           >
             <Card className="w-full ornate-border bg-card/90 backdrop-blur-md shadow-[0_0_60px_rgba(0,0,0,0.6)]">
-              <CardContent className="p-6 sm:p-10 w-full relative">
+              <CardContent className="p-6 sm:p-10 w-full relative min-h-[500px] flex items-center justify-center">
                 
                 {/* Timer Overlay */}
-                {currentPlayer && !isSold && isTimerActive && (
+                {currentPlayer && !isSold && !isUnsold && isTimerActive && (
                     <div className="absolute top-4 right-4 flex flex-col items-center">
                         <div className={cn(
                             "w-16 h-16 rounded-full border-4 flex items-center justify-center font-bold text-2xl transition-colors",
@@ -276,24 +306,32 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                     </div>
                 )}
 
-                {/* Sold Overlay */}
-                {isSold && (
+                {/* Status Overlays */}
+                {(isSold || isUnsold) && (
                     <motion.div 
                         initial={{ opacity: 0, scale: 2 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className="absolute inset-0 z-50 flex items-center justify-center bg-background/40 backdrop-blur-sm pointer-events-none"
                     >
-                        <div className="border-8 border-primary p-8 rotate-[-12deg] bg-card shadow-2xl">
-                            <h2 className="text-8xl font-serif font-black text-primary uppercase tracking-tighter">SOLD</h2>
+                        <div className={cn(
+                            "border-8 p-8 rotate-[-12deg] bg-card shadow-2xl",
+                            isSold ? "border-primary" : "border-destructive"
+                        )}>
+                            <h2 className={cn(
+                                "text-8xl font-serif font-black uppercase tracking-tighter",
+                                isSold ? "text-primary" : "text-destructive"
+                            )}>
+                                {isSold ? 'SOLD' : 'UNSOLD'}
+                            </h2>
                         </div>
                     </motion.div>
                 )}
 
                 {isDrawing ? (
-                   <div className="text-center min-h-[450px] flex flex-col justify-center items-center">
+                   <div className="text-center flex flex-col justify-center items-center">
                       <div className="w-32 h-32 border-4 border-primary border-t-transparent animate-spin rounded-full mb-8" />
                       <h1 className="text-6xl sm:text-8xl text-primary font-bold font-serif animate-pulse">
-                        Choosing...
+                        Consulting...
                       </h1>
                     </div>
                 ) : currentPlayer ? (
@@ -352,7 +390,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                 <span className="text-6xl font-mono font-black text-foreground">{currentBid}</span>
                                 <span className="text-2xl font-serif text-primary">Lakh</span>
                              </div>
-                             {!isSold && (
+                             {!isSold && !isUnsold && (
                                 <div className="mt-2 flex items-center gap-2 text-muted-foreground text-sm font-medium">
                                     <Plus className="h-4 w-4" /> Next Valid Bid: <span className="text-foreground font-bold">{currentBid + getIncrement(currentBid)} Lakh</span>
                                 </div>
@@ -361,7 +399,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center min-h-[450px] flex flex-col justify-center items-center space-y-8">
+                  <div className="text-center flex flex-col justify-center items-center space-y-8">
                     <Gavel className="h-32 w-32 text-primary animate-bounce" />
                     <h1 className="text-5xl sm:text-7xl font-bold font-serif text-primary">
                       {undrawnPlayers.length > 0 ? 'Commence Bidding' : 'Auction Concluded'}
@@ -379,7 +417,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
       {/* Bidding Console Controls */}
       <div className="w-full max-w-4xl p-6 flex flex-col items-center gap-4 z-10">
-        {currentPlayer && !isSold ? (
+        {currentPlayer && !isSold && !isUnsold ? (
             <div className="flex flex-wrap justify-center gap-4">
                 <Button
                     onClick={handleIncreaseBid}
@@ -406,6 +444,15 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                 >
                     <Gavel className="mr-2 h-6 w-6" /> Final Sold
                 </Button>
+
+                <Button
+                    onClick={handleUnsold}
+                    variant="ghost"
+                    size="lg"
+                    className="h-16 px-8 text-xl font-bold font-serif rounded-none border-4 border-destructive/20 text-destructive/70 hover:text-destructive hover:border-destructive"
+                >
+                    <Ban className="mr-2 h-6 w-6" /> Unsold
+                </Button>
             </div>
         ) : undrawnPlayers.length > 0 ? (
           <Button
@@ -419,7 +466,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         ) : (
             <div className="flex flex-col items-center gap-4">
                  <div className="flex items-center gap-2 text-primary font-serif text-2xl mb-2">
-                    <Trophy className="h-8 w-8" /> Final Results Pending
+                    <Trophy className="h-8 w-8" /> Session Complete
                 </div>
                 <Button
                     onClick={resetAuction}
@@ -441,4 +488,3 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     </div>
   );
 }
-
