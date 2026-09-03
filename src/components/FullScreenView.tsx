@@ -180,7 +180,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   }, [handleKeyDown]);
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-between py-4 px-4 bg-[#2b0303] sunburst-bg select-none overflow-hidden h-screen">
+    <div className="fixed inset-0 flex flex-col items-center justify-between bg-[#2b0303] sunburst-bg select-none overflow-hidden h-screen text-foreground">
       
       {/* Sidebar Roster */}
       <AnimatePresence>
@@ -207,6 +207,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         )}
       </AnimatePresence>
 
+      {/* Navigation Buttons */}
       <div className={cn('absolute top-1/2 -translate-y-1/2 z-40 transition-all', isSidebarOpen ? 'left-72' : 'left-0')}>
         <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="w-10 h-16 bg-primary text-primary-foreground flex items-center justify-center rounded-r-xl shadow-lg hover:brightness-110 transition-all">
           {isSidebarOpen ? <ChevronsLeft size={20} /> : <ChevronsRight size={20} />}
@@ -220,7 +221,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       </div>
 
       {/* Main UI Container */}
-      <div className="flex-1 flex items-center justify-center w-full max-w-7xl px-4">
+      <div className="flex-1 flex items-center justify-center w-full max-w-7xl px-4 py-8">
         <AnimatePresence mode="wait">
           {!isDrawing && currentPlayer ? (
             <motion.div 
@@ -228,10 +229,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
               initial={{ opacity: 0, scale: 0.98 }} 
               animate={{ opacity: 1, scale: 1 }} 
               exit={{ opacity: 0, scale: 1.02 }}
-              className="relative w-full max-w-[1100px] border-[1px] border-primary/40 bg-[#1a0202]/60 p-1 backdrop-blur-sm"
+              className="relative w-full max-w-[1100px] max-h-[85vh] border-[1px] border-primary/40 bg-[#1a0202]/60 p-1 backdrop-blur-sm"
             >
-              {/* Inner Double Border Frame */}
-              <div className="border-[1px] border-primary/60 p-8 lg:p-12">
+              {/* Inner Frame */}
+              <div className="border-[1px] border-primary/60 p-6 lg:p-10 flex flex-col lg:flex-row gap-8 lg:gap-12 items-center lg:items-start justify-center overflow-hidden">
                 
                 {/* Status Overlay */}
                 {(isSold || isUnsold) && (
@@ -242,103 +243,94 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                   </motion.div>
                 )}
 
-                <div className="flex flex-col lg:flex-row gap-12 items-start justify-center">
+                {/* Left Column: Photo Area */}
+                <div className="flex flex-col items-center shrink-0">
+                  <div className="p-1 border-[1px] border-primary/80 bg-black/40">
+                      <div className="border-[1px] border-primary/40 p-2">
+                           <div className="relative w-[200px] lg:w-[280px] aspect-[3/4] overflow-hidden bg-[#2a0303]">
+                              {currentPlayer.imageUrl ? (
+                                  <Image src={currentPlayer.imageUrl} alt={currentPlayer.playerName} fill className="object-cover" />
+                              ) : (
+                                  <div className="w-full h-full flex items-center justify-center font-serif text-9xl text-primary/5">?</div>
+                              )}
+                           </div>
+                      </div>
+                  </div>
+                  <div className="mt-4 bg-primary px-4 py-1.5">
+                      <span className="text-[10px] lg:text-xs font-black tracking-widest text-primary-foreground uppercase">LIST SR.NO {currentPlayer.playerNumber}</span>
+                  </div>
+                </div>
+
+                {/* Right Column: Profile & Bidding */}
+                <div className="flex-1 flex flex-col gap-6 w-full overflow-hidden">
                   
-                  {/* Left Column: Photo Area */}
-                  <div className="flex flex-col items-center shrink-0">
-                    <div className="p-1 border-[1px] border-primary/80 bg-black/40">
-                        <div className="border-[1px] border-primary/40 p-2">
-                             <div className="relative w-[220px] lg:w-[320px] aspect-[3/4] overflow-hidden bg-[#2a0303]">
-                                {currentPlayer.imageUrl ? (
-                                    <Image src={currentPlayer.imageUrl} alt={currentPlayer.playerName} fill className="object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center font-serif text-9xl text-primary/5">?</div>
-                                )}
-                             </div>
-                        </div>
-                    </div>
-                    <div className="mt-4 bg-primary px-4 py-1.5">
-                        <span className="text-[10px] lg:text-xs font-black tracking-widest text-primary-foreground uppercase">LIST SR.NO {currentPlayer.playerNumber}</span>
-                    </div>
+                  {/* Header */}
+                  <div className="text-center lg:text-left">
+                    <p className="text-[10px] lg:text-xs text-primary font-black tracking-[0.4em] mb-2 uppercase opacity-80">LOT PROFILE</p>
+                    <h1 className="text-3xl lg:text-5xl font-serif font-bold text-white uppercase tracking-tight leading-tight line-clamp-2">{currentPlayer.playerName}</h1>
                   </div>
 
-                  {/* Right Column: Profile & Bidding */}
-                  <div className="flex-1 flex flex-col gap-6 w-full">
-                    
-                    {/* Header */}
-                    <div>
-                      <p className="text-[10px] lg:text-xs text-primary font-black tracking-[0.4em] mb-2 uppercase opacity-80">LOT PROFILE</p>
-                      <h1 className="text-4xl lg:text-6xl font-serif font-bold text-white uppercase tracking-tight leading-tight">{currentPlayer.playerName}</h1>
-                    </div>
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-2 gap-3">
+                      {[
+                          { label: 'ORIGIN', value: currentPlayer.country },
+                          { label: 'SPECIALISM', value: currentPlayer.specialism },
+                          { label: 'CATEGORY', value: currentPlayer.cua },
+                          { label: 'POINTS', value: currentPlayer.points },
+                          { label: 'RESERVE PRICE', value: `${currentPlayer.reservePrice} LAKH` },
+                      ].map((s, i) => (
+                          <div key={i} className="bg-black/40 border-l-2 border-primary/40 p-3 lg:p-4">
+                              <span className="text-[8px] lg:text-[10px] text-primary/70 font-black tracking-[0.3em] block mb-1 uppercase">{s.label}</span>
+                              <span className="font-serif text-sm lg:text-xl text-white uppercase tracking-wide truncate block">{s.value || 'N/A'}</span>
+                          </div>
+                      ))}
+                  </div>
 
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-2 gap-4">
-                        {[
-                            { label: 'ORIGIN', value: currentPlayer.country },
-                            { label: 'SPECIALISM', value: currentPlayer.specialism },
-                            { label: 'CATEGORY', value: currentPlayer.cua },
-                            { label: 'POINTS', value: currentPlayer.points },
-                        ].map((s, i) => (
-                            <div key={i} className="bg-black/40 border-l-2 border-primary/40 p-3 lg:p-4">
-                                <span className="text-[9px] lg:text-[10px] text-primary/70 font-black tracking-[0.3em] block mb-1 uppercase">{s.label}</span>
-                                <span className="font-serif text-lg lg:text-2xl text-white uppercase tracking-wide">{s.value || 'N/A'}</span>
-                            </div>
-                        ))}
-                    </div>
+                  {/* Live Bidding Box */}
+                  <div className="mt-2 border-[1px] border-primary/50 bg-[#1a0202]/80 p-5 lg:p-7 shadow-inner relative overflow-hidden">
+                      <div className="relative z-10 flex items-center justify-between">
+                          <div>
+                              <span className="text-[10px] lg:text-xs text-primary font-black tracking-[0.4em] block mb-2 uppercase">LIVE BIDDING STATUS</span>
+                              <div className="flex items-baseline gap-3">
+                                  <span className="text-5xl lg:text-7xl font-mono font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">{currentBid}</span>
+                                  <span className="text-xl lg:text-2xl font-serif text-primary font-bold italic">LAKH</span>
+                              </div>
+                              {!isSold && !isUnsold && (
+                                  <div className="mt-3 flex items-center gap-2">
+                                      <Plus size={12} className="text-primary" />
+                                      <p className="text-[9px] lg:text-xs text-white/60 font-bold uppercase tracking-widest">
+                                          Next Valid Bid: <span className="text-primary font-mono ml-1">{nextValidBid} Lakh</span>
+                                      </p>
+                                  </div>
+                              )}
+                          </div>
 
-                    {/* Reserve Price (Standalone Box) */}
-                    <div className="bg-black/40 border-l-2 border-primary/40 p-3 lg:p-4">
-                        <span className="text-[9px] lg:text-[10px] text-primary/70 font-black tracking-[0.3em] block mb-1 uppercase">RESERVE PRICE</span>
-                        <span className="font-serif text-lg lg:text-2xl text-white uppercase tracking-wide">{currentPlayer.reservePrice} LAKH</span>
-                    </div>
-
-                    {/* Live Bidding Box */}
-                    <div className="mt-2 border-[1px] border-primary/50 bg-[#1a0202]/80 p-6 lg:p-8 shadow-inner relative overflow-hidden">
-                        <div className="relative z-10 flex items-center justify-between">
-                            <div>
-                                <span className="text-[10px] lg:text-xs text-primary font-black tracking-[0.4em] block mb-3 uppercase">LIVE BIDDING STATUS</span>
-                                <div className="flex items-baseline gap-4">
-                                    <span className="text-6xl lg:text-8xl font-mono font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">{currentBid}</span>
-                                    <span className="text-2xl lg:text-3xl font-serif text-primary font-bold italic">LAKH</span>
-                                </div>
-                                {!isSold && !isUnsold && (
-                                    <div className="mt-4 flex items-center gap-2">
-                                        <Plus size={12} className="text-primary" />
-                                        <p className="text-[10px] lg:text-xs text-white/60 font-bold uppercase tracking-widest">
-                                            Next Valid Bid: <span className="text-primary font-mono ml-1">{nextValidBid} Lakh</span>
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Circular Timer */}
-                            {isTimerActive && !isSold && !isUnsold && (
-                                <div className="relative flex items-center justify-center">
-                                    <svg className="w-16 h-16 lg:w-20 lg:h-20 transform -rotate-90">
-                                        <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/10" />
-                                        <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="4" fill="transparent" 
-                                            className={cn("transition-all duration-1000", timer <= 10 ? "text-red-600" : "text-primary")}
-                                            strokeDasharray="251" strokeDashoffset={251 - (251 * timer) / 30}
-                                        />
-                                    </svg>
-                                    <span className={cn("absolute font-bold text-xl lg:text-2xl", timer <= 10 ? "text-red-600 animate-pulse" : "text-white")}>
-                                        {timer}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
+                          {/* Circular Timer */}
+                          {isTimerActive && !isSold && !isUnsold && (
+                              <div className="relative flex items-center justify-center scale-90 lg:scale-100">
+                                  <svg className="w-16 h-16 lg:w-20 lg:h-20 transform -rotate-90">
+                                      <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/10" />
+                                      <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="4" fill="transparent" 
+                                          className={cn("transition-all duration-1000", timer <= 10 ? "text-red-600" : "text-primary")}
+                                          strokeDasharray="251" strokeDashoffset={251 - (251 * timer) / 30}
+                                      />
+                                  </svg>
+                                  <span className={cn("absolute font-bold text-xl lg:text-2xl", timer <= 10 ? "text-red-600 animate-pulse" : "text-white")}>
+                                      {timer}
+                                  </span>
+                              </div>
+                          )}
+                      </div>
                   </div>
                 </div>
               </div>
             </motion.div>
           ) : isDrawing ? (
             <div className="flex flex-col items-center gap-8 py-20">
-              <div className="w-24 h-24 border-8 border-primary border-t-transparent animate-spin rounded-full shadow-[0_0_30px_rgba(255,204,0,0.3)]" />
+              <div className="w-20 h-20 border-8 border-primary border-t-transparent animate-spin rounded-full shadow-[0_0_30px_rgba(255,204,0,0.3)]" />
               <div className="text-center space-y-2">
-                <h1 className="text-4xl lg:text-6xl text-primary font-black font-serif uppercase tracking-[0.3em] animate-pulse">REVEALING LOT</h1>
-                <p className="text-primary/40 text-sm font-bold tracking-[0.5em] uppercase">Consulting Official Database...</p>
+                <h1 className="text-4xl lg:text-5xl text-primary font-black font-serif uppercase tracking-[0.3em] animate-pulse">REVEALING LOT</h1>
+                <p className="text-primary/40 text-xs font-bold tracking-[0.5em] uppercase">Consulting Official Database...</p>
               </div>
             </div>
           ) : (
@@ -356,30 +348,30 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       </div>
 
       {/* Control Actions & HUD */}
-      <div className="w-full max-w-5xl mx-auto flex flex-col items-center gap-6 pb-6">
+      <div className="w-full max-w-5xl mx-auto flex flex-col items-center gap-6 pb-10 px-4">
         
-        <div className="flex flex-wrap items-center justify-center gap-4 w-full">
+        <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 w-full">
           {currentPlayer && !isSold && !isUnsold ? (
             <>
-              <Button onClick={handleIncreaseBid} size="lg" className="h-16 px-10 font-serif font-black text-xl lg:text-2xl rounded-none bg-primary text-primary-foreground tracking-widest uppercase shadow-xl hover:scale-105 transition-transform">
+              <Button onClick={handleIncreaseBid} size="lg" className="h-12 lg:h-14 px-8 font-serif font-black text-lg lg:text-xl rounded-none bg-primary text-primary-foreground tracking-widest uppercase shadow-xl hover:scale-105 transition-transform">
                 + RAISE BID ({getIncrement(currentBid)}L)
               </Button>
-              <Button onClick={() => { setTimer(30); setIsTimerActive(true); }} variant="outline" className="h-16 px-8 font-black rounded-none border-primary/40 bg-[#1a0202] text-white uppercase text-xs tracking-[0.2em] hover:bg-primary/20 transition-all">
-                <RefreshCw className="mr-3 h-5 w-5"/> RESET CLOCK
+              <Button onClick={() => { setTimer(30); setIsTimerActive(true); }} variant="outline" className="h-12 lg:h-14 px-6 font-black rounded-none border-primary/40 bg-[#1a0202] text-white uppercase text-[10px] tracking-[0.2em] hover:bg-primary/20 transition-all">
+                <RefreshCw className="mr-2 h-4 w-4"/> RESET CLOCK
               </Button>
-              <Button onClick={handleSold} className="h-16 px-10 font-serif font-black text-xl lg:text-2xl rounded-none bg-[#e63946] text-white tracking-widest uppercase shadow-xl hover:scale-105 transition-transform">
-                <Gavel className="mr-3 h-6 w-6"/> FINAL SOLD
+              <Button onClick={handleSold} className="h-12 lg:h-14 px-8 font-serif font-black text-lg lg:text-xl rounded-none bg-[#e63946] text-white tracking-widest uppercase shadow-xl hover:scale-105 transition-transform">
+                <Gavel className="mr-2 h-5 w-5"/> FINAL SOLD
               </Button>
-              <Button onClick={handleUnsold} variant="outline" className="h-16 px-8 font-black rounded-none border-red-600/40 text-red-500 bg-[#1a0202] text-xs tracking-[0.2em] uppercase hover:bg-red-950 transition-all">
-                <Ban className="mr-3 h-5 w-5"/> UNSOLD
+              <Button onClick={handleUnsold} variant="outline" className="h-12 lg:h-14 px-6 font-black rounded-none border-red-600/40 text-red-500 bg-[#1a0202] text-[10px] tracking-[0.2em] uppercase hover:bg-red-950 transition-all">
+                <Ban className="mr-2 h-4 w-4"/> UNSOLD
               </Button>
             </>
           ) : undrawnPlayers.length > 0 ? (
-            <Button onClick={handleDrawPlayer} disabled={isDrawing} className="h-16 w-[400px] text-2xl font-black font-serif border-4 border-primary bg-primary text-primary-foreground tracking-widest uppercase shadow-2xl hover:scale-105 transition-transform">
+            <Button onClick={handleDrawPlayer} disabled={isDrawing} className="h-14 lg:h-16 w-full max-w-[400px] text-xl lg:text-2xl font-black font-serif border-4 border-primary bg-primary text-primary-foreground tracking-widest uppercase shadow-2xl hover:scale-105 transition-transform">
               {isDrawing ? 'DRAWING...' : 'REVEAL NEXT LOT'}
             </Button>
           ) : (
-            <Button onClick={resetAuction} variant="outline" className="h-16 w-80 font-black border-primary/30 text-primary bg-black/40 uppercase tracking-widest text-lg hover:bg-primary hover:text-primary-foreground transition-all">RESTART SESSION</Button>
+            <Button onClick={resetAuction} variant="outline" className="h-14 w-80 font-black border-primary/30 text-primary bg-black/40 uppercase tracking-widest text-lg hover:bg-primary hover:text-primary-foreground transition-all">RESTART SESSION</Button>
           )}
         </div>
 
@@ -388,7 +380,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
           <div className="bg-primary px-8 py-2 text-primary-foreground text-[10px] lg:text-xs font-black uppercase tracking-[0.4em] shadow-lg rounded-sm">
             {undrawnPlayers.length} LOTS REMAINING IN SET
           </div>
-          <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.5em] mt-2">SAAVAN '26 • IIT MADRAS PARADOX</p>
+          <p className="text-[9px] text-white/20 font-black uppercase tracking-[0.5em] mt-1">SAAVAN '26 • IIT MADRAS PARADOX</p>
         </div>
       </div>
     </div>
