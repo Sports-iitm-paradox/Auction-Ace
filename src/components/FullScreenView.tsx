@@ -17,6 +17,8 @@ import {
 import Image from 'next/image';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface FullScreenViewProps {
     players: Player[];
@@ -85,7 +87,17 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       updatedAt: serverTimestamp(),
       ...overrides
     };
-    setDoc(auctionRef, state, { merge: true });
+    
+    // Mutation: setDoc with error handling
+    setDoc(auctionRef, state, { merge: true })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: auctionRef.path,
+          operation: 'write',
+          requestResourceData: state,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      });
   }, [firestore, set.id, currentPlayer, currentBid, isSold, isUnsold, isDrawing]);
 
   useEffect(() => {

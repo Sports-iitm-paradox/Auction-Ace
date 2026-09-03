@@ -12,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Upload, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import Papa from 'papaparse';
 import { useRouter } from 'next/navigation';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 export default function ImportPage() {
   const { user } = useUser();
@@ -121,7 +123,14 @@ export default function ImportPage() {
             setCount++;
           }
           
-          await batch.commit();
+          await batch.commit().catch(async (e) => {
+             const permissionError = new FirestorePermissionError({
+                path: 'batch-import',
+                operation: 'write',
+             } satisfies SecurityRuleContext);
+             errorEmitter.emit('permission-error', permissionError);
+             throw e;
+          });
 
           toast({
             title: 'Import Successful',
@@ -134,15 +143,17 @@ export default function ImportPage() {
           router.push('/');
 
         } catch (error: any) {
-          console.error('Import error:', error);
-          toast({
-            title: 'Import Failed',
-            description: error.message || 'An unknown error occurred.',
-            variant: 'destructive',
-             action: (
-               <AlertTriangle className="text-red-500" />
-            )
-          });
+          // General errors already handled or rethrown for batch commit above
+          if (!(error instanceof FirestorePermissionError)) {
+             toast({
+              title: 'Import Failed',
+              description: error.message || 'An unknown error occurred.',
+              variant: 'destructive',
+               action: (
+                 <AlertTriangle className="text-red-500" />
+              )
+            });
+          }
         } finally {
           setIsProcessing(false);
         }
