@@ -1,13 +1,15 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { X, Gavel, ChevronsLeft, ChevronsRight, Trophy, Ban, RefreshCw, Plus } from 'lucide-react';
+import { X, Gavel, ChevronsLeft, ChevronsRight, Trophy, Ban, RefreshCw, Plus, TrendingUp, Heart } from 'lucide-react';
 import { Player, PlayerSet } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { Line, LineChart, ResponsiveContainer, YAxis } from 'recharts';
 
 interface FullScreenViewProps {
     players: Player[];
@@ -25,7 +27,8 @@ const SOUNDS = {
     SOLD: 'https://assets.mixkit.co/sfx/preview/mixkit-gavel-hammer-thump-2293.mp3',
     BUZZER: 'https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3',
     TICK: 'https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3',
-    UNSOLD: 'https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-947.mp3'
+    UNSOLD: 'https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-947.mp3',
+    HEARTBEAT: 'https://assets.mixkit.co/sfx/preview/mixkit-human-heart-beat-493.mp3'
 };
 
 export default function FullScreenView({ players, set, onReset }: FullScreenViewProps) {
@@ -37,6 +40,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   const router = useRouter();
   
   const [currentBid, setCurrentBid] = useState<number>(0);
+  const [bidHistory, setBidHistory] = useState<{ value: number }[]>([]);
   const [timer, setTimer] = useState<number>(30);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isSold, setIsSold] = useState(false);
@@ -51,6 +55,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     buzzer: typeof Audio !== 'undefined' ? new Audio(SOUNDS.BUZZER) : null,
     tick: typeof Audio !== 'undefined' ? new Audio(SOUNDS.TICK) : null,
     unsold: typeof Audio !== 'undefined' ? new Audio(SOUNDS.UNSOLD) : null,
+    heartbeat: typeof Audio !== 'undefined' ? new Audio(SOUNDS.HEARTBEAT) : null,
   });
 
   const playSound = (key: string) => {
@@ -72,6 +77,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         timerInterval.current = setInterval(() => {
             setTimer(prev => {
                 if (prev <= 6 && prev > 1) playSound('tick');
+                if (prev <= 5 && prev > 1) playSound('heartbeat');
                 if (prev === 1) playSound('buzzer');
                 return prev - 1;
             });
@@ -101,8 +107,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setIsUnsold(false);
     setIsTimerActive(false);
     setTimer(30);
-
-    drawingInterval.current = setInterval(() => {}, 100);
+    setBidHistory([]);
 
     setTimeout(() => {
       stopDrawingAnimation();
@@ -111,6 +116,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       
       setCurrentPlayer(newDrawnPlayer);
       setCurrentBid(newDrawnPlayer.reservePrice || 0);
+      setBidHistory([{ value: newDrawnPlayer.reservePrice || 0 }]);
       setUndrawnPlayers(prev => prev.filter(p => p.id !== newDrawnPlayer.id));
       setIsDrawing(false);
       playSound('reveal');
@@ -124,6 +130,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         setCurrentBid(0);
         setIsSold(false);
         setIsUnsold(false);
+        setBidHistory([]);
     }
   };
 
@@ -138,7 +145,9 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
   const handleIncreaseBid = () => {
     if (isSold || isUnsold) return;
-    setCurrentBid(nextValidBid);
+    const newBid = nextValidBid;
+    setCurrentBid(newBid);
+    setBidHistory(prev => [...prev, { value: newBid }]);
     setTimer(30);
     setIsTimerActive(true);
   };
@@ -158,6 +167,8 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setDrawnPlayers(prev => [{ ...currentPlayer, status: 'unsold' } as DrawnPlayer, ...prev]);
     playSound('unsold');
   };
+
+  const isHighStakes = currentBid >= 500;
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
       if (event.key === ' ' && !isDrawing) {
@@ -180,8 +191,16 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   }, [handleKeyDown]);
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-between bg-[#2b0303] sunburst-bg select-none overflow-hidden h-screen text-foreground">
+    <div className={cn(
+        "fixed inset-0 flex flex-col items-center justify-between transition-colors duration-1000 select-none overflow-hidden h-screen text-foreground",
+        isHighStakes ? "bg-[#1a0505] shadow-[inset_0_0_150px_rgba(255,165,0,0.2)]" : "bg-[#2b0303] sunburst-bg"
+    )}>
       
+      {/* High Stakes Particles Overlay */}
+      {isHighStakes && !isSold && !isUnsold && (
+        <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://picsum.photos/seed/gold-sparks/1200/800')] bg-cover mix-blend-screen animate-pulse" />
+      )}
+
       {/* Sidebar Roster */}
       <AnimatePresence>
         {isSidebarOpen && (
@@ -221,7 +240,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       </div>
 
       {/* Main UI Container */}
-      <div className="flex-1 flex items-center justify-center w-full max-w-7xl px-4 py-8">
+      <div className="flex-1 flex items-center justify-center w-full max-w-7xl px-4">
         <AnimatePresence mode="wait">
           {!isDrawing && currentPlayer ? (
             <motion.div 
@@ -229,25 +248,51 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
               initial={{ opacity: 0, scale: 0.98 }} 
               animate={{ opacity: 1, scale: 1 }} 
               exit={{ opacity: 0, scale: 1.02 }}
-              className="relative w-full max-w-[1100px] max-h-[85vh] border-[1px] border-primary/40 bg-[#1a0202]/60 p-1 backdrop-blur-sm"
+              className={cn(
+                "relative w-full max-w-[1000px] border-[1px] p-1 backdrop-blur-sm transition-all duration-500",
+                isHighStakes ? "border-orange-500/60 bg-[#1a0202]/80 shadow-[0_0_50px_rgba(255,140,0,0.1)]" : "border-primary/40 bg-[#1a0202]/60"
+              )}
             >
-              {/* Inner Frame */}
-              <div className="border-[1px] border-primary/60 p-6 lg:p-10 flex flex-col lg:flex-row gap-8 lg:gap-12 items-center lg:items-start justify-center overflow-hidden">
-                
-                {/* Status Overlay */}
+              {/* Sold/Unsold Overlay */}
+              <AnimatePresence>
                 {(isSold || isUnsold) && (
-                  <motion.div initial={{ scale: 2, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none bg-black/20 backdrop-blur-[2px]">
-                    <div className={cn("border-8 p-10 -rotate-12 bg-black/80 shadow-[0_0_50px_rgba(0,0,0,0.8)]", isSold ? "border-primary text-primary" : "border-red-600 text-red-600")}>
-                      <h2 className="text-7xl lg:text-9xl font-black uppercase tracking-tight">{isSold ? 'SOLD' : 'UNSOLD'}</h2>
-                    </div>
-                  </motion.div>
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 1.1 }} 
+                        animate={{ opacity: 1, scale: 1 }} 
+                        className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
+                    >
+                        <div className={cn(
+                            "relative p-12 border-4 rotate-[-6deg] bg-[#1a0202] shadow-[0_0_100px_rgba(0,0,0,1)] flex flex-col items-center",
+                            isSold ? "border-primary" : "border-red-600"
+                        )}>
+                            <div className="absolute -top-6 -right-6">
+                                {isSold ? <Trophy size={64} className="text-primary drop-shadow-lg" /> : <Ban size={64} className="text-red-600 drop-shadow-lg" />}
+                            </div>
+                            <h2 className={cn(
+                                "text-8xl font-black uppercase tracking-tighter italic",
+                                isSold ? "text-primary" : "text-red-600"
+                            )}>
+                                {isSold ? 'SOLD' : 'UNSOLD'}
+                            </h2>
+                            {isSold && (
+                                <div className="mt-4 text-center">
+                                    <p className="text-white/60 font-bold uppercase tracking-[0.4em] text-xs mb-2">FINAL HAMMER PRICE</p>
+                                    <p className="text-4xl font-mono font-black text-white">{currentBid} LAKH</p>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
                 )}
+              </AnimatePresence>
 
+              {/* Inner Frame */}
+              <div className="border-[1px] border-primary/40 p-6 lg:p-8 flex flex-col lg:flex-row gap-8 items-center lg:items-start overflow-hidden">
+                
                 {/* Left Column: Photo Area */}
                 <div className="flex flex-col items-center shrink-0">
                   <div className="p-1 border-[1px] border-primary/80 bg-black/40">
                       <div className="border-[1px] border-primary/40 p-2">
-                           <div className="relative w-[200px] lg:w-[280px] aspect-[3/4] overflow-hidden bg-[#2a0303]">
+                           <div className="relative w-[180px] lg:w-[240px] aspect-[3/4] overflow-hidden bg-[#2a0303]">
                               {currentPlayer.imageUrl ? (
                                   <Image src={currentPlayer.imageUrl} alt={currentPlayer.playerName} fill className="object-cover" />
                               ) : (
@@ -256,22 +301,22 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                            </div>
                       </div>
                   </div>
-                  <div className="mt-4 bg-primary px-4 py-1.5">
-                      <span className="text-[10px] lg:text-xs font-black tracking-widest text-primary-foreground uppercase">LIST SR.NO {currentPlayer.playerNumber}</span>
+                  <div className="mt-4 bg-primary px-4 py-1.5 w-full text-center">
+                      <span className="text-[10px] font-black tracking-widest text-primary-foreground uppercase">LIST SR.NO {currentPlayer.playerNumber}</span>
                   </div>
                 </div>
 
                 {/* Right Column: Profile & Bidding */}
-                <div className="flex-1 flex flex-col gap-6 w-full overflow-hidden">
+                <div className="flex-1 flex flex-col gap-5 w-full">
                   
                   {/* Header */}
                   <div className="text-center lg:text-left">
-                    <p className="text-[10px] lg:text-xs text-primary font-black tracking-[0.4em] mb-2 uppercase opacity-80">LOT PROFILE</p>
-                    <h1 className="text-3xl lg:text-5xl font-serif font-bold text-white uppercase tracking-tight leading-tight line-clamp-2">{currentPlayer.playerName}</h1>
+                    <p className="text-[10px] text-primary font-black tracking-[0.4em] mb-1 uppercase opacity-80">LOT PROFILE</p>
+                    <h1 className="text-4xl lg:text-5xl font-serif font-bold text-white uppercase tracking-tight leading-none truncate">{currentPlayer.playerName}</h1>
                   </div>
 
                   {/* Stats Grid */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2.5">
                       {[
                           { label: 'ORIGIN', value: currentPlayer.country },
                           { label: 'SPECIALISM', value: currentPlayer.specialism },
@@ -279,45 +324,79 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                           { label: 'POINTS', value: currentPlayer.points },
                           { label: 'RESERVE PRICE', value: `${currentPlayer.reservePrice} LAKH` },
                       ].map((s, i) => (
-                          <div key={i} className="bg-black/40 border-l-2 border-primary/40 p-3 lg:p-4">
-                              <span className="text-[8px] lg:text-[10px] text-primary/70 font-black tracking-[0.3em] block mb-1 uppercase">{s.label}</span>
-                              <span className="font-serif text-sm lg:text-xl text-white uppercase tracking-wide truncate block">{s.value || 'N/A'}</span>
+                          <div key={i} className="bg-black/40 border-l-2 border-primary/40 p-3">
+                              <span className="text-[8px] text-primary/70 font-black tracking-[0.3em] block mb-1 uppercase">{s.label}</span>
+                              <span className="font-serif text-sm lg:text-lg text-white uppercase tracking-wide truncate block">{s.value || 'N/A'}</span>
                           </div>
                       ))}
                   </div>
 
                   {/* Live Bidding Box */}
-                  <div className="mt-2 border-[1px] border-primary/50 bg-[#1a0202]/80 p-5 lg:p-7 shadow-inner relative overflow-hidden">
-                      <div className="relative z-10 flex items-center justify-between">
-                          <div>
-                              <span className="text-[10px] lg:text-xs text-primary font-black tracking-[0.4em] block mb-2 uppercase">LIVE BIDDING STATUS</span>
+                  <div className={cn(
+                    "relative mt-2 border-[1px] p-5 lg:p-6 shadow-inner transition-all duration-500",
+                    isHighStakes ? "border-orange-500/60 bg-black/90" : "border-primary/50 bg-[#1a0202]/80"
+                  )}>
+                      <div className="flex items-center justify-between relative z-10">
+                          <div className="flex-1">
+                              <span className="text-[10px] text-primary font-black tracking-[0.4em] block mb-2 uppercase">LIVE BIDDING STATUS</span>
                               <div className="flex items-baseline gap-3">
-                                  <span className="text-5xl lg:text-7xl font-mono font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">{currentBid}</span>
-                                  <span className="text-xl lg:text-2xl font-serif text-primary font-bold italic">LAKH</span>
+                                  <span className={cn(
+                                    "text-5xl lg:text-6xl font-mono font-black text-white",
+                                    isHighStakes && "animate-pulse drop-shadow-[0_0_20px_rgba(255,165,0,0.4)]"
+                                  )}>{currentBid}</span>
+                                  <span className="text-xl font-serif text-primary font-bold italic">LAKH</span>
                               </div>
                               {!isSold && !isUnsold && (
                                   <div className="mt-3 flex items-center gap-2">
                                       <Plus size={12} className="text-primary" />
-                                      <p className="text-[9px] lg:text-xs text-white/60 font-bold uppercase tracking-widest">
-                                          Next Valid Bid: <span className="text-primary font-mono ml-1">{nextValidBid} Lakh</span>
+                                      <p className="text-[9px] text-white/60 font-bold uppercase tracking-widest">
+                                          Next Bid: <span className="text-primary font-mono ml-1">{nextValidBid} Lakh</span>
                                       </p>
                                   </div>
                               )}
                           </div>
 
+                          {/* Sparkline Visual */}
+                          {!isSold && !isUnsold && bidHistory.length > 1 && (
+                            <div className="h-16 w-32 hidden lg:block mr-4">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={bidHistory}>
+                                        <YAxis hide domain={['dataMin', 'dataMax']} />
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="value" 
+                                            stroke="#ffcc00" 
+                                            strokeWidth={3} 
+                                            dot={false} 
+                                            animationDuration={500}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                                <p className="text-[7px] text-center text-primary/40 font-bold uppercase tracking-widest mt-1">PRICE TREND</p>
+                            </div>
+                          )}
+
                           {/* Circular Timer */}
                           {isTimerActive && !isSold && !isUnsold && (
-                              <div className="relative flex items-center justify-center scale-90 lg:scale-100">
-                                  <svg className="w-16 h-16 lg:w-20 lg:h-20 transform -rotate-90">
+                              <div className="relative flex items-center justify-center scale-90">
+                                  <svg className="w-16 h-16 transform -rotate-90">
                                       <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/10" />
                                       <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="4" fill="transparent" 
                                           className={cn("transition-all duration-1000", timer <= 10 ? "text-red-600" : "text-primary")}
                                           strokeDasharray="251" strokeDashoffset={251 - (251 * timer) / 30}
                                       />
                                   </svg>
-                                  <span className={cn("absolute font-bold text-xl lg:text-2xl", timer <= 10 ? "text-red-600 animate-pulse" : "text-white")}>
+                                  <span className={cn(
+                                    "absolute font-bold text-xl",
+                                    timer <= 5 ? "text-red-600 scale-125 transition-transform animate-pulse" : "text-white"
+                                  )}>
                                       {timer}
                                   </span>
+                                  {timer <= 5 && (
+                                    <div className="absolute -top-1 -right-1">
+                                        <Heart size={14} className="text-red-600 animate-ping" />
+                                    </div>
+                                  )}
                               </div>
                           )}
                       </div>
@@ -330,7 +409,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
               <div className="w-20 h-20 border-8 border-primary border-t-transparent animate-spin rounded-full shadow-[0_0_30px_rgba(255,204,0,0.3)]" />
               <div className="text-center space-y-2">
                 <h1 className="text-4xl lg:text-5xl text-primary font-black font-serif uppercase tracking-[0.3em] animate-pulse">REVEALING LOT</h1>
-                <p className="text-primary/40 text-xs font-bold tracking-[0.5em] uppercase">Consulting Official Database...</p>
+                <p className="text-primary/40 text-[10px] font-bold tracking-[0.5em] uppercase">CONSULTING OFFICIAL ROSTER...</p>
               </div>
             </div>
           ) : (
@@ -340,7 +419,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
               </div>
               <div className="space-y-4">
                 <h1 className="text-5xl lg:text-7xl font-serif font-black text-primary tracking-tight">READY TO BEGIN</h1>
-                <p className="text-white/30 text-lg lg:text-xl tracking-[0.4em] uppercase font-bold">Press SPACE to reveal Lot</p>
+                <p className="text-white/30 text-lg tracking-[0.4em] uppercase font-bold">Press SPACE to reveal Lot</p>
               </div>
             </div>
           )}
@@ -348,36 +427,40 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       </div>
 
       {/* Control Actions & HUD */}
-      <div className="w-full max-w-5xl mx-auto flex flex-col items-center gap-6 pb-10 px-4">
+      <div className="w-full max-w-5xl mx-auto flex flex-col items-center gap-5 pb-8 px-4">
         
-        <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 w-full">
+        <div className="flex flex-wrap items-center justify-center gap-3 w-full">
           {currentPlayer && !isSold && !isUnsold ? (
             <>
-              <Button onClick={handleIncreaseBid} size="lg" className="h-12 lg:h-14 px-8 font-serif font-black text-lg lg:text-xl rounded-none bg-primary text-primary-foreground tracking-widest uppercase shadow-xl hover:scale-105 transition-transform">
+              <Button onClick={handleIncreaseBid} size="lg" className="h-12 px-8 font-serif font-black text-lg rounded-none bg-primary text-primary-foreground tracking-widest uppercase shadow-xl hover:scale-105 transition-transform">
                 + RAISE BID ({getIncrement(currentBid)}L)
               </Button>
-              <Button onClick={() => { setTimer(30); setIsTimerActive(true); }} variant="outline" className="h-12 lg:h-14 px-6 font-black rounded-none border-primary/40 bg-[#1a0202] text-white uppercase text-[10px] tracking-[0.2em] hover:bg-primary/20 transition-all">
+              <Button onClick={() => { setTimer(30); setIsTimerActive(true); }} variant="outline" className="h-12 px-6 font-black rounded-none border-primary/40 bg-[#1a0202] text-white uppercase text-[10px] tracking-[0.2em] hover:bg-primary/20 transition-all">
                 <RefreshCw className="mr-2 h-4 w-4"/> RESET CLOCK
               </Button>
-              <Button onClick={handleSold} className="h-12 lg:h-14 px-8 font-serif font-black text-lg lg:text-xl rounded-none bg-[#e63946] text-white tracking-widest uppercase shadow-xl hover:scale-105 transition-transform">
+              <Button onClick={handleSold} className="h-12 px-8 font-serif font-black text-lg rounded-none bg-[#e63946] text-white tracking-widest uppercase shadow-xl hover:scale-105 transition-transform">
                 <Gavel className="mr-2 h-5 w-5"/> FINAL SOLD
               </Button>
-              <Button onClick={handleUnsold} variant="outline" className="h-12 lg:h-14 px-6 font-black rounded-none border-red-600/40 text-red-500 bg-[#1a0202] text-[10px] tracking-[0.2em] uppercase hover:bg-red-950 transition-all">
+              <Button onClick={handleUnsold} variant="outline" className="h-12 px-6 font-black rounded-none border-red-600/40 text-red-500 bg-[#1a0202] text-[10px] tracking-[0.2em] uppercase hover:bg-red-950 transition-all">
                 <Ban className="mr-2 h-4 w-4"/> UNSOLD
               </Button>
             </>
-          ) : undrawnPlayers.length > 0 ? (
-            <Button onClick={handleDrawPlayer} disabled={isDrawing} className="h-14 lg:h-16 w-full max-w-[400px] text-xl lg:text-2xl font-black font-serif border-4 border-primary bg-primary text-primary-foreground tracking-widest uppercase shadow-2xl hover:scale-105 transition-transform">
-              {isDrawing ? 'DRAWING...' : 'REVEAL NEXT LOT'}
+          ) : undrawnPlayers.length > 0 && !isDrawing && !isSold && !isUnsold ? (
+            <Button onClick={handleDrawPlayer} disabled={isDrawing} className="h-14 w-full max-w-[400px] text-xl font-black font-serif border-4 border-primary bg-primary text-primary-foreground tracking-widest uppercase shadow-2xl hover:scale-105 transition-transform">
+              REVEAL NEXT LOT
             </Button>
-          ) : (
+          ) : (isSold || isUnsold) ? (
+             <Button onClick={handleDrawPlayer} className="h-14 w-80 font-black border-4 border-primary bg-primary text-primary-foreground uppercase tracking-widest text-lg hover:scale-105 transition-all">
+                {undrawnPlayers.length > 0 ? 'NEXT LOT INCOMING' : 'FINISH SESSION'}
+             </Button>
+          ) : undrawnPlayers.length === 0 && !isDrawing && (
             <Button onClick={resetAuction} variant="outline" className="h-14 w-80 font-black border-primary/30 text-primary bg-black/40 uppercase tracking-widest text-lg hover:bg-primary hover:text-primary-foreground transition-all">RESTART SESSION</Button>
           )}
         </div>
 
         {/* Global HUD Badge */}
-        <div className="flex flex-col items-center gap-3">
-          <div className="bg-primary px-8 py-2 text-primary-foreground text-[10px] lg:text-xs font-black uppercase tracking-[0.4em] shadow-lg rounded-sm">
+        <div className="flex flex-col items-center gap-2">
+          <div className="bg-primary px-8 py-1.5 text-primary-foreground text-[10px] font-black uppercase tracking-[0.4em] shadow-lg rounded-sm">
             {undrawnPlayers.length} LOTS REMAINING IN SET
           </div>
           <p className="text-[9px] text-white/20 font-black uppercase tracking-[0.5em] mt-1">SAAVAN '26 • IIT MADRAS PARADOX</p>
