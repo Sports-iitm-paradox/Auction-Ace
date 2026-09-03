@@ -5,8 +5,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
-import { X, Gavel, Users, ChevronsLeft, ChevronsRight, Timer, Plus, RefreshCw, Trophy, Ban, Share2 } from 'lucide-react';
-import { Player, PlayerSet, ActiveAuctionState } from '@/lib/player-data';
+import { X, Gavel, Users, ChevronsLeft, ChevronsRight, Plus, RefreshCw, Trophy, Ban } from 'lucide-react';
+import { Player, PlayerSet } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
@@ -15,10 +15,6 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import Image from 'next/image';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface FullScreenViewProps {
     players: Player[];
@@ -46,7 +42,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   const [isDrawing, setIsDrawing] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
-  const firestore = useFirestore();
   
   const [currentBid, setCurrentBid] = useState<number>(0);
   const [timer, setTimer] = useState<number>(30);
@@ -72,37 +67,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         audio.play().catch(() => {});
     }
   };
-
-  // Sync to Firestore for Live View
-  const syncState = useCallback((overrides: Partial<ActiveAuctionState> = {}) => {
-    if (!firestore || !set.id) return;
-    const auctionRef = doc(firestore, 'activeAuctions', set.id);
-    const state: ActiveAuctionState = {
-      setId: set.id,
-      currentPlayerId: currentPlayer?.id || null,
-      currentBid: currentBid,
-      isSold: isSold,
-      isUnsold: isUnsold,
-      status: isDrawing ? 'drawing' : (isSold ? 'sold' : (isUnsold ? 'unsold' : (currentPlayer ? 'active' : 'idle'))),
-      updatedAt: serverTimestamp(),
-      ...overrides
-    };
-    
-    // Mutation: setDoc with error handling
-    setDoc(auctionRef, state, { merge: true })
-      .catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-          path: auctionRef.path,
-          operation: 'write',
-          requestResourceData: state,
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
-      });
-  }, [firestore, set.id, currentPlayer, currentBid, isSold, isUnsold, isDrawing]);
-
-  useEffect(() => {
-    syncState();
-  }, [syncState, currentPlayer, currentBid, isSold, isUnsold, isDrawing]);
 
   useEffect(() => {
     setUndrawnPlayers([...players]);
@@ -145,8 +109,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setIsTimerActive(false);
     setTimer(30);
 
-    syncState({ status: 'drawing', currentPlayerId: null });
-
     drawingInterval.current = setInterval(() => {
     }, 100);
 
@@ -160,15 +122,17 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       setUndrawnPlayers(prev => prev.filter(p => p.id !== newDrawnPlayer.id));
       setIsDrawing(false);
       playSound('reveal');
-      syncState({ status: 'active', currentPlayerId: newDrawnPlayer.id, currentBid: newDrawnPlayer.reservePrice || 0 });
     }, 2500);
-  }, [isDrawing, undrawnPlayers, stopDrawingAnimation, syncState]);
+  }, [isDrawing, undrawnPlayers, stopDrawingAnimation]);
   
   const resetAuction = () => {
     stopDrawingAnimation();
     onReset();
     setIsDrawing(false);
-    syncState({ status: 'idle', currentPlayerId: null, currentBid: 0 });
+    setCurrentPlayer(null);
+    setCurrentBid(0);
+    setIsSold(false);
+    setIsUnsold(false);
   };
 
   const getIncrement = (value: number) => {
@@ -185,7 +149,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setCurrentBid(newBid);
     setTimer(30);
     setIsTimerActive(true);
-    syncState({ currentBid: newBid });
   };
 
   const handleSold = () => {
@@ -194,7 +157,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setIsTimerActive(false);
     setDrawnPlayers(prev => [{ ...currentPlayer, status: 'sold', finalPrice: currentBid } as DrawnPlayer, ...prev]);
     playSound('sold');
-    syncState({ status: 'sold', isSold: true });
   };
 
   const handleUnsold = () => {
@@ -203,7 +165,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setIsTimerActive(false);
     setDrawnPlayers(prev => [{ ...currentPlayer, status: 'unsold' } as DrawnPlayer, ...prev]);
     playSound('unsold');
-    syncState({ status: 'unsold', isUnsold: true });
   };
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -231,12 +192,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       stopDrawingAnimation();
     };
   }, [handleKeyDown, stopDrawingAnimation]);
-
-  const copyLiveLink = () => {
-    const url = `${window.location.origin}/live/${set.id}`;
-    navigator.clipboard.writeText(url);
-    alert('Public Live Link copied to clipboard!');
-  };
 
   const cardVariants = {
     hidden: { opacity: 0, y: 50, scale: 0.95 },
@@ -307,16 +262,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         </CollapsibleTrigger>
       </Collapsible>
 
-      <div className="absolute top-6 right-6 flex gap-2 z-40">
-        <Button
-            variant="ghost"
-            size="icon"
-            onClick={copyLiveLink}
-            title="Copy Public Link"
-            className="h-12 w-12 rounded-none border-2 border-primary bg-background/50 text-primary hover:bg-primary hover:text-primary-foreground"
-        >
-            <Share2 className="h-6 w-6" />
-        </Button>
+      <div className="absolute top-6 right-6 z-40">
         <Button
             variant="ghost"
             size="icon"
@@ -363,7 +309,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         )}>
                             <h2 className={cn(
                                 "text-6xl font-serif font-black uppercase",
-                                isSold ? "text-primary" : "text-destructive"
+                                isSold ? 'SOLD' : 'UNSOLD'
                             )}>
                                 {isSold ? 'SOLD' : 'UNSOLD'}
                             </h2>

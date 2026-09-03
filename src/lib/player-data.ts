@@ -35,13 +35,3 @@ export interface Squad extends DocumentData {
     eligibilityStatus: string;
     totalPoints: number | 'N/A';
 }
-
-export interface ActiveAuctionState extends DocumentData {
-  setId: string;
-  currentPlayerId: string | null;
-  currentBid: number;
-  isSold: boolean;
-  isUnsold: boolean;
-  status: 'idle' | 'drawing' | 'active' | 'sold' | 'unsold';
-  updatedAt?: any;
-}

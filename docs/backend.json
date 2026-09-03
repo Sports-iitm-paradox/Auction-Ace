@@ -119,20 +119,6 @@
         "userId",
         "order"
       ]
-    },
-    "ActiveAuction": {
-      "title": "Active Auction",
-      "type": "object",
-      "description": "Represents the real-time state of an ongoing auction.",
-      "properties": {
-        "setId": { "type": "string" },
-        "currentPlayerId": { "type": "string" },
-        "currentBid": { "type": "number" },
-        "isSold": { "type": "boolean" },
-        "isUnsold": { "type": "boolean" },
-        "status": { "type": "string", "enum": ["idle", "drawing", "active", "sold", "unsold"] },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      }
     }
   },
   "auth": {
@@ -170,16 +156,6 @@
             "$ref": "#/entities/Set"
           },
           "description": "Stores auction sets created by users, containing an array of players."
-        }
-      },
-      {
-        "path": "/activeAuctions/{setId}",
-        "definition": {
-          "entityName": "ActiveAuction",
-          "schema": {
-            "$ref": "#/entities/ActiveAuction"
-          },
-          "description": "Stores the real-time state of an auction for a specific set."
         }
       }
     ]
