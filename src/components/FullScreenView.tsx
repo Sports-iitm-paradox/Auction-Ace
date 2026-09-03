@@ -4,8 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { Card, CardContent } from './ui/card';
-import { X, Gavel, Users, ChevronsLeft, ChevronsRight, Plus, RefreshCw, Trophy, Ban } from 'lucide-react';
+import { X, Gavel, ChevronsLeft, ChevronsRight, Plus, RefreshCw, Trophy, Ban } from 'lucide-react';
 import { Player, PlayerSet } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -206,13 +205,14 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-between p-4 overflow-hidden bg-[#3d0606] sunburst-bg h-screen">
+    <div className="fixed inset-0 flex flex-col items-center justify-center p-4 overflow-hidden bg-[#3d0606] sunburst-bg h-screen">
       <div className="hidden">
         {Object.entries(SOUNDS).map(([key, url]) => (
             <audio key={key} src={url} preload="auto" />
         ))}
       </div>
 
+      {/* Sidebar Drawer */}
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
@@ -248,6 +248,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         )}
       </AnimatePresence>
 
+      {/* Drawer Toggle */}
       <Collapsible
         open={isSidebarOpen}
         onOpenChange={setIsSidebarOpen}
@@ -257,24 +258,26 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         )}
       >
         <CollapsibleTrigger asChild>
-          <button className="w-8 h-8 bg-[#FFD700] text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform">
+          <button className="w-8 h-12 bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform rounded-r-md">
             {isSidebarOpen ? <ChevronsLeft size={18} /> : <ChevronsRight size={18} />}
           </button>
         </CollapsibleTrigger>
       </Collapsible>
 
+      {/* Close Button */}
       <div className="absolute top-4 right-4 z-40">
         <Button
             variant="ghost"
             size="icon"
             onClick={() => router.push('/')}
-            className="h-8 w-8 rounded-none border border-[#FFD700]/30 bg-black/20 text-[#FFD700] hover:bg-[#FFD700] hover:text-black"
+            className="h-8 w-8 rounded-none border border-primary/30 bg-black/20 text-primary hover:bg-primary hover:text-primary-foreground"
         >
             <X className="h-4 w-4" />
         </Button>
       </div>
 
-      <div className="w-full max-w-6xl flex-1 flex flex-col justify-center items-center relative py-2 overflow-hidden">
+      {/* Main Content Area */}
+      <div className="w-full max-w-6xl flex flex-col items-center gap-6 relative">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPlayer ? currentPlayer.id : 'waiting'}
@@ -282,35 +285,38 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="w-full flex justify-center max-h-[75vh]"
+            className="w-full flex justify-center"
           >
-            <div className="w-full max-w-[950px] bg-[#4a0808]/80 backdrop-blur-sm shadow-2xl relative overflow-hidden border-2 border-[#FFD700]/40 p-1">
-              <div className="border border-[#FFD700]/20 p-4 sm:p-6 min-h-[400px] flex items-center justify-center relative">
+            {/* Ornate Main Card */}
+            <div className="w-full max-w-[1000px] bg-[#3a0505] shadow-2xl relative p-1 border-2 border-primary/40 rounded-sm">
+              <div className="border border-primary/20 p-8 sm:p-10 flex items-center justify-center relative min-h-[450px]">
                 
+                {/* Timer Overlay */}
                 {currentPlayer && !isSold && !isUnsold && isTimerActive && (
-                    <div className="absolute top-4 right-4 flex flex-col items-center z-20">
+                    <div className="absolute top-6 right-6 flex flex-col items-center z-20">
                         <div className={cn(
-                            "w-12 h-12 rounded-full border-4 flex items-center justify-center font-bold text-xl shadow-lg",
-                            timer <= 5 ? "border-red-600 text-red-600 animate-pulse bg-red-600/10" : "border-[#FFD700] text-[#FFD700] bg-[#FFD700]/10"
+                            "w-14 h-14 rounded-full border-4 flex items-center justify-center font-bold text-2xl shadow-lg",
+                            timer <= 5 ? "border-red-600 text-red-600 animate-pulse bg-red-600/10" : "border-primary text-primary bg-primary/10"
                         )}>
                             {timer}
                         </div>
                     </div>
                 )}
 
+                {/* Status Stamps */}
                 {(isSold || isUnsold) && (
                     <motion.div 
                         initial={{ opacity: 0, scale: 2 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm pointer-events-none"
+                        className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[2px] pointer-events-none"
                     >
                         <div className={cn(
-                            "border-8 p-6 rotate-[-12deg] bg-[#2a0404] shadow-2xl",
-                            isSold ? "border-[#FFD700]" : "border-red-600"
+                            "border-[12px] p-8 rotate-[-12deg] bg-[#2a0404]/90 shadow-2xl",
+                            isSold ? "border-primary" : "border-red-600"
                         )}>
                             <h2 className={cn(
-                                "text-6xl font-serif font-black uppercase tracking-tighter px-4",
-                                isSold ? 'text-[#FFD700]' : 'text-red-600'
+                                "text-7xl font-serif font-black uppercase tracking-tight px-6",
+                                isSold ? 'text-primary' : 'text-red-600'
                             )}>
                                 {isSold ? 'SOLD' : 'UNSOLD'}
                             </h2>
@@ -320,152 +326,152 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
                 {isDrawing ? (
                    <div className="text-center flex flex-col justify-center items-center">
-                      <div className="w-16 h-16 border-4 border-[#FFD700] border-t-transparent animate-spin rounded-full mb-4" />
-                      <h1 className="text-4xl text-[#FFD700] font-bold font-serif animate-pulse tracking-widest uppercase">Consulting...</h1>
+                      <div className="w-20 h-20 border-4 border-primary border-t-transparent animate-spin rounded-full mb-6" />
+                      <h1 className="text-5xl text-primary font-bold font-serif animate-pulse tracking-widest uppercase">Drawing...</h1>
                     </div>
                 ) : currentPlayer ? (
-                  <div className="flex flex-col lg:flex-row items-start justify-center gap-8 w-full">
-                    {/* Left: Player Photo Section */}
-                    <div className="w-full lg:w-[260px] flex-shrink-0 flex flex-col items-center">
-                        <div className="relative w-full aspect-[3/4] border-4 border-[#FFD700] shadow-2xl p-0.5">
-                            <div className="border border-[#FFD700]/40 w-full h-full bg-black/40 relative overflow-hidden">
+                  <div className="flex flex-col lg:flex-row items-stretch justify-center gap-10 w-full">
+                    {/* Left: Player Photo Frame */}
+                    <div className="w-full lg:w-[320px] flex-shrink-0 flex flex-col items-center">
+                        <div className="relative w-full aspect-[3/4] border-[6px] border-primary shadow-2xl p-1 bg-black/20">
+                            <div className="border-2 border-primary/30 w-full h-full relative overflow-hidden">
                                 {currentPlayer.imageUrl ? (
                                     <Image src={currentPlayer.imageUrl} alt={currentPlayer.playerName} fill className="object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center">
-                                        <span className="font-serif text-[10rem] text-[#FFD700]/10">{currentPlayer.playerName[0]}</span>
+                                        <span className="font-serif text-[12rem] text-primary/10">{currentPlayer.playerName[0]}</span>
                                     </div>
                                 )}
                             </div>
                         </div>
-                        <div className="mt-2 py-1 px-4 bg-[#FFD700] text-black font-bold text-[9px] uppercase tracking-widest shadow-md">
-                            List Sr.No {currentPlayer.playerNumber}
+                        <div className="mt-3 font-bold text-[11px] uppercase tracking-[0.2em] text-primary">
+                            LIST SR.NO {currentPlayer.playerNumber}
                         </div>
                     </div>
 
                     {/* Right: Info Section */}
-                    <div className="flex-1 flex flex-col w-full justify-center">
-                        <div className="mb-4">
-                          <p className="font-serif text-[9px] text-[#FFD700]/80 font-bold uppercase tracking-[0.4em] mb-1">Lot Profile</p>
-                          <h1 className="text-4xl lg:text-5xl font-bold font-serif text-white tracking-tight leading-none truncate">
+                    <div className="flex-1 flex flex-col w-full justify-between py-2">
+                        <div>
+                          <p className="font-serif text-[11px] text-primary/70 font-bold uppercase tracking-[0.5em] mb-2">LOT PROFILE</p>
+                          <h1 className="text-5xl lg:text-7xl font-bold font-serif text-white tracking-tight leading-[0.9] mb-8 truncate uppercase">
                             {currentPlayer.playerName}
                           </h1>
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div className="grid grid-cols-2 gap-x-8 gap-y-4 mb-8">
                             {[
                               { label: 'Origin', value: currentPlayer.country },
                               { label: 'Specialism', value: currentPlayer.specialism },
                               { label: 'Category', value: currentPlayer.cua },
                               { label: 'Points', value: currentPlayer.points },
                             ].map((stat, i) => stat.value && (
-                              <div key={i} className="flex flex-col p-2 bg-black/20 border border-[#FFD700]/10">
-                                <span className="text-[9px] text-[#FFD700]/60 font-bold uppercase mb-0.5 tracking-widest">{stat.label}</span>
-                                <span className="font-serif text-lg text-white font-medium">{stat.value}</span>
+                              <div key={i} className="flex flex-col border-l-2 border-primary/30 pl-4 py-1">
+                                <span className="text-[10px] text-primary/60 font-bold uppercase mb-1 tracking-widest">{stat.label}</span>
+                                <span className="font-serif text-2xl text-white font-medium">{stat.value}</span>
                               </div>
                             ))}
                         </div>
 
                         {/* Reserve Price Box */}
-                        <div className="mb-4 p-2 bg-black/20 border border-[#FFD700]/10 w-full lg:w-1/2">
-                            <span className="text-[9px] text-[#FFD700]/60 font-bold uppercase mb-0.5 tracking-widest block">Reserve Price</span>
-                            <span className="font-serif text-lg text-white font-medium">{currentPlayer.reservePrice} LAKH</span>
+                        <div className="mb-6 border-l-2 border-primary/30 pl-4 py-1">
+                            <span className="text-[10px] text-primary/60 font-bold uppercase mb-1 tracking-widest block">RESERVE PRICE</span>
+                            <span className="font-serif text-2xl text-white font-medium">{currentPlayer.reservePrice} LAKH</span>
                         </div>
 
                         {/* Live Bid Box */}
-                        <div className="w-full p-4 border-2 border-[#FFD700]/60 bg-black/30 relative">
-                             <span className="text-[9px] font-bold text-[#FFD700] uppercase mb-1 tracking-[0.3em] block">Live Bidding Status</span>
-                             <div className="flex items-baseline gap-2">
-                                <span className="text-5xl font-mono font-black text-white">{currentBid}</span>
-                                <span className="text-2xl font-serif text-[#FFD700]">LAKH</span>
+                        <div className="w-full p-6 border-2 border-primary bg-black/40 relative">
+                             <span className="text-[11px] font-bold text-primary uppercase mb-1 tracking-[0.4em] block">LIVE BIDDING STATUS</span>
+                             <div className="flex items-baseline gap-3">
+                                <span className="text-6xl font-mono font-black text-white">{currentBid}</span>
+                                <span className="text-3xl font-serif text-primary uppercase">LAKH</span>
                              </div>
                              {!isSold && !isUnsold && (
-                                <p className="text-[10px] font-bold text-white/40 mt-1 flex items-center">
-                                    <span className="mr-1">+</span> Next Valid Bid: <span className="text-[#FFD700] ml-1">{nextValidBid} Lakh</span>
+                                <p className="text-[11px] font-bold text-white/50 mt-2 flex items-center">
+                                    <span className="mr-1">+</span> Next Valid Bid: <span className="text-primary ml-1">{nextValidBid} Lakh</span>
                                 </p>
                              )}
                         </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center flex flex-col justify-center items-center space-y-4">
-                    <Trophy className="h-16 w-16 text-[#FFD700] animate-bounce" />
-                    <h1 className="text-4xl font-bold font-serif text-[#FFD700] tracking-tighter uppercase">
-                      Commence Bidding
+                  <div className="text-center flex flex-col justify-center items-center space-y-6">
+                    <Trophy className="h-24 w-24 text-primary animate-bounce" />
+                    <h1 className="text-5xl font-bold font-serif text-primary tracking-tighter uppercase">
+                      READY TO START
                     </h1>
-                    <p className="text-white/40 italic text-lg tracking-widest uppercase">Ready the Next Lot</p>
+                    <p className="text-white/40 italic text-xl tracking-widest uppercase">Reveal the first lot of the session</p>
                   </div>
                 )}
               </div>
             </div>
           </motion.div>
         </AnimatePresence>
-      </div>
 
-      {/* Control Section */}
-      <div className="w-full max-w-4xl p-2 flex flex-col items-center gap-4 z-10">
-        {currentPlayer && !isSold && !isUnsold ? (
-            <div className="flex flex-col items-center gap-3 w-full">
-                <div className="flex flex-wrap justify-center items-center gap-3">
-                    <Button
-                        onClick={handleIncreaseBid}
-                        size="lg"
-                        className="h-12 px-8 font-bold font-serif rounded-none bg-[#FFD700] text-black hover:bg-[#FFD700]/90 shadow-2xl text-xl"
-                    >
-                        <Plus className="mr-2 h-6 w-6" /> RAISE BID ({getIncrement(currentBid)}L)
-                    </Button>
-                    
-                    <Button
-                        onClick={() => { setTimer(30); setIsTimerActive(true); }}
+        {/* Control Section */}
+        <div className="w-full max-w-4xl flex flex-col items-center gap-6">
+          {currentPlayer && !isSold && !isUnsold ? (
+              <div className="flex flex-col items-center gap-4 w-full">
+                  <div className="flex flex-wrap justify-center items-center gap-4">
+                      <Button
+                          onClick={handleIncreaseBid}
+                          size="lg"
+                          className="h-14 px-10 font-bold font-serif rounded-none bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xl text-xl uppercase tracking-widest"
+                      >
+                          <Plus className="mr-2 h-6 w-6" /> RAISE BID ({getIncrement(currentBid)}L)
+                      </Button>
+                      
+                      <Button
+                          onClick={() => { setTimer(30); setIsTimerActive(true); }}
+                          variant="outline"
+                          className="h-14 px-8 font-bold font-serif rounded-none border-2 border-primary/20 text-white bg-black/40 hover:bg-black/60 text-base uppercase tracking-widest"
+                      >
+                          <RefreshCw className="mr-2 h-5 w-5" /> RESET CLOCK
+                      </Button>
+
+                      <Button
+                          onClick={handleSold}
+                          className="h-14 px-10 font-bold font-serif rounded-none bg-accent text-accent-foreground hover:bg-accent/90 shadow-xl text-xl uppercase tracking-widest"
+                      >
+                          <Gavel className="mr-2 h-6 w-6" /> FINAL SOLD
+                      </Button>
+
+                      <Button
+                        onClick={handleUnsold}
                         variant="outline"
-                        className="h-12 px-6 font-bold font-serif rounded-none border-2 border-[#FFD700]/20 text-white bg-black/40 hover:bg-black/60 text-sm uppercase tracking-widest"
-                    >
-                        <RefreshCw className="mr-2 h-5 w-5" /> Reset Clock
+                        className="h-14 px-8 font-bold font-serif rounded-none border-2 border-red-600/30 text-red-500 bg-black/40 hover:bg-red-600/10 text-base uppercase tracking-widest"
+                      >
+                        <Ban className="mr-2 h-5 w-5" /> UNSOLD
                     </Button>
-
-                    <Button
-                        onClick={handleSold}
-                        className="h-12 px-8 font-bold font-serif rounded-none bg-[#ff4d4d] text-white hover:bg-red-600 shadow-xl text-xl uppercase tracking-tighter"
-                    >
-                        <Gavel className="mr-2 h-6 w-6" /> Final Sold
-                    </Button>
-                </div>
-                
-                <Button
-                    onClick={handleUnsold}
-                    variant="ghost"
-                    className="h-10 px-8 font-bold font-serif rounded-none border border-red-600/30 text-red-500 hover:bg-red-600/10 text-sm uppercase tracking-widest"
-                >
-                    <Ban className="mr-2 h-4 w-4" /> Unsold
-                </Button>
-            </div>
-        ) : undrawnPlayers.length > 0 ? (
-          <Button
-            onClick={handleDrawPlayer}
-            disabled={isDrawing}
-            className="h-14 w-64 text-xl font-bold font-serif rounded-none border-4 border-[#FFD700] shadow-2xl bg-[#FFD700] text-black hover:scale-105 transition-transform uppercase tracking-widest"
-          >
-            {isDrawing ? 'Consulting...' : 'Reveal Next Lot'}
-          </Button>
-        ) : (
+                  </div>
+              </div>
+          ) : undrawnPlayers.length > 0 ? (
             <Button
-                onClick={resetAuction}
-                variant="outline"
-                className="h-12 w-64 font-bold font-serif rounded-none border-2 border-[#FFD700]/30 text-[#FFD700] bg-black/40 hover:bg-[#FFD700] hover:text-black uppercase tracking-widest"
+              onClick={handleDrawPlayer}
+              disabled={isDrawing}
+              className="h-16 w-80 text-2xl font-bold font-serif rounded-none border-4 border-primary shadow-2xl bg-primary text-primary-foreground hover:scale-105 transition-transform uppercase tracking-widest"
             >
-                Restart Session
+              {isDrawing ? 'Consulting...' : 'REVEAL NEXT LOT'}
             </Button>
-        )}
-      </div>
-      
-      {/* Footer HUD */}
-      <div className="w-full flex flex-col items-center gap-1 pointer-events-none opacity-80 pb-2">
-        <div className="py-1 px-6 bg-[#FFD700] text-black border border-[#FFD700] text-[10px] font-bold uppercase tracking-[0.3em] shadow-lg">
-            {undrawnPlayers.length} Lots Remaining in Set
+          ) : (
+              <Button
+                  onClick={resetAuction}
+                  variant="outline"
+                  className="h-14 w-80 font-bold font-serif rounded-none border-2 border-primary/30 text-primary bg-black/40 hover:bg-primary hover:text-primary-foreground uppercase tracking-widest"
+              >
+                  RESTART SESSION
+              </Button>
+          )}
         </div>
-        <p className="text-[9px] text-white/30 font-bold uppercase tracking-[0.5em] mt-1">
-            SAAVAN '26 • SPORTS DEPARTMENT • IIT MADRAS PARADOX
-        </p>
+
+        {/* Footer HUD */}
+        <div className="flex flex-col items-center gap-2 mt-4">
+          <div className="py-1.5 px-8 bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-[0.4em] shadow-lg">
+              {undrawnPlayers.length} LOTS REMAINING IN SET
+          </div>
+          <p className="text-[10px] text-white/20 font-bold uppercase tracking-[0.5em]">
+              SAAVAN '26 • SPORTS DEPARTMENT • IIT MADRAS PARADOX
+          </p>
+        </div>
       </div>
     </div>
   );
