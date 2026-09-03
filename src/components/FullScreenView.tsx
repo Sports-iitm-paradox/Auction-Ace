@@ -30,6 +30,8 @@ const SOUNDS = {
     HEARTBEAT: 'https://assets.mixkit.co/sfx/preview/mixkit-human-heart-beat-493.mp3'
 };
 
+type FinalCallStatus = 'none' | 'once' | 'twice' | 'final';
+
 export default function FullScreenView({ players, set, onReset }: FullScreenViewProps) {
   const [undrawnPlayers, setUndrawnPlayers] = useState<Player[]>([...players]);
   const [drawnPlayers, setDrawnPlayers] = useState<DrawnPlayer[]>([]);
@@ -44,7 +46,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isSold, setIsSold] = useState(false);
   const [isUnsold, setIsUnsold] = useState(false);
-  const [finalCallStatus, setFinalCallStatus] = useState<'none' | 'once' | 'twice'>('none');
+  const [finalCallStatus, setFinalCallStatus] = useState<FinalCallStatus>('none');
 
   const timerInterval = useRef<NodeJS.Timeout>();
 
@@ -57,14 +59,14 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     heartbeat: typeof Audio !== 'undefined' ? new Audio(SOUNDS.HEARTBEAT) : null,
   });
 
-  const playSound = (key: string) => {
+  const playSound = useCallback((key: string) => {
     const audio = audioRefs.current[key];
     if (audio) {
         audio.currentTime = 0;
         audio.volume = 0.5;
         audio.play().catch(() => {});
     }
-  };
+  }, []);
 
   useEffect(() => {
     setUndrawnPlayers([...players]);
@@ -89,7 +91,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     return () => {
         if (timerInterval.current) clearInterval(timerInterval.current);
     };
-  }, [isTimerActive, timer]);
+  }, [isTimerActive, timer, playSound]);
 
   const handleDrawPlayer = useCallback(() => {
     if (undrawnPlayers.length === 0 || isDrawing) return;
@@ -112,7 +114,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       setIsDrawing(false);
       playSound('reveal');
     }, 1200);
-  }, [isDrawing, undrawnPlayers]);
+  }, [isDrawing, undrawnPlayers, playSound]);
   
   const resetAuction = () => {
     if (window.confirm("Reset auction session? All progress will be lost.")) {
@@ -134,23 +136,14 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
   const nextValidBid = currentBid + getIncrement(currentBid);
 
-  const handleIncreaseBid = () => {
-    if (isSold || isUnsold) return;
-    const newBid = nextValidBid;
-    setCurrentBid(newBid);
-    setTimer(30);
-    setFinalCallStatus('none');
-    setIsTimerActive(true);
-  };
-
-  const handleSold = () => {
+  const handleSold = useCallback(() => {
     if (!currentPlayer || isSold || isUnsold) return;
     setIsSold(true);
     setIsTimerActive(false);
     setFinalCallStatus('none');
     setDrawnPlayers(prev => [{ ...currentPlayer, status: 'sold', finalPrice: currentBid } as DrawnPlayer, ...prev]);
     playSound('sold');
-  };
+  }, [currentPlayer, isSold, isUnsold, currentBid, playSound]);
 
   const handleUnsold = () => {
     if (!currentPlayer || isSold || isUnsold) return;
@@ -161,10 +154,39 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     playSound('unsold');
   };
 
-  const advanceFinalCall = () => {
-    if (finalCallStatus === 'none') setFinalCallStatus('once');
-    else if (finalCallStatus === 'once') setFinalCallStatus('twice');
-    else if (finalCallStatus === 'twice') handleSold();
+  // Automated Hammer Sequence Logic
+  useEffect(() => {
+    if (finalCallStatus !== 'none' && !isSold && !isUnsold) {
+      const stepDuration = 2500; // 2.5 seconds per step
+      const timer = setTimeout(() => {
+        if (finalCallStatus === 'once') {
+          setFinalCallStatus('twice');
+          playSound('tick');
+        } else if (finalCallStatus === 'twice') {
+          setFinalCallStatus('final');
+          playSound('tick');
+        } else if (finalCallStatus === 'final') {
+          handleSold();
+        }
+      }, stepDuration);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [finalCallStatus, isSold, isUnsold, handleSold, playSound]);
+
+  const handleIncreaseBid = () => {
+    if (isSold || isUnsold) return;
+    const newBid = nextValidBid;
+    setCurrentBid(newBid);
+    setTimer(30);
+    setFinalCallStatus('none'); // Resets sequence on new bid
+    setIsTimerActive(true);
+  };
+
+  const startHammerSequence = () => {
+    if (isSold || isUnsold || !currentPlayer) return;
+    setFinalCallStatus('once');
+    setIsTimerActive(false); // Stop normal timer during hammer down
     playSound('tick');
   };
 
@@ -177,15 +199,14 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         else if (!isSold && !isUnsold) handleIncreaseBid();
       } else if (event.key === 'Escape') {
         router.push('/');
-      } else if (event.key === 's' && currentPlayer && !isSold && !isUnsold) {
-        handleSold();
       } else if (event.key === 'u' && currentPlayer && !isSold && !isUnsold) {
         handleUnsold();
       } else if (event.key === 'f' && currentPlayer && !isSold && !isUnsold) {
-        advanceFinalCall();
+        startHammerSequence();
       } else if (event.key === 'r' && currentPlayer && !isSold && !isUnsold) {
         setTimer(30);
         setIsTimerActive(true);
+        setFinalCallStatus('none');
       } else if (event.key === '?' || event.key === 'h') {
         setIsHelpOpen(prev => !prev);
       }
@@ -227,10 +248,9 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                     {[
                         { key: 'Space', action: 'Draw Player / Increase Bid' },
-                        { key: 'S', action: 'Mark as SOLD' },
+                        { key: 'F', action: 'Start Automated Hammer Down' },
                         { key: 'U', action: 'Mark as UNSOLD' },
-                        { key: 'F', action: 'Final Call (Once/Twice/Sold)' },
-                        { key: 'R', action: 'Reset Timer (30s)' },
+                        { key: 'R', action: 'Reset/Clear Sequence' },
                         { key: 'H / ?', action: 'Toggle this help menu' },
                         { key: 'Esc', action: 'Exit Presentation' },
                     ].map((item, i) => (
@@ -340,7 +360,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         animate={{ opacity: 1, scale: 1 }} 
                         className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl"
                     >
-                        {/* Confetti Animation Placeholder Effect */}
                         <div className="absolute inset-0 pointer-events-none overflow-hidden">
                             {[...Array(20)].map((_, i) => (
                                 <motion.div 
@@ -462,7 +481,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                           {/* Auctioneer HUD */}
                           <div className="flex flex-col items-center gap-4 border-l border-white/10 pl-6 ml-6">
                              {/* Timer Circle */}
-                             {isTimerActive && !isSold && !isUnsold && (
+                             {isTimerActive && !isSold && !isUnsold && finalCallStatus === 'none' && (
                                 <div className={cn(
                                     "relative flex items-center justify-center transition-transform",
                                     timer <= 5 && "animate-[shake_0.2s_infinite]"
@@ -488,18 +507,22 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                 <div className="flex gap-2">
                                     <div className={cn(
                                         "w-8 h-2 rounded-full transition-all duration-300", 
-                                        finalCallStatus === 'once' || finalCallStatus === 'twice' ? "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]" : "bg-white/10"
+                                        finalCallStatus !== 'none' ? "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]" : "bg-white/10"
                                     )} />
                                     <div className={cn(
                                         "w-8 h-2 rounded-full transition-all duration-300", 
-                                        finalCallStatus === 'twice' ? "bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]" : "bg-white/10"
+                                        finalCallStatus === 'twice' || finalCallStatus === 'final' ? "bg-orange-600 shadow-[0_0_10px_rgba(234,88,12,0.5)]" : "bg-white/10"
+                                    )} />
+                                    <div className={cn(
+                                        "w-8 h-2 rounded-full transition-all duration-300", 
+                                        finalCallStatus === 'final' ? "bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]" : "bg-white/10"
                                     )} />
                                 </div>
                                 <span className={cn(
-                                    "text-[8px] font-black tracking-[0.4em] uppercase mt-2",
-                                    finalCallStatus !== 'none' ? "text-primary" : "text-white/20"
+                                    "text-[8px] font-black tracking-[0.4em] uppercase mt-2 text-center h-4",
+                                    finalCallStatus !== 'none' ? "text-primary animate-pulse" : "text-white/20"
                                 )}>
-                                    {finalCallStatus === 'none' ? 'Bidding' : finalCallStatus === 'once' ? 'Going Once' : 'Going Twice'}
+                                    {finalCallStatus === 'none' ? 'Bidding' : finalCallStatus === 'once' ? 'Going Once' : finalCallStatus === 'twice' ? 'Going Twice' : 'Final Call'}
                                 </span>
                              </div>
                           </div>
@@ -546,13 +569,15 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                 + RAISE BID ({getIncrement(currentBid)}L)
               </Button>
               <Button onClick={() => { setTimer(30); setIsTimerActive(true); setFinalCallStatus('none'); }} variant="outline" className="h-14 px-6 font-black rounded-none border-white/20 bg-[#1a0202] text-white uppercase text-[10px] tracking-[0.3em] hover:bg-white/10 transition-all flex items-center gap-3">
-                <RefreshCw className="h-4 w-4"/> RESET TIMER
+                <RefreshCw className="h-4 w-4"/> RESET / CLEAR
               </Button>
-              <Button onClick={advanceFinalCall} variant="secondary" className="h-14 px-8 font-serif font-black text-sm rounded-none bg-orange-600 text-white tracking-widest uppercase shadow-xl hover:scale-105 transition-transform flex items-center gap-3">
-                <Clock3 className="h-4 w-4"/> {finalCallStatus === 'none' ? 'GOING ONCE' : finalCallStatus === 'once' ? 'GOING TWICE' : 'FINAL CALL'}
-              </Button>
-              <Button onClick={handleSold} className="h-14 px-10 font-serif font-black text-xl rounded-none bg-green-600 text-white tracking-widest uppercase shadow-2xl hover:scale-105 transition-transform active:scale-95 border-b-4 border-black/20">
-                <Gavel className="mr-3 h-6 w-6"/> SOLD
+              <Button 
+                onClick={startHammerSequence} 
+                disabled={finalCallStatus !== 'none'}
+                variant="secondary" 
+                className="h-14 px-8 font-serif font-black text-sm rounded-none bg-orange-600 text-white tracking-widest uppercase shadow-xl hover:scale-105 transition-transform flex items-center gap-3 disabled:opacity-50 disabled:scale-100"
+              >
+                <Clock3 className="h-4 w-4"/> {finalCallStatus === 'none' ? 'START HAMMER DOWN' : 'HAMMER IN PROGRESS'}
               </Button>
               <Button onClick={handleUnsold} variant="outline" className="h-14 px-6 font-black rounded-none border-red-600/40 text-red-500 bg-black/60 text-[10px] tracking-[0.3em] uppercase hover:bg-red-950 transition-all">
                 <Ban className="mr-2 h-4 w-4"/> UNSOLD
