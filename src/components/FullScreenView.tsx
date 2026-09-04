@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -491,7 +490,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                             <div className="flex-1 p-6 flex flex-col gap-6">
                                 <div className={cn(
                                   "w-full aspect-[3/4] relative border-4 bg-black/60 shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden",
-                                  isMarquee ? "border-primary animate-pulse" : "border-primary/40"
+                                  isMarquee ? "border-primary" : "border-primary/40"
                                 )}>
                                     <div className="absolute inset-0 z-10 pointer-events-none border border-primary/20" />
                                     <div className="w-full h-full relative">

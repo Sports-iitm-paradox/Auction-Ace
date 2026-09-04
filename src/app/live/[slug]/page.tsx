@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -161,7 +160,7 @@ export default function PublicLivePage() {
                                 <div className="w-full lg:w-2/5 flex-shrink-0">
                                     <div className={cn(
                                       "relative aspect-[3/4] max-w-[320px] mx-auto ornate-border shadow-2xl",
-                                      isMarquee && "border-primary shadow-[0_0_40px_rgba(255,215,0,0.3)] animate-pulse"
+                                      isMarquee && "border-primary shadow-[0_0_40px_rgba(255,215,0,0.3)]"
                                     )}>
                                         <div className="bg-black/40 w-full h-full flex items-center justify-center overflow-hidden">
                                             {currentPlayer.imageUrl ? (
