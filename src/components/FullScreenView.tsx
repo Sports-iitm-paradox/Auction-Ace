@@ -239,7 +239,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         </button>
       </div>
 
-      {/* Side History Panel (Left Side) */}
+      {/* Collapsible Left History Panel */}
       <AnimatePresence>
         {isHistoryOpen && (
           <motion.aside
@@ -287,10 +287,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         )}
       </AnimatePresence>
 
-      {/* Main Container */}
+      {/* Main Container - Dynamic padding based on left history state */}
       <main className={cn(
         "flex-1 w-full flex flex-col items-center justify-center p-4 transition-all duration-500",
-        isHistoryOpen ? "pl-80" : ""
+        isHistoryOpen ? "pl-72" : ""
       )}>
         <AnimatePresence mode="wait">
           {!isDrawing && currentPlayer ? (
@@ -300,9 +300,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
               animate={{ opacity: 1, scale: 1 }} 
               exit={{ opacity: 0, scale: 1.05 }}
               className="relative w-full max-w-[960px] max-h-[68vh] aspect-[16/9] ornate-border bg-[#1a0202]/95 backdrop-blur-xl shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden flex"
-              style={{ border: '4px double hsl(var(--primary))' }}
             >
-              {/* Internal Thin Border */}
               <div className="absolute inset-1 pointer-events-none border border-primary/20 z-10" />
 
               {/* Left Column: Image & Insight */}
@@ -327,13 +325,13 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                     </div>
                 </div>
 
-                {/* Insight Box under player image */}
+                {/* Insight Box */}
                 <div className="mt-4 flex-1 border border-primary/20 bg-black/40 p-4 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-8 h-8 border-t border-l border-primary/40" />
                     <span className="text-[9px] text-primary/60 font-black tracking-[0.2em] uppercase block mb-2">Scout Analysis</span>
                     <div className="h-[calc(100%-25px)] overflow-y-auto custom-scrollbar">
                         <p className="text-[11px] font-sans italic text-foreground/80 leading-relaxed pr-2">
-                            {currentPlayer.auctionInsight || 'High-value strategic asset for the upcoming season. Expected to command a massive premium in the bidding war.'}
+                            {currentPlayer.auctionInsight || 'Strategic asset identified. High performance potential in the upcoming season.'}
                         </p>
                     </div>
                 </div>
@@ -341,7 +339,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
               {/* Right Column: Profile & Bidding */}
               <div className="flex-1 flex flex-col p-8 relative">
-                {/* Lot Identification */}
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-[10px] text-primary font-black tracking-[0.4em] uppercase border-l-2 border-primary pl-3">Official Lot</span>
                   <div className="bg-primary/10 border border-primary/30 px-3 py-1">
@@ -349,12 +346,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                   </div>
                 </div>
 
-                {/* Player Name */}
                 <h1 className="text-5xl font-serif font-black text-white uppercase italic tracking-tighter mb-8 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
                   {currentPlayer.playerName}
                 </h1>
 
-                {/* Stats Matrix */}
                 <div className="grid grid-cols-2 gap-x-12 gap-y-4 mb-8">
                     {[
                       { label: 'Origin', value: currentPlayer.country },
@@ -369,9 +364,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                     ))}
                 </div>
 
-                {/* Bidding Console */}
                 <div className="mt-auto border-2 border-primary/30 bg-black/60 p-6 relative">
-                    {/* 20s Countdown Timer Overlay */}
                     {isTimerActive && (
                         <div className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-[#1a0202] border-2 border-primary flex items-center justify-center z-20 shadow-[0_0_20px_gold]">
                             <span className={cn(
@@ -387,7 +380,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse shadow-[0_0_8px_red]" />
                         <span className="text-[10px] text-primary font-black tracking-[0.2em] uppercase">Live Floor</span>
                         
-                        {/* Final Call Indicator */}
                         <div className="ml-auto flex gap-2">
                              {[1, 2, 3].map((idx) => (
                                 <div key={idx} className={cn(
@@ -421,13 +413,13 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         </div>
                     </div>
                     
-                    {/* Hammer Text Overlay (Larger View) */}
+                    {/* ENLARGED Hammer Text Overlay */}
                     <AnimatePresence>
                         {finalCallStatus !== 'none' && (
                             <motion.div 
                                 initial={{ opacity: 0, scale: 1.2, y: 10 }} 
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                                className="absolute left-1/2 -translate-x-1/2 -top-12 bg-primary px-10 py-2 text-xl font-serif font-black text-primary-foreground uppercase italic tracking-[0.4em] shadow-[0_0_30px_gold] z-50 whitespace-nowrap"
+                                className="absolute left-1/2 -translate-x-1/2 -top-20 bg-primary px-16 py-4 text-4xl font-serif font-black text-primary-foreground uppercase italic tracking-[0.3em] shadow-[0_0_50px_gold] z-50 whitespace-nowrap"
                             >
                                 {finalCallStatus === 'once' ? 'GOING ONCE' : finalCallStatus === 'twice' ? 'GOING TWICE' : 'FINAL CALL'}
                             </motion.div>
@@ -436,7 +428,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                 </div>
               </div>
 
-              {/* Sold/Unsold Global Overlay (Massive View) */}
+              {/* ENLARGED Sold/Unsold Global Overlay */}
               <AnimatePresence>
                 {(isSold || isUnsold) && (
                     <motion.div 
@@ -448,32 +440,32 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                           initial={{ scale: 0.6, opacity: 0, rotate: -5 }} 
                           animate={{ scale: 1, opacity: 1, rotate: 0 }}
                           className={cn(
-                            "p-20 border-[8px] bg-[#1a0202] shadow-[0_0_100px_rgba(0,0,0,1)] flex flex-col items-center ornate-border relative",
+                            "p-20 border-[8px] bg-[#1a0202] shadow-[0_0_120px_rgba(0,0,0,1)] flex flex-col items-center ornate-border relative",
                             isSold ? "border-primary" : "border-destructive"
                         )}>
-                            <div className="absolute -top-10 bg-background px-8 py-2 border-2 border-primary/30">
-                                <Trophy className={cn("w-12 h-12", isSold ? "text-primary" : "text-destructive")} />
+                            <div className="absolute -top-12 bg-background px-10 py-3 border-2 border-primary/30">
+                                <Trophy className={cn("w-16 h-16", isSold ? "text-primary" : "text-destructive")} />
                             </div>
                             
                             <h2 className={cn(
-                                "text-[10rem] font-black uppercase italic mb-2 tracking-tighter drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] leading-none",
+                                "text-[12rem] font-black uppercase italic mb-2 tracking-tighter drop-shadow-[0_15px_40px_rgba(0,0,0,0.9)] leading-none",
                                 isSold ? "text-primary" : "text-destructive"
                             )}>
                                 {isSold ? 'SOLD' : 'UNSOLD'}
                             </h2>
                             
-                            <h3 className="text-3xl font-serif text-white uppercase tracking-[0.5em] mb-10 border-y border-primary/20 py-2 w-full text-center">
+                            <h3 className="text-4xl font-serif text-white uppercase tracking-[0.5em] mb-12 border-y border-primary/20 py-4 w-full text-center">
                               {currentPlayer.playerName}
                             </h3>
 
                             {isSold && (
-                                <div className="flex items-baseline gap-4 mb-12 bg-primary/10 px-12 py-4 border-2 border-primary/40">
-                                    <span className="text-8xl font-mono font-black text-white">{currentBid}</span>
-                                    <span className="text-4xl font-serif text-primary italic font-black uppercase">Lakh</span>
+                                <div className="flex items-baseline gap-6 mb-16 bg-primary/10 px-16 py-6 border-2 border-primary/40">
+                                    <span className="text-[10rem] font-mono font-black text-white leading-none">{currentBid}</span>
+                                    <span className="text-5xl font-serif text-primary italic font-black uppercase">Lakh</span>
                                 </div>
                             )}
 
-                            <Button onClick={handleDrawPlayer} className="h-16 px-16 bg-primary text-primary-foreground font-black uppercase tracking-[0.4em] hover:scale-110 transition-transform rounded-none shadow-[0_0_40px_gold] text-lg">
+                            <Button onClick={handleDrawPlayer} className="h-20 px-24 bg-primary text-primary-foreground font-black uppercase tracking-[0.5em] hover:scale-110 transition-transform rounded-none shadow-[0_0_60px_gold] text-2xl">
                                 Next Lot
                             </Button>
                         </motion.div>
@@ -489,7 +481,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
           ) : (
             <motion.div 
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center gap-10 text-center"
+              className={cn("flex flex-col items-center gap-10 text-center transition-all", isHistoryOpen ? "pl-72" : "")}
             >
               <div className="space-y-3">
                 <h1 className="text-8xl font-serif font-black text-primary tracking-[0.3em] uppercase italic drop-shadow-[0_0_20px_rgba(255,215,0,0.4)]">Saavan '26</h1>
@@ -506,7 +498,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       {/* Moderator Deck */}
       <footer className={cn(
         "w-full flex flex-col items-center gap-4 pb-8 px-8 z-50 transition-all duration-500",
-        isHistoryOpen ? "pl-80" : ""
+        isHistoryOpen ? "pl-72" : ""
       )}>
         <div className="flex items-center gap-4 w-full max-w-[960px]">
           {currentPlayer && !isSold && !isUnsold ? (
@@ -548,7 +540,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
           ) : null}
         </div>
 
-        {/* Set Remaining Info */}
         <div className="bg-primary/5 border border-primary/20 px-8 py-1.5">
             <span className="text-[10px] font-mono font-black text-primary tracking-[0.4em] uppercase">
                 {undrawnPlayers.length} Lots Remaining • {set.name}
