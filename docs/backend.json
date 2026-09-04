@@ -159,6 +159,22 @@
           "type": "string"
         }
       }
+    },
+    "Squad": {
+      "title": "Squad",
+      "type": "object",
+      "description": "Real-time standing of a house franchise.",
+      "properties": {
+        "name": { "type": "string" },
+        "moneySpent": { "type": "number" },
+        "moneyLeft": { "type": "number" },
+        "budgetUsed": { "type": "number" },
+        "budgetStatus": { "type": "string", "enum": ["OK", "OVER"] },
+        "eligibilityStatus": { "type": "string" },
+        "totalPoints": { "type": "number" },
+        "userId": { "type": "string" },
+        "order": { "type": "number" }
+      }
     }
   },
   "auth": {
@@ -206,6 +222,16 @@
             "$ref": "#/entities/ActiveAuctionState"
           },
           "description": "Stores the real-time state of the active auction floor. auctionId is the Admin's UID for persistent links."
+        }
+      },
+      {
+        "path": "/squads/{houseId}",
+        "definition": {
+          "entityName": "Squad",
+          "schema": {
+            "$ref": "#/entities/Squad"
+          },
+          "description": "Live standings and budget metrics for each house."
         }
       }
     ]
