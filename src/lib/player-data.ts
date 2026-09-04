@@ -9,7 +9,7 @@ export interface Player extends DocumentData {
   firstName: string;
   surname?: string;
   country?: string;
-  specialism?: string;
+  specialism?: string; // e.g., Batter, Bowler, All-Rounder, Wicketkeeper
   cua?: string; // Capped/Uncapped/Associate
   reservePrice?: number;
   points?: number;
@@ -30,8 +30,9 @@ export interface ActionEvent {
   type: 'draw' | 'bid' | 'sold' | 'unsold' | 'undo' | 'reset';
   playerId?: string;
   bid?: number;
+  houseId?: string;
+  houseName?: string;
   timestamp: any;
-  statusBefore?: string;
 }
 
 export interface ActiveAuctionState extends DocumentData {
@@ -44,7 +45,7 @@ export interface ActiveAuctionState extends DocumentData {
   userId: string;
   lastUpdated: any;
   history: ActionEvent[];
-  undrawnIds: string[]; // Shuffled IDs to maintain order across refreshes
+  undrawnIds: string[];
 }
 
 export interface Squad extends DocumentData {
@@ -52,11 +53,27 @@ export interface Squad extends DocumentData {
     name: string;
     moneySpent: number;
     moneyLeft: number;
-    budgetUsed: number;
     budgetStatus: 'OK' | 'OVER';
-    eligibilityStatus: string;
-    totalPoints: number | 'N/A';
-    playersList?: string; // Format: "Name:Price;Name:Price"
+    totalPoints: number;
+    playersList?: string; // Format: "Name:Price:Role:Category;..."
     userId: string;
     order: number;
 }
+
+export const OFFICIAL_HOUSES = [
+  "Sundarbans", "Kanha", "Wayanad", "Kaziranga", "Corbett", "Bandipur",
+  "Nilgiri", "Gir", "Nallamala", "Saranda", "Pichavaram", "Namdapha"
+];
+
+export const SQUAD_RULES = {
+  MIN_PLAYERS: 11,
+  MAX_PLAYERS: 15,
+  BATTERS: 4,
+  WK: 1,
+  AR: 2,
+  BOWLERS: 3,
+  FLOATER: 1,
+  MIN_UNCAPPED: 3,
+  MAX_OVERSEAS: 4,
+  TOTAL_PURSE: 80 // Crore
+};

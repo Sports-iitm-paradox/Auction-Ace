@@ -1,31 +1,25 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ShieldCheck, CheckCircle, AlertTriangle, Clock, Upload, Loader2, Info, FileText, ImageIcon, Download } from 'lucide-react';
+import { ShieldCheck, CheckCircle, AlertTriangle, Upload, Loader2, Info, FileText, ImageIcon, Download, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import Papa from 'papaparse';
-import { Squad, Player } from '@/lib/player-data';
+import { Squad, Player, OFFICIAL_HOUSES, SQUAD_RULES } from '@/lib/player-data';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, writeBatch, doc, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import { toPng } from 'html-to-image';
-import { SquadPoster } from '@/components/SquadPoster';
 
 export default function SquadsPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
     const [isProcessing, setIsProcessing] = useState(false);
-    const [isGenerating, setIsGenerating] = useState(false);
-    const posterContainerRef = useRef<HTMLDivElement>(null);
 
     const squadsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -34,299 +28,112 @@ export default function SquadsPage() {
 
     const { data: squadData, isLoading: isLoadingSquads } = useCollection<Squad>(squadsQuery);
 
-    const playersQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
-        return query(collection(firestore, 'players'), where('userId', '==', user.uid));
-    }, [firestore, user]);
-
-    const { data: allPlayers } = useCollection<Player>(playersQuery);
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file || !user || !firestore) return;
-
+    const initializeHouses = async () => {
+        if (!firestore || !user) return;
         setIsProcessing(true);
+        try {
+            const batch = writeBatch(firestore);
+            const squadsCollectionRef = collection(firestore, 'squads');
+            
+            // Clear existing
+            const existing = await getDocs(squadsCollectionRef);
+            existing.forEach(d => batch.delete(d.ref));
 
-        Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
-            complete: async (results) => {
-                try {
-                    const squadsCollectionRef = collection(firestore, 'squads');
-                    const batch = writeBatch(firestore);
+            OFFICIAL_HOUSES.forEach((name, index) => {
+                const newRef = doc(squadsCollectionRef);
+                batch.set(newRef, {
+                    name,
+                    moneySpent: 0,
+                    moneyLeft: SQUAD_RULES.TOTAL_PURSE,
+                    budgetStatus: 'OK',
+                    totalPoints: 0,
+                    playersList: '',
+                    userId: user.uid,
+                    order: index
+                });
+            });
 
-                    const existingSnap = await getDocs(squadsCollectionRef);
-                    existingSnap.forEach(d => batch.delete(d.ref));
-
-                    const parsedData = results.data as any[];
-                    
-                    const getVal = (row: any, searchTerms: string[]) => {
-                        const keys = Object.keys(row);
-                        for (const term of searchTerms) {
-                            const foundKey = keys.find(k => {
-                                const normalizedK = k.toLowerCase().trim();
-                                const normalizedT = term.toLowerCase().trim();
-                                return normalizedK.includes(normalizedT);
-                            });
-                            if (foundKey) return row[foundKey];
-                        }
-                        return '';
-                    };
-
-                    parsedData.forEach((row, index) => {
-                        const houseName = getVal(row, ['house name', 'house', 'name']) || 'N/A';
-                        
-                        const parseSafeFloat = (val: any) => {
-                            if (val === undefined || val === null || String(val).includes('#')) return 0;
-                            const str = String(val).replace(/[^0-9.-]/g, '');
-                            return parseFloat(str) || 0;
-                        };
-
-                        const parseSafeInt = (val: any) => {
-                            if (val === undefined || val === null || String(val).includes('#')) return 0;
-                            const str = String(val).replace(/[^0-9]/g, '');
-                            return parseInt(str, 10) || 0;
-                        };
-
-                        const playersList = getVal(row, ['players list', 'purchased', 'members', 'squad list']) || '';
-
-                        const newSquadRef = doc(squadsCollectionRef);
-                        batch.set(newSquadRef, {
-                            name: String(houseName).trim(),
-                            moneySpent: parseSafeFloat(getVal(row, ['spent', 'total money', 'money spent'])),
-                            moneyLeft: parseSafeFloat(getVal(row, ['money left', 'purse', 'remaining'])),
-                            budgetUsed: parseSafeFloat(getVal(row, ['budget used', 'used %'])),
-                            budgetStatus: String(getVal(row, ['status', 'budget status'])).toLowerCase().includes('ok') ? 'OK' : 'OVER',
-                            eligibilityStatus: getVal(row, ['eligibility', 'eligible']) || 'N/A',
-                            totalPoints: parseSafeInt(getVal(row, ['points', 'total no of points', 'score'])),
-                            playersList: String(playersList).trim(), 
-                            userId: user.uid,
-                            order: index
-                        });
-                    });
-
-                    await batch.commit();
-                    toast({ title: 'Standings Updated', description: 'Session data synced successfully.' });
-                } catch(error: any) {
-                     toast({ title: 'Update Failed', description: 'Check CSV format.', variant: 'destructive' });
-                     console.error(error);
-                } finally {
-                    setIsProcessing(false);
-                }
-            },
-            error: (error: any) => {
-                toast({ title: 'Parsing Failed', description: error.message, variant: 'destructive' });
-                setIsProcessing(false);
-            },
-        });
+            await batch.commit();
+            toast({ title: "Franchises Initialized", description: "12 Official Houses ready for auction." });
+        } catch (e) {
+            toast({ title: "Initialization Failed", variant: "destructive" });
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     const generatePDF = () => {
         if (!squadData) return;
-        
         const doc = new jsPDF();
-        const timestamp = new Date().toLocaleString();
-        
         doc.setFontSize(22);
-        doc.text("SAAVAN '26 - Official Auction Wrap-up", 20, 30);
+        doc.text("IPL Auction '26 - Official Standings", 20, 30);
         doc.setFontSize(12);
-        doc.text(`Generated on: ${timestamp}`, 20, 40);
-        doc.text('Sports Department, IIT Madras Paradox', 20, 47);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 40);
         
-        doc.setFontSize(16);
-        doc.text('Final House Standings', 20, 65);
-        
-        const standingsData = squadData.map(s => [
-            s.name, 
-            `${s.moneyLeft} Cr`, 
-            s.totalPoints === 0 ? 'N/A' : s.totalPoints.toString(), 
-            s.budgetStatus
-        ]);
-        
+        const rows = squadData.map(s => [s.name, `${s.moneyLeft} Cr`, s.totalPoints, s.budgetStatus]);
         (doc as any).autoTable({
-            startY: 70,
-            head: [['House Name', 'Purse Left (Cr)', 'Total Points', 'Budget Status']],
-            body: standingsData,
-            theme: 'striped',
+            startY: 50,
+            head: [['House', 'Purse Left', 'Points', 'Budget']],
+            body: rows,
             headStyles: { fillColor: [184, 134, 11] }
         });
 
-        doc.addPage();
-        doc.setFontSize(18);
-        doc.text('Official Sales Ledger', 20, 20);
-        
-        const ledgerData: string[][] = [];
-        squadData.forEach(squad => {
-            const players = (squad.playersList || '').split(';').filter(Boolean);
-            players.forEach(p => {
-                const parts = p.split(':');
-                if (parts.length >= 2) {
-                    const name = parts[0].trim();
-                    const price = parts[1].trim();
-                    ledgerData.push([name, `${price} Cr`, squad.name]);
-                }
-            });
-        });
-
-        (doc as any).autoTable({
-            startY: 25,
-            head: [['Player Name', 'Final Bid', 'Purchased By']],
-            body: ledgerData,
-            theme: 'grid',
-            headStyles: { fillColor: [139, 0, 0] }
-        });
-
-        doc.save(`SAAVAN_26_Auction_Wrapup.pdf`);
-        toast({ title: 'PDF Ledger Generated', description: 'The official record has been saved.' });
-    };
-
-    const generatePosters = async () => {
-        if (!squadData || !allPlayers) return;
-        setIsGenerating(true);
-        
-        try {
-            for (const squad of squadData) {
-                const element = document.getElementById(`poster-${squad.id}`);
-                if (element) {
-                    const dataUrl = await toPng(element, { 
-                      quality: 1, 
-                      pixelRatio: 2,
-                      cacheBust: true,
-                    });
-                    const link = document.createElement('a');
-                    link.download = `Squad_Poster_${squad.name.replace(/\s+/g, '_')}.png`;
-                    link.href = dataUrl;
-                    link.click();
-                }
-            }
-            toast({ title: 'Posters Generated', description: 'All team posters have been downloaded.' });
-        } catch (error) {
-            console.error(error);
-            toast({ title: 'Poster Generation Failed', variant: 'destructive' });
-        } finally {
-            setIsGenerating(false);
-        }
+        doc.save(`IPL_Auction_Standings.pdf`);
     };
 
     return (
-        <motion.div
-            className="w-full max-w-7xl mx-auto px-2 sm:px-4 pb-20"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-        >
-            {user && squadData && allPlayers && (
-                <div className="fixed -left-[4000px] top-0 pointer-events-none" ref={posterContainerRef}>
-                    {squadData.map(squad => (
-                        <SquadPoster key={squad.id} squad={squad} allPlayers={allPlayers} />
-                    ))}
-                </div>
-            )}
-
+        <motion.div className="w-full max-w-7xl mx-auto px-4 pb-20" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <Card className="bg-card/90 backdrop-blur-sm ornate-border">
-                <CardHeader className="text-center sm:text-left border-b border-primary/20 pb-8">
-                    <CardTitle className="flex flex-col sm:flex-row items-center text-3xl sm:text-4xl gap-3 font-serif text-primary">
-                        <ShieldCheck className="h-10 w-10 text-primary shrink-0" />
+                <CardHeader className="border-b border-primary/20 pb-8">
+                    <CardTitle className="flex items-center text-4xl gap-3 font-serif text-primary">
+                        <ShieldCheck className="h-10 w-10" />
                         Live Ledger & Standings
                     </CardTitle>
-                    <CardDescription className="text-lg italic">
-                        Real-time tracking for SAAVAN '26 Official Auction
-                    </CardDescription>
+                    <CardDescription className="text-lg italic">Official Real-time tracking for IPL Auction</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8 pt-8">
-                    
                     {user && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card className="bg-secondary/10 border-primary/20">
-                            <CardHeader className="p-6">
-                                <CardTitle className="text-xl flex items-center font-serif text-primary"><Upload className="mr-2 h-5 w-5"/>Sync Session Data</CardTitle>
-                                <CardDescription>
-                                    Upload tracking CSV to refresh standings.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="px-6 pb-6 space-y-4">
-                                <Input
-                                    type="file"
-                                    accept=".csv"
-                                    onChange={handleFileChange}
-                                    disabled={isProcessing}
-                                    className="file:text-primary file:font-bold border-primary/30 bg-background/50 cursor-pointer"
-                                />
-                            </CardContent>
-                        </Card>
-
-                        <Card className="bg-primary/5 border-primary/20">
-                            <CardHeader className="p-6">
-                                <CardTitle className="text-xl flex items-center font-serif text-primary"><Download className="mr-2 h-5 w-5"/>Wrap-up Tools</CardTitle>
-                                <CardDescription>
-                                    Generate official assets for distribution.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="px-6 pb-6 grid grid-cols-1 gap-3">
-                                <Button 
-                                  variant="outline" 
-                                  onClick={generatePDF} 
-                                  disabled={!squadData || squadData.length === 0}
-                                  className="h-12 font-bold border-primary/40 text-primary hover:bg-primary/10"
-                                >
-                                  <FileText className="mr-2 h-4 w-4" /> Download PDF Ledger
-                                </Button>
-                                <Button 
-                                  variant="default" 
-                                  onClick={generatePosters} 
-                                  disabled={!squadData || squadData.length === 0 || !allPlayers || isGenerating}
-                                  className="h-12 font-bold"
-                                >
-                                  {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageIcon className="mr-2 h-4 w-4" />}
-                                  Generate Team Posters
-                                </Button>
-                            </CardContent>
-                        </Card>
+                      <div className="flex flex-wrap gap-4">
+                        <Button onClick={initializeHouses} disabled={isProcessing} className="bg-primary font-bold">
+                            {isProcessing ? <Loader2 className="animate-spin mr-2"/> : <RotateCcw className="mr-2"/>}
+                            Reset/Initialize Official Houses
+                        </Button>
+                        <Button variant="outline" onClick={generatePDF} className="border-primary text-primary font-bold">
+                            <FileText className="mr-2"/> Download Official Standings
+                        </Button>
                       </div>
                     )}
 
                     {isLoadingSquads ? (
-                        <div className="flex flex-col items-center justify-center p-20 gap-4">
-                            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                            <p className="font-serif text-primary animate-pulse tracking-widest uppercase">Fetching Ledger...</p>
-                        </div>
+                        <div className="py-20 text-center"><Loader2 className="h-12 w-12 animate-spin mx-auto text-primary"/></div>
                     ) : squadData && squadData.length > 0 ? (
-                        <div className="border border-primary/20 rounded-lg overflow-hidden w-full overflow-x-auto shadow-2xl bg-black/20">
+                        <div className="border border-primary/20 rounded-lg overflow-x-auto shadow-2xl bg-black/20">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="bg-muted/30 hover:bg-muted/50 border-b border-primary/20">
-                                        <TableHead className="font-black text-primary uppercase tracking-widest min-w-[180px]">House</TableHead>
-                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest hidden sm:table-cell">Spent (Cr)</TableHead>
+                                    <TableRow className="bg-muted/30 border-b border-primary/20">
+                                        <TableHead className="font-black text-primary uppercase tracking-widest p-6">House</TableHead>
+                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest">Spent (Cr)</TableHead>
                                         <TableHead className="text-right font-black text-primary uppercase tracking-widest text-lg">Purse Left (Cr)</TableHead>
-                                        <TableHead className="text-center font-black text-primary uppercase tracking-widest">Budget</TableHead>
                                         <TableHead className="text-center font-black text-primary uppercase tracking-widest">Points</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {squadData.map((house) => (
-                                        <TableRow key={house.id} className="hover:bg-primary/5 transition-colors border-b border-primary/5">
-                                            <TableCell className="font-serif text-lg sm:text-xl text-white py-6">{house.name}</TableCell>
-                                            <TableCell className="text-right font-mono text-sm hidden sm:table-cell text-muted-foreground">{house.moneySpent}Cr</TableCell>
-                                            <TableCell className="text-right font-mono text-primary font-black text-xl sm:text-2xl">{house.moneyLeft}Cr</TableCell>
-                                            <TableCell className="text-center">
-                                                <Badge variant={house.budgetStatus === 'OK' ? 'default' : 'destructive'} className="gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-xs">
-                                                    {house.budgetStatus === 'OK' ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
-                                                    {house.budgetStatus}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-center font-mono font-black text-xl sm:text-2xl text-white">{house.totalPoints === 0 ? 'N/A' : house.totalPoints}</TableCell>
+                                        <TableRow key={house.id} className="hover:bg-primary/5 border-b border-primary/5">
+                                            <TableCell className="font-serif text-2xl text-white py-8 px-6">{house.name}</TableCell>
+                                            <TableCell className="text-right font-mono text-muted-foreground">{house.moneySpent}Cr</TableCell>
+                                            <TableCell className="text-right font-mono text-primary font-black text-3xl">{house.moneyLeft}Cr</TableCell>
+                                            <TableCell className="text-center font-mono font-black text-2xl text-white">{house.totalPoints}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
                         </div>
                     ) : (
-                         <div className="text-center py-20 border-2 border-dashed border-primary/20 rounded-lg bg-background/50">
-                            <Info className="mx-auto h-20 w-20 text-muted-foreground opacity-10 mb-4" />
-                            <h3 className="text-2xl font-serif text-primary uppercase tracking-widest">Standings Ledger Closed</h3>
-                            <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto italic">
-                                The administrator has not yet uploaded the session wrap-up data.
-                            </p>
+                         <div className="text-center py-20 border-2 border-dashed border-primary/20 rounded-lg">
+                            <Info className="mx-auto h-20 w-20 opacity-10 mb-4" />
+                            <h3 className="text-2xl font-serif text-primary uppercase tracking-widest">Standings Ledger Empty</h3>
+                            <p className="mt-2 text-sm text-muted-foreground">Admin must initialize houses to begin tracking.</p>
                         </div>
                     )}
                 </CardContent>
