@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { X, RefreshCw, Keyboard, Clock3, Shield, History, Trophy, Gavel, Sparkles } from 'lucide-react';
+import { X, RefreshCw, Keyboard, Clock3, Shield, History, Trophy, Gavel } from 'lucide-react';
 import { Player, PlayerSet } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -400,12 +400,11 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         {/* Right Column: Profile & Valuation */}
                         <div className="flex-1 flex flex-col p-8 relative bg-[radial-gradient(circle_at_top_right,rgba(255,215,0,0.05),transparent)]">
                             <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-3">
-                                    <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                                <div className="flex items-center">
                                     <span className="text-[10px] text-primary font-black tracking-[0.5em] uppercase border-l-2 border-primary pl-3">Official Lot Entry</span>
                                 </div>
                                 <div className="bg-primary/10 border border-primary/40 px-4 py-1">
-                                    <span className="text-[10px] text-primary font-black tracking-widest uppercase italic">LOT NO. {currentPlayer.playerNumber}</span>
+                                    <span className="text-[10px] text-primary font-black tracking-widest uppercase italic">PLAYER NO. {currentPlayer.playerNumber}</span>
                                 </div>
                             </div>
 
@@ -502,7 +501,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                 ) : isDrawing ? (
                     <div className="flex flex-col items-center gap-8">
                         <div className="w-20 h-20 border-8 border-primary border-t-transparent animate-spin rounded-full shadow-[0_0_40px_gold]" />
-                        <h1 className="text-3xl text-primary font-black font-serif tracking-[0.8em] animate-pulse uppercase">Lot Drawing...</h1>
+                        <h1 className="text-3xl text-primary font-black font-serif tracking-[0.8em] animate-pulse uppercase">Player Drawing...</h1>
                     </div>
                 ) : (
                     <motion.div 
@@ -566,14 +565,14 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                     onClick={handleDrawPlayer} 
                     className="h-14 w-full font-black font-serif text-base bg-primary text-primary-foreground tracking-[0.4em] uppercase rounded-none hover:shadow-[0_0_30px_gold]"
                 >
-                    {undrawnPlayers.length > 0 ? 'Reveal Next Lot' : 'All Lots Complete'}
+                    {undrawnPlayers.length > 0 ? 'Reveal Next Player' : 'All Players Complete'}
                 </Button>
             ) : null}
         </div>
 
         <div className="flex items-center gap-8">
             <span className="text-[10px] font-mono font-black text-primary/60 tracking-[0.4em] uppercase">
-                {undrawnPlayers.length} Lots Remaining
+                {undrawnPlayers.length} Players Remaining
             </span>
             <div className="h-1 w-1 rounded-full bg-primary/30" />
             <span className="text-[10px] font-mono font-black text-primary/60 tracking-[0.4em] uppercase italic">
@@ -597,9 +596,9 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                     <h2 className="text-3xl font-serif text-primary uppercase tracking-[0.4em] border-b border-primary/20 pb-6 mb-8 text-center">Moderator Terminal</h2>
                     <div className="space-y-3">
                         {[
-                            { key: 'Space', action: 'Reveal Lot / Raise Bid' },
+                            { key: 'Space', action: 'Reveal Player / Raise Bid' },
                             { key: 'F', action: 'Initiate Hammer (Once/Twice/Sold)' },
-                            { key: 'U', action: 'Mark Lot as Unsold' },
+                            { key: 'U', action: 'Mark Player as Unsold' },
                             { key: 'R', action: 'Reset 20s Countdown' },
                             { key: 'H', action: 'Toggle Result History' },
                             { key: 'Esc', action: 'Exit to Dashboard' },
