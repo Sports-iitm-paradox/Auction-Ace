@@ -16,6 +16,8 @@ import 'jspdf-autotable';
 import { toPng } from 'html-to-image';
 import { SquadPoster } from '@/components/SquadPoster';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 export default function SquadsPage() {
     const { user } = useUser();
@@ -48,9 +50,11 @@ export default function SquadsPage() {
             const batch = writeBatch(firestore);
             const squadsCollectionRef = collection(firestore, 'squads');
             
+            // 1. Clear existing squads
             const existing = await getDocs(squadsCollectionRef);
             existing.forEach(d => batch.delete(d.ref));
 
+            // 2. Initialize official 12 houses
             OFFICIAL_HOUSES.forEach((name, index) => {
                 const newRef = doc(squadsCollectionRef);
                 batch.set(newRef, {
@@ -65,10 +69,21 @@ export default function SquadsPage() {
                 });
             });
 
-            await batch.commit();
+            await batch.commit().catch(async (err) => {
+                const permissionError = new FirestorePermissionError({
+                    path: 'squads-init',
+                    operation: 'write',
+                } satisfies SecurityRuleContext);
+                errorEmitter.emit('permission-error', permissionError);
+                throw err;
+            });
+
             toast({ title: "Franchises Initialized", description: "12 Official Houses ready for auction." });
-        } catch (e) {
-            toast({ title: "Initialization Failed", variant: "destructive" });
+        } catch (e: any) {
+            console.error("Initialization failed:", e);
+            if (!(e instanceof FirestorePermissionError)) {
+                toast({ title: "Initialization Failed", description: e.message || "Could not reset houses.", variant: "destructive" });
+            }
         } finally {
             setIsProcessing(false);
         }
