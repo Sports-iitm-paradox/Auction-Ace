@@ -138,14 +138,14 @@ export default function SquadsPage() {
         
         const standingsData = squadData.map(s => [
             s.name, 
-            `${s.moneyLeft} L`, 
+            `${s.moneyLeft} Cr`, 
             s.totalPoints === 0 ? 'N/A' : s.totalPoints.toString(), 
             s.budgetStatus
         ]);
         
         (doc as any).autoTable({
             startY: 70,
-            head: [['House Name', 'Purse Left (L)', 'Total Points', 'Budget Status']],
+            head: [['House Name', 'Purse Left (Cr)', 'Total Points', 'Budget Status']],
             body: standingsData,
             theme: 'striped',
             headStyles: { fillColor: [184, 134, 11] }
@@ -163,7 +163,7 @@ export default function SquadsPage() {
                 if (parts.length >= 2) {
                     const name = parts[0].trim();
                     const price = parts[1].trim();
-                    ledgerData.push([name, `${price} L`, squad.name]);
+                    ledgerData.push([name, `${price} Cr`, squad.name]);
                 }
             });
         });
