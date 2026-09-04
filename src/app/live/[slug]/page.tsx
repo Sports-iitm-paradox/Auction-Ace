@@ -1,17 +1,21 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, DocumentReference, collection, query, orderBy } from 'firebase/firestore';
 import { Player, PlayerSet, ActiveAuctionState, Squad } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
-import { Trophy, Gavel, Users, Info, ShieldCheck, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Trophy, Gavel, Users, Info, ShieldCheck, CheckCircle, AlertTriangle, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import confetti from 'canvas-confetti';
+
+const MARQUEE_THRESHOLD = 100;
 
 export default function PublicLivePage() {
   const params = useParams();
@@ -42,6 +46,17 @@ export default function PublicLivePage() {
 
   const currentPlayer = set?.players.find(p => p.id === auction?.currentPlayerId) || null;
 
+  useEffect(() => {
+    if (auction?.isSold && auction.currentBid >= MARQUEE_THRESHOLD) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#FFD700', '#FFFFFF', '#8B0000']
+      });
+    }
+  }, [auction?.isSold, auction?.currentBid]);
+
   if (isLoadingAuction || (auction?.setId && isLoadingSet)) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
@@ -59,6 +74,8 @@ export default function PublicLivePage() {
       </div>
     );
   }
+
+  const isMarquee = (auction?.currentBid || 0) >= MARQUEE_THRESHOLD;
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center p-4 bg-background overflow-hidden">
@@ -99,11 +116,19 @@ export default function PublicLivePage() {
             <motion.div
                 key={auction.status === 'drawing' ? 'drawing' : (currentPlayer?.id || 'idle')}
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0,
+                  scale: (isMarquee && auction.status === 'bidding') ? [1, 1.01, 1] : 1
+                }}
+                transition={isMarquee ? { repeat: Infinity, duration: 2 } : {}}
                 exit={{ opacity: 0, y: -20 }}
                 className="w-full"
             >
-                <Card className="ornate-border bg-card/90 backdrop-blur-md shadow-2xl relative">
+                <Card className={cn(
+                  "ornate-border bg-card/90 backdrop-blur-md shadow-2xl relative transition-all duration-700",
+                  isMarquee && "border-primary shadow-[0_0_80px_rgba(255,215,0,0.2)]"
+                )}>
                     <CardContent className="p-8 min-h-[450px] flex items-center justify-center">
                         
                         {(auction.isSold || auction.isUnsold) && (
@@ -134,7 +159,10 @@ export default function PublicLivePage() {
                         ) : currentPlayer ? (
                             <div className="flex flex-col lg:flex-row items-center justify-center gap-12 w-full">
                                 <div className="w-full lg:w-2/5 flex-shrink-0">
-                                    <div className="relative aspect-[3/4] max-w-[320px] mx-auto ornate-border shadow-2xl">
+                                    <div className={cn(
+                                      "relative aspect-[3/4] max-w-[320px] mx-auto ornate-border shadow-2xl",
+                                      isMarquee && "border-primary shadow-[0_0_40px_rgba(255,215,0,0.3)] animate-pulse"
+                                    )}>
                                         <div className="bg-black/40 w-full h-full flex items-center justify-center overflow-hidden">
                                             {currentPlayer.imageUrl ? (
                                                 <Image src={currentPlayer.imageUrl} alt={currentPlayer.playerName} fill className="object-cover" />
@@ -146,8 +174,15 @@ export default function PublicLivePage() {
                                 </div>
 
                                 <div className="w-full lg:w-3/5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
-                                    <div>
-                                        <p className="font-serif text-sm text-primary/80 uppercase tracking-[0.4em] mb-2 font-black">Active Floor Lot</p>
+                                    <div className="flex flex-col items-center lg:items-start">
+                                        <div className="flex items-center gap-3 mb-2">
+                                          <p className="font-serif text-sm text-primary/80 uppercase tracking-[0.4em] font-black">Active Floor Lot</p>
+                                          {isMarquee && (
+                                            <Badge className="bg-primary text-primary-foreground gap-1.5 animate-bounce">
+                                              <Sparkles size={10} /> Marquee
+                                            </Badge>
+                                          )}
+                                        </div>
                                         <h1 className="text-4xl lg:text-7xl font-bold font-serif text-white italic tracking-tighter drop-shadow-[0_4px_10px_black]">
                                             {currentPlayer.playerName}
                                         </h1>
@@ -160,17 +195,33 @@ export default function PublicLivePage() {
                                             { label: 'Category', value: currentPlayer.cua },
                                             { label: 'Rating', value: currentPlayer.points },
                                         ].map((stat, i) => stat.value && (
-                                            <div key={i} className="flex flex-col p-4 bg-secondary/30 border-l-4 border-primary shadow-lg">
+                                            <div key={i} className={cn(
+                                              "flex flex-col p-4 bg-secondary/30 border-l-4 shadow-lg",
+                                              isMarquee ? "border-primary" : "border-primary/40"
+                                            )}>
                                                 <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest mb-1">{stat.label}</span>
                                                 <span className="font-serif text-2xl text-white font-bold">{stat.value}</span>
                                             </div>
                                         ))}
                                     </div>
 
-                                    <div className="w-full p-6 border-4 border-primary bg-black/80 flex flex-col items-center lg:items-start shadow-[0_0_30px_rgba(255,215,0,0.2)]">
+                                    <div className={cn(
+                                      "w-full p-6 border-4 bg-black/80 flex flex-col items-center lg:items-start transition-all duration-500",
+                                      isMarquee ? "border-primary shadow-[0_0_50px_rgba(255,215,0,0.3)]" : "border-primary/30 shadow-[0_0_30px_rgba(255,215,0,0.1)]"
+                                    )}>
                                         <span className="text-[10px] font-black text-primary uppercase tracking-[0.5em] mb-2">Live Floor Valuation</span>
                                         <div className="flex items-baseline gap-4">
-                                            <span className="text-6xl lg:text-8xl font-mono font-black text-white">{auction.currentBid}</span>
+                                            <motion.span 
+                                              key={auction.currentBid}
+                                              initial={{ scale: 0.9 }}
+                                              animate={{ scale: 1 }}
+                                              className={cn(
+                                                "text-6xl lg:text-8xl font-mono font-black",
+                                                isMarquee ? "text-primary text-glow-gold" : "text-white"
+                                              )}
+                                            >
+                                              {auction.currentBid}
+                                            </motion.span>
                                             <span className="text-2xl lg:text-4xl font-serif text-primary italic font-black uppercase tracking-widest">L</span>
                                         </div>
                                     </div>

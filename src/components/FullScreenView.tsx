@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { X, RefreshCw, Keyboard, Clock3, Shield, History, Trophy, Gavel, Share2 } from 'lucide-react';
+import { X, RefreshCw, Keyboard, Clock3, Shield, History, Trophy, Gavel, Share2, Sparkles } from 'lucide-react';
 import { Player, PlayerSet, ActiveAuctionState } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,7 @@ import Image from 'next/image';
 import { useFirestore, useUser, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import confetti from 'canvas-confetti';
 
 interface FullScreenViewProps {
     players: Player[];
@@ -30,12 +31,14 @@ const SOUNDS = {
     BUZZER: 'https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3',
     TICK: 'https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3',
     UNSOLD: 'https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-947.mp3',
-    HEARTBEAT: 'https://assets.mixkit.co/sfx/preview/mixkit-human-heart-beat-493.mp3'
+    HEARTBEAT: 'https://assets.mixkit.co/sfx/preview/mixkit-human-heart-beat-493.mp3',
+    HYPE: 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-changing-tab-206.mp3'
 };
 
 type FinalCallStatus = 'none' | 'once' | 'twice' | 'final';
 
 const DEFAULT_TIMER = 20;
+const MARQUEE_THRESHOLD = 100;
 
 export default function FullScreenView({ players, set, onReset }: FullScreenViewProps) {
   const [undrawnPlayers, setUndrawnPlayers] = useState<Player[]>([...players]);
@@ -55,6 +58,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   const [isSold, setIsSold] = useState(false);
   const [isUnsold, setIsUnsold] = useState(false);
   const [finalCallStatus, setFinalCallStatus] = useState<FinalCallStatus>('none');
+  const [shouldShake, setShouldShake] = useState(false);
 
   const timerInterval = useRef<NodeJS.Timeout>();
 
@@ -65,6 +69,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     tick: typeof Audio !== 'undefined' ? new Audio(SOUNDS.TICK) : null,
     unsold: typeof Audio !== 'undefined' ? new Audio(SOUNDS.UNSOLD) : null,
     heartbeat: typeof Audio !== 'undefined' ? new Audio(SOUNDS.HEARTBEAT) : null,
+    hype: typeof Audio !== 'undefined' ? new Audio(SOUNDS.HYPE) : null,
   });
 
   const syncToLiveFloor = useCallback((state: Partial<ActiveAuctionState>) => {
@@ -86,6 +91,31 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         audio.play().catch(() => {});
     }
   }, []);
+
+  const triggerConfetti = (isMarquee: boolean) => {
+    if (isMarquee) {
+      const duration = 3 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+      const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+      const interval: any = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) return clearInterval(interval);
+        const particleCount = 50 * (timeLeft / duration);
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+      }, 250);
+    } else {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#FFD700', '#FFFFFF', '#8B0000']
+      });
+    }
+  };
 
   useEffect(() => {
     if (isTimerActive && timer > 0) {
@@ -116,6 +146,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setIsTimerActive(false);
     setFinalCallStatus('none');
     setTimer(DEFAULT_TIMER);
+    setShouldShake(false);
 
     syncToLiveFloor({ status: 'drawing', isSold: false, isUnsold: false });
 
@@ -148,17 +179,11 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         setDrawnPlayers([]);
         setTimer(DEFAULT_TIMER);
         setIsTimerActive(false);
+        setShouldShake(false);
         syncToLiveFloor({ status: 'idle', currentPlayerId: '', currentBid: 0, isSold: false, isUnsold: false });
     }
   };
 
-  /**
-   * Official SAAVAN '26 Increment Slabs:
-   * Up to 1.00 Cr (100L): 5L
-   * 1.00 Cr to < 2.00 Cr (100L-199L): 10L
-   * 2.00 Cr to < 5.00 Cr (200L-499L): 20L
-   * Above 5.00 Cr (500L+): 50L
-   */
   const getIncrement = (value: number) => {
     if (value < 100) return 5; 
     if (value < 200) return 10;
@@ -175,6 +200,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setFinalCallStatus('none');
     setDrawnPlayers(prev => [{ ...currentPlayer, status: 'sold', finalPrice: currentBid } as DrawnPlayer, ...prev]);
     playSound('sold');
+    triggerConfetti(currentBid >= MARQUEE_THRESHOLD);
     syncToLiveFloor({ status: 'sold', isSold: true });
   }, [currentPlayer, isSold, isUnsold, currentBid, playSound, syncToLiveFloor]);
 
@@ -210,6 +236,20 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   const handleIncreaseBid = () => {
     if (isSold || isUnsold) return;
     const newBid = nextValidBid;
+
+    // Hype Trigger: If crossing the Marquee Threshold
+    if (newBid >= MARQUEE_THRESHOLD && currentBid < MARQUEE_THRESHOLD) {
+      playSound('hype');
+      setShouldShake(true);
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.8 },
+        colors: ['#FFD700']
+      });
+      setTimeout(() => setShouldShake(false), 500);
+    }
+
     setCurrentBid(newBid);
     setTimer(DEFAULT_TIMER);
     setFinalCallStatus('none');
@@ -279,6 +319,8 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
           }, { merge: true });
       }
   }, [firestore, user, set.id]);
+
+  const isMarquee = currentBid >= MARQUEE_THRESHOLD;
 
   return (
     <div className="fixed inset-0 flex flex-col items-center bg-background sunburst-bg select-none overflow-hidden h-screen text-foreground">
@@ -377,9 +419,16 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                     <motion.div 
                         key={currentPlayer.id}
                         initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
+                        animate={{ 
+                          opacity: 1, 
+                          scale: 1,
+                          x: shouldShake ? [0, -10, 10, -10, 10, 0] : 0 
+                        }}
                         exit={{ opacity: 0, scale: 1.02 }}
-                        className="w-full max-w-5xl aspect-[16/9] max-h-[68vh] ornate-border bg-[#1a0202]/95 backdrop-blur-xl shadow-[0_0_100px_rgba(0,0,0,0.8)] flex overflow-hidden relative"
+                        className={cn(
+                          "w-full max-w-5xl aspect-[16/9] max-h-[68vh] ornate-border bg-[#1a0202]/95 backdrop-blur-xl shadow-[0_0_100px_rgba(0,0,0,0.8)] flex overflow-hidden relative",
+                          isMarquee && "border-primary shadow-[0_0_60px_rgba(255,215,0,0.2)]"
+                        )}
                     >
                         {/* Sold / Unsold Ceremony Overlay */}
                         <AnimatePresence>
@@ -412,10 +461,17 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                                 {currentPlayer.playerName}
                                             </h3>
                                             {isSold && (
-                                                <div className="flex items-baseline justify-center gap-4 bg-primary/10 px-8 sm:px-16 py-4 sm:py-6 border-2 border-primary/40 backdrop-blur-md">
+                                                <motion.div 
+                                                  animate={isMarquee ? { scale: [1, 1.1, 1] } : {}}
+                                                  transition={{ repeat: Infinity, duration: 2 }}
+                                                  className={cn(
+                                                    "flex items-baseline justify-center gap-4 px-8 sm:px-16 py-4 sm:py-6 border-2 backdrop-blur-md",
+                                                    isMarquee ? "bg-primary/20 border-primary shadow-[0_0_50px_rgba(255,215,0,0.4)]" : "bg-primary/10 border-primary/40"
+                                                  )}
+                                                >
                                                     <span className="text-6xl sm:text-8xl font-mono font-black text-white">{currentBid}</span>
                                                     <span className="text-2xl sm:text-4xl font-serif text-primary italic font-black uppercase tracking-widest">L</span>
-                                                </div>
+                                                </motion.div>
                                             )}
                                         </div>
 
@@ -433,7 +489,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         {/* Left Column: Media & Scout Insight */}
                         <div className="w-[320px] h-full flex flex-col bg-black/40 border-r border-primary/20 overflow-hidden">
                             <div className="flex-1 p-6 flex flex-col gap-6">
-                                <div className="w-full aspect-[3/4] relative border-4 border-primary/40 bg-black/60 shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden">
+                                <div className={cn(
+                                  "w-full aspect-[3/4] relative border-4 bg-black/60 shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden",
+                                  isMarquee ? "border-primary animate-pulse" : "border-primary/40"
+                                )}>
                                     <div className="absolute inset-0 z-10 pointer-events-none border border-primary/20" />
                                     <div className="w-full h-full relative">
                                         {currentPlayer.imageUrl ? (
@@ -469,8 +528,18 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         {/* Right Column: Profile & Valuation */}
                         <div className="flex-1 flex flex-col p-8 relative bg-[radial-gradient(circle_at_top_right,rgba(255,215,0,0.05),transparent)]">
                             <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center">
+                                <div className="flex items-center gap-3">
                                     <span className="text-[10px] text-primary font-black tracking-[0.5em] uppercase border-l-2 border-primary pl-3">Official Lot Entry</span>
+                                    {isMarquee && (
+                                      <motion.div 
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        className="bg-primary text-primary-foreground px-3 py-0.5 rounded-full flex items-center gap-1.5"
+                                      >
+                                        <Sparkles size={10} className="animate-spin" />
+                                        <span className="text-[8px] font-black uppercase tracking-widest">Marquee Status</span>
+                                      </motion.div>
+                                    )}
                                 </div>
                                 <div className="bg-primary/10 border border-primary/40 px-4 py-1">
                                     <span className="text-[10px] text-primary font-black tracking-widest uppercase italic">PLAYER NO. {currentPlayer.playerNumber}</span>
@@ -496,7 +565,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                             </div>
 
                             {/* Valuation HUD */}
-                            <div className="mt-auto border-4 border-primary/30 bg-black/80 p-6 relative overflow-hidden min-h-[180px] flex flex-col justify-center">
+                            <div className={cn(
+                              "mt-auto border-4 bg-black/80 p-6 relative overflow-hidden min-h-[180px] flex flex-col justify-center transition-all duration-500",
+                              isMarquee ? "border-primary shadow-[0_0_40px_rgba(255,215,0,0.3)]" : "border-primary/30"
+                            )}>
                                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
                                 
                                 {/* Going Once/Twice Overlay Banner */}
@@ -547,7 +619,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                         key={currentBid}
                                         initial={{ scale: 0.8, opacity: 0 }} 
                                         animate={{ scale: 1, opacity: 1 }}
-                                        className="text-6xl sm:text-7xl font-mono font-black text-white leading-none tracking-tighter text-shadow-lg"
+                                        className={cn(
+                                          "text-6xl sm:text-7xl font-mono font-black leading-none tracking-tighter text-shadow-lg",
+                                          isMarquee ? "text-primary text-glow-gold" : "text-white"
+                                        )}
                                     >
                                         {currentBid}
                                     </motion.span>
@@ -558,7 +633,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                     <div className="text-[9px] text-primary/60 font-bold uppercase tracking-[0.3em]">
                                         Base Entry: <span className="text-white ml-2">{currentPlayer.reservePrice}L</span>
                                     </div>
-                                    <div className="bg-primary/20 px-3 py-0.5 border border-primary/30">
+                                    <div className={cn(
+                                      "px-3 py-0.5 border transition-all",
+                                      isMarquee ? "bg-primary/30 border-primary" : "bg-primary/20 border-primary/30"
+                                    )}>
                                         <span className="text-[9px] text-primary font-black uppercase tracking-[0.3em]">
                                             Next Slab: <span className="text-white ml-2">{nextValidBid}L</span>
                                         </span>
@@ -601,7 +679,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                 <>
                     <Button 
                         onClick={handleIncreaseBid} 
-                        className="h-14 flex-1 bg-primary text-primary-foreground font-serif font-black text-lg tracking-[0.2em] uppercase rounded-none hover:shadow-[0_0_20px_gold] transition-all"
+                        className={cn(
+                          "h-14 flex-1 font-serif font-black text-lg tracking-[0.2em] uppercase rounded-none transition-all",
+                          isMarquee ? "bg-accent text-white hover:bg-accent/90 shadow-[0_0_20px_rgba(255,165,0,0.5)]" : "bg-primary text-primary-foreground hover:shadow-[0_0_20px_gold]"
+                        )}
                     >
                         + Raise Bid ({getIncrement(currentBid).toFixed(0)}L)
                     </Button>
