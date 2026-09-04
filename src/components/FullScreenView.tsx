@@ -212,7 +212,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       } else if (event.key === '?' || event.key === 'h') {
         setIsHelpOpen(prev => !prev);
       }
-    }, [handleDrawPlayer, router, currentPlayer, isSold, isUnsold, currentBid, finalCallStatus]
+    }, [handleDrawPlayer, router, currentPlayer, isSold, isUnsold, handleIncreaseBid, startHammerSequence]
   );
 
   useEffect(() => {
@@ -225,6 +225,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-between bg-[#2b0303] sunburst-bg transition-colors duration-1000 select-none overflow-hidden h-screen text-foreground">
       
+      {/* Top Progress Bar */}
       <div className="absolute top-0 left-0 w-full h-1 bg-white/5 z-50">
           <motion.div 
             initial={{ width: 0 }}
@@ -389,6 +390,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
               <div className="border border-primary/20 p-4 sm:p-6 flex flex-col lg:flex-row gap-6 sm:gap-8 items-stretch">
                 
+                {/* Left Side: Photo + Insight */}
                 <div className="flex flex-col items-center shrink-0 w-full lg:w-[320px]">
                   <div className="p-1 border border-primary/60 bg-black/40 shadow-2xl w-full max-w-[240px] sm:max-w-full">
                       <div className="border border-primary/20 p-1.5 sm:p-2">
@@ -405,7 +407,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                       <span className="text-[8px] sm:text-[10px] font-black tracking-[0.2em] text-primary-foreground uppercase">LIST SR.NO {currentPlayer.playerNumber}</span>
                   </div>
 
-                  {/* Auction Insight Placement */}
+                  {/* Auction Insight Placement - NOW UNDER THE PHOTO */}
                   {currentPlayer.auctionInsight && (
                     <motion.div 
                         initial={{ opacity: 0, y: 10 }}
@@ -420,6 +422,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                   )}
                 </div>
 
+                {/* Right Side: Data + Bidding */}
                 <div className="flex-1 flex flex-col justify-between w-full">
                   
                   <div className="text-center lg:text-left mb-4 sm:mb-6">
@@ -431,6 +434,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                     <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold text-white uppercase tracking-tight leading-none text-center lg:text-left">{currentPlayer.playerName}</h1>
                   </div>
 
+                  {/* Stats Grid */}
                   <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-4 sm:mb-6">
                       {[
                           { label: 'ORIGIN', value: currentPlayer.country },
@@ -449,6 +453,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                       ))}
                   </div>
 
+                  {/* Live Bidding Console */}
                   <div className="relative border border-primary/40 bg-black/60 p-4 sm:p-6 shadow-2xl">
                       <div className="flex flex-col sm:flex-row items-center justify-between relative z-10 gap-4 sm:gap-0">
                           <div className="flex-1 text-center sm:text-left">
@@ -560,6 +565,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         </AnimatePresence>
       </div>
 
+      {/* Footer Controls */}
       <div className="w-full max-w-6xl mx-auto flex flex-col items-center gap-4 sm:gap-6 pb-6 sm:pb-10 px-4 sm:px-6">
         
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full">
