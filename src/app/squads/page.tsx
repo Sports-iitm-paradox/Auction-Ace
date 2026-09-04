@@ -145,7 +145,7 @@ export default function SquadsPage() {
         
         (doc as any).autoTable({
             startY: 70,
-            head: [['House Name', 'Purse Left', 'Total Points', 'Budget Status']],
+            head: [['House Name', 'Purse Left (L)', 'Total Points', 'Budget Status']],
             body: standingsData,
             theme: 'striped',
             headStyles: { fillColor: [184, 134, 11] }
@@ -188,7 +188,7 @@ export default function SquadsPage() {
             for (const squad of squadData) {
                 const element = document.getElementById(`poster-${squad.id}`);
                 if (element) {
-                    const dataUrl = await toPng(element, { quality: 0.95, pixelRatio: 2 });
+                    const dataUrl = await toPng(element, { quality: 1, pixelRatio: 2 });
                     const link = document.createElement('a');
                     link.download = `Squad_Poster_${squad.name.replace(/\s+/g, '_')}.png`;
                     link.href = dataUrl;
@@ -292,8 +292,8 @@ export default function SquadsPage() {
                                 <TableHeader>
                                     <TableRow className="bg-muted/30 hover:bg-muted/50 border-b border-primary/20">
                                         <TableHead className="font-black text-primary uppercase tracking-widest min-w-[180px]">House</TableHead>
-                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest hidden sm:table-cell">Spent</TableHead>
-                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest text-lg">Purse Left</TableHead>
+                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest hidden sm:table-cell">Spent (L)</TableHead>
+                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest text-lg">Purse Left (L)</TableHead>
                                         <TableHead className="text-center font-black text-primary uppercase tracking-widest">Budget</TableHead>
                                         <TableHead className="text-center font-black text-primary uppercase tracking-widest">Points</TableHead>
                                     </TableRow>

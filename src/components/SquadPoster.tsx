@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -10,7 +11,7 @@ interface SquadPosterProps {
 }
 
 export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) => {
-  // Parse the player list robustly
+  // Parse the player list robustly with improved normalization
   const playerEntries = (squad.playersList || '').split(';').filter(Boolean).map(entry => {
     const parts = entry.split(':');
     if (parts.length < 2) return null;
@@ -18,8 +19,12 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
     const name = parts[0].trim();
     const price = parts[1].trim();
     
-    // Exact matching with fallback for spacing
-    const playerInfo = allPlayers.find(p => p.playerName.toLowerCase().trim() === name.toLowerCase());
+    // Exact matching with improved normalization for spaces and case
+    const playerInfo = allPlayers.find(p => {
+        const dbName = p.playerName.toLowerCase().replace(/\s+/g, ' ').trim();
+        const csvName = name.toLowerCase().replace(/\s+/g, ' ').trim();
+        return dbName === csvName;
+    });
     
     return { name, price, playerInfo };
   }).filter((e): e is NonNullable<typeof e> => e !== null);
@@ -68,7 +73,12 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
           <div key={idx} className="bg-black/60 border border-primary/30 p-3 flex flex-col items-center text-center relative shadow-2xl h-fit">
              <div className="w-full aspect-[3/4] relative bg-black/80 mb-2 border border-primary/10 overflow-hidden flex items-center justify-center">
                 {entry.playerInfo?.imageUrl ? (
-                  <img src={entry.playerInfo.imageUrl} alt={entry.name} className="w-full h-full object-cover" />
+                  <img 
+                    src={entry.playerInfo.imageUrl} 
+                    alt={entry.name} 
+                    className="w-full h-full object-cover" 
+                    crossOrigin="anonymous"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center opacity-20">
                     <Shield className="h-12 w-12 text-primary" />
