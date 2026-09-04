@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef } from 'react';
@@ -14,7 +13,7 @@ import Papa from 'papaparse';
 import { Squad, Player } from '@/lib/player-data';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, writeBatch, doc, getDocs, query, orderBy, where } from 'firebase/firestore';
-import { jsPDF } from 'jsPDF';
+import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { toPng } from 'html-to-image';
 import { SquadPoster } from '@/components/SquadPoster';
@@ -36,6 +35,7 @@ export default function SquadsPage() {
 
     const playersQuery = useMemoFirebase(() => {
         if (!firestore) return null;
+        // In production, we only need to match players by name from the master list
         return query(collection(firestore, 'players'));
     }, [firestore]);
 
@@ -61,7 +61,7 @@ export default function SquadsPage() {
 
                     const parsedData = results.data as any[];
                     
-                    // Robust column finder helper
+                    // Robust column finder helper (fuzzy matching)
                     const getVal = (row: any, searchTerms: string[]) => {
                         const keys = Object.keys(row);
                         for (const term of searchTerms) {
@@ -75,18 +75,19 @@ export default function SquadsPage() {
                         const houseName = getVal(row, ['house name', 'house']) || 'N/A';
                         
                         const parseSafeFloat = (val: any) => {
-                            if (!val) return 0;
+                            if (!val || val === '#NUM!' || val === '#N/A') return 0;
                             const str = String(val).replace(/[^0-9.]/g, '');
                             return parseFloat(str) || 0;
                         };
 
                         const parseSafeInt = (val: any) => {
-                            if (!val) return 0;
+                            if (!val || val === '#NUM!' || val === '#N/A') return 0;
                             const str = String(val).replace(/[^0-9]/g, '');
                             return parseInt(str, 10) || 0;
                         };
 
-                        const playersList = getVal(row, ['players list', 'format', 'squad list']) || '';
+                        // Specific fuzzy search for "Players List"
+                        const playersList = getVal(row, ['players list', 'format', 'squad list', 'squad members']) || '';
 
                         const newSquadRef = doc(squadsCollectionRef);
                         batch.set(newSquadRef, {
@@ -149,7 +150,7 @@ export default function SquadsPage() {
         const standingsData = squadData.map(s => [
             s.name, 
             `${s.moneyLeft} Cr`, 
-            s.totalPoints.toString(), 
+            s.totalPoints === 0 ? 'N/A' : s.totalPoints.toString(), 
             s.budgetStatus
         ]);
         
@@ -328,7 +329,7 @@ export default function SquadsPage() {
                                                     {house.budgetStatus}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="text-center font-mono font-black text-xl sm:text-2xl text-white">{house.totalPoints}</TableCell>
+                                            <TableCell className="text-center font-mono font-black text-xl sm:text-2xl text-white">{house.totalPoints === 0 ? 'N/A' : house.totalPoints}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -348,4 +349,3 @@ export default function SquadsPage() {
         </motion.div>
     );
 }
-
