@@ -89,9 +89,9 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       .filter(event => event.type === 'sold' || event.type === 'unsold')
       .map(event => {
         const p = set.players.find(player => player.id === event.playerId);
-        return { ...p, status: event.type, finalPrice: event.bid, houseName: event.houseName };
+        return p ? { ...p, status: event.type, finalPrice: event.bid, houseName: event.houseName } : null;
       })
-      .filter(Boolean);
+      .filter((p): p is any => p !== null);
   }, [auction?.history, set.players]);
 
   const playSound = useCallback((key: string) => {
@@ -149,7 +149,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         currentBid: nextPlayer.reservePrice || 0,
         hammerStep: 0,
         undrawnIds: undrawn,
-        history: [...(auction.history || []), { type: 'draw', playerId: nextId, timestamp: new Date().toISOString() }],
         lastUpdated: serverTimestamp()
       });
       setIsTimerActive(true);
@@ -246,15 +245,17 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         budgetStatus: newMoneyLeft < 0 ? 'OVER' : 'OK'
     });
 
+    const newHistory = [...(auction.history || []), { 
+        type: 'sold', 
+        playerId: currentPlayer.id, 
+        bid: auction.currentBid, 
+        houseId: house.id,
+        houseName: house.name,
+        timestamp: new Date().toISOString() 
+    }];
+
     updateDocumentNonBlocking(auctionRef, {
-        history: [...(auction.history || []), { 
-            type: 'sold', 
-            playerId: currentPlayer.id, 
-            bid: auction.currentBid, 
-            houseId: house.id,
-            houseName: house.name,
-            timestamp: new Date().toISOString() 
-        }],
+        history: newHistory,
         lastUpdated: serverTimestamp()
     });
     setSelectedHouseId("");
@@ -266,10 +267,11 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     clearHammerSequence();
     setIsTimerActive(false);
     playSound('unsold');
+    const newHistory = [...(auction.history || []), { type: 'unsold', playerId: currentPlayer.id, timestamp: new Date().toISOString() }];
     updateDocumentNonBlocking(auctionRef, {
         status: 'unsold',
         isUnsold: true,
-        history: [...(auction.history || []), { type: 'unsold', playerId: currentPlayer.id, timestamp: new Date().toISOString() }],
+        history: newHistory,
         lastUpdated: serverTimestamp()
     });
   };
@@ -292,7 +294,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   };
 
   const handleHardReset = async () => {
-    if (!auctionRef || !confirm("Are you sure? This will wipe progress.")) return;
+    if (!auctionRef || !confirm("Are you sure? This will wipe session progress.")) return;
     
     clearHammerSequence();
     const allIds = set.players.map(p => p.id);
@@ -358,7 +360,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       return (
           <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#1a0202] text-primary font-serif">
               <div className="w-16 h-16 border-4 border-primary border-t-transparent animate-spin rounded-full mb-6" />
-              <h1 className="text-2xl uppercase tracking-[0.5em] animate-pulse">Establishing Secure Floor Connection...</h1>
+              <h1 className="text-2xl uppercase tracking-[0.5em] animate-pulse">Establishing Session Connection...</h1>
           </div>
       );
   }
@@ -402,6 +404,9 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                     </div>
                                 </div>
                             ))}
+                            {drawnPlayers.length === 0 && (
+                                <p className="text-[10px] text-center text-muted-foreground uppercase py-20 italic">No transactions recorded.</p>
+                            )}
                         </div>
                     </ScrollArea>
                 </motion.aside>
@@ -455,7 +460,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                             </motion.div>
                         )}
 
-                        {/* Going Once/Twice/Final Call Ticker */}
+                        {/* Hammer Step Overlay */}
                         {auction.hammerStep > 0 && auction.hammerStep < 4 && !auction.isSold && (
                             <motion.div initial={{ y: -100 }} animate={{ y: 0 }} className="absolute top-0 left-0 w-full bg-primary/90 py-4 flex items-center justify-center z-40 border-b-2 border-primary-foreground shadow-2xl">
                                 <h2 className="text-2xl lg:text-3xl font-serif font-black uppercase italic tracking-[0.4em] text-primary-foreground">
@@ -585,7 +590,8 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         <Gavel className="mr-3 h-6 w-6"/> 
                         {auction.hammerStep === 0 ? 'START HAMMER CALL' : 
                          auction.hammerStep === 1 ? 'GOING ONCE...' : 
-                         auction.hammerStep === 2 ? 'GOING TWICE...' : 'FINAL CALL...'}
+                         auction.hammerStep === 2 ? 'GOING TWICE...' : 
+                         auction.hammerStep === 3 ? 'FINAL CALL...' : 'SOLD'}
                     </Button>
                     <Button onClick={handleUnsold} variant="destructive" className="h-20 px-8 lg:px-16 font-black tracking-widest uppercase text-sm lg:text-lg">Record Unsold</Button>
                 </>

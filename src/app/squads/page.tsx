@@ -1,25 +1,29 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ShieldCheck, CheckCircle, AlertTriangle, Upload, Loader2, Info, FileText, ImageIcon, Download, RotateCcw } from 'lucide-react';
+import { ShieldCheck, Loader2, FileText, ImageIcon, Download, RotateCcw, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Squad, Player, OFFICIAL_HOUSES, SQUAD_RULES } from '@/lib/player-data';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, writeBatch, doc, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { collection, writeBatch, doc, getDocs, query, orderBy } from 'firebase/firestore';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import { toPng } from 'html-to-image';
+import { SquadPoster } from '@/components/SquadPoster';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function SquadsPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
     const [isProcessing, setIsProcessing] = useState(false);
+    const [previewSquad, setPreviewSquad] = useState<Squad | null>(null);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const squadsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -28,14 +32,22 @@ export default function SquadsPage() {
 
     const { data: squadData, isLoading: isLoadingSquads } = useCollection<Squad>(squadsQuery);
 
+    const playersQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'players'));
+    }, [firestore]);
+
+    const { data: allPlayers } = useCollection<Player>(playersQuery);
+
     const initializeHouses = async () => {
         if (!firestore || !user) return;
+        if (!confirm("This will reset all house budgets and rosters. Continue?")) return;
+        
         setIsProcessing(true);
         try {
             const batch = writeBatch(firestore);
             const squadsCollectionRef = collection(firestore, 'squads');
             
-            // Clear existing
             const existing = await getDocs(squadsCollectionRef);
             existing.forEach(d => batch.delete(d.ref));
 
@@ -59,6 +71,25 @@ export default function SquadsPage() {
             toast({ title: "Initialization Failed", variant: "destructive" });
         } finally {
             setIsProcessing(false);
+        }
+    };
+
+    const downloadPoster = async (squadId: string) => {
+        const node = document.getElementById(`poster-${squadId}`);
+        if (!node) return;
+        
+        setIsDownloading(true);
+        try {
+            const dataUrl = await toPng(node, { quality: 0.95, pixelRatio: 2 });
+            const link = document.createElement('a');
+            link.download = `Squad_Poster_${squadId}.png`;
+            link.href = dataUrl;
+            link.click();
+            toast({ title: "Poster Downloaded", description: "The high-resolution squad poster is ready." });
+        } catch (err) {
+            toast({ title: "Download Failed", variant: "destructive" });
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -115,6 +146,7 @@ export default function SquadsPage() {
                                         <TableHead className="text-right font-black text-primary uppercase tracking-widest">Spent (Cr)</TableHead>
                                         <TableHead className="text-right font-black text-primary uppercase tracking-widest text-lg">Purse Left (Cr)</TableHead>
                                         <TableHead className="text-center font-black text-primary uppercase tracking-widest">Points</TableHead>
+                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest w-[100px]">Asset</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -124,6 +156,16 @@ export default function SquadsPage() {
                                             <TableCell className="text-right font-mono text-muted-foreground">{house.moneySpent}Cr</TableCell>
                                             <TableCell className="text-right font-mono text-primary font-black text-3xl">{house.moneyLeft}Cr</TableCell>
                                             <TableCell className="text-center font-mono font-black text-2xl text-white">{house.totalPoints}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    className="text-primary hover:bg-primary/10"
+                                                    onClick={() => setPreviewSquad(house)}
+                                                >
+                                                    <ImageIcon className="h-5 w-5" />
+                                                </Button>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -138,6 +180,33 @@ export default function SquadsPage() {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Poster Preview & Generation Dialog */}
+            <Dialog open={!!previewSquad} onOpenChange={() => setPreviewSquad(null)}>
+                <DialogContent className="max-w-[800px] h-[90vh] bg-black border-primary/30 flex flex-col p-0 overflow-hidden">
+                    <DialogHeader className="p-6 border-b border-primary/20 flex-shrink-0">
+                        <DialogTitle className="font-serif text-primary text-2xl uppercase">Official Squad Poster</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-auto bg-black p-4 flex justify-center custom-scrollbar">
+                        {previewSquad && (
+                            <div className="scale-[0.5] origin-top">
+                                <SquadPoster squad={previewSquad} allPlayers={allPlayers || []} />
+                            </div>
+                        )}
+                    </div>
+                    <div className="p-6 border-t border-primary/20 flex justify-end gap-3 flex-shrink-0">
+                        <Button variant="ghost" onClick={() => setPreviewSquad(null)}>Close</Button>
+                        <Button 
+                            className="bg-primary font-bold" 
+                            disabled={isDownloading}
+                            onClick={() => previewSquad && downloadPoster(previewSquad.id)}
+                        >
+                            {isDownloading ? <Loader2 className="animate-spin mr-2"/> : <Download className="mr-2"/>}
+                            Download PNG
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </motion.div>
     );
 }
