@@ -26,6 +26,17 @@ export interface PlayerSet extends DocumentData {
   order: number;
 }
 
+export interface ActiveAuctionState extends DocumentData {
+  currentPlayerId: string;
+  setId: string;
+  currentBid: number;
+  status: 'idle' | 'drawing' | 'bidding' | 'sold' | 'unsold';
+  isSold: boolean;
+  isUnsold: boolean;
+  userId: string;
+  lastUpdated: any;
+}
+
 export interface Squad extends DocumentData {
     id: string;
     name: string;

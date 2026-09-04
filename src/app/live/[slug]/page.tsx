@@ -7,13 +7,13 @@ import { doc, DocumentReference } from 'firebase/firestore';
 import { Player, PlayerSet, ActiveAuctionState } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
-import { Trophy, Gavel, Users } from 'lucide-react';
+import { Trophy, Gavel } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { useState, useEffect } from 'react';
 
 export default function PublicLivePage() {
   const params = useParams();
+  // slug is now the admin's persistent UID
   const slug = params.slug as string;
   const firestore = useFirestore();
 
@@ -22,17 +22,19 @@ export default function PublicLivePage() {
     return doc(firestore, 'activeAuctions', slug) as DocumentReference<ActiveAuctionState>;
   }, [firestore, slug]);
 
-  const setRef = useMemoFirebase(() => {
-    if (!firestore || !slug) return null;
-    return doc(firestore, 'sets', slug) as DocumentReference<PlayerSet>;
-  }, [firestore, slug]);
-
   const { data: auction, isLoading: isLoadingAuction } = useDoc<ActiveAuctionState>(auctionRef);
+
+  // Dynamically fetch the set based on the currentsetId in the active auction state
+  const setRef = useMemoFirebase(() => {
+    if (!firestore || !auction?.setId) return null;
+    return doc(firestore, 'sets', auction.setId) as DocumentReference<PlayerSet>;
+  }, [firestore, auction?.setId]);
+
   const { data: set, isLoading: isLoadingSet } = useDoc<PlayerSet>(setRef);
 
   const currentPlayer = set?.players.find(p => p.id === auction?.currentPlayerId) || null;
 
-  if (isLoadingAuction || isLoadingSet) {
+  if (isLoadingAuction || (auction?.setId && isLoadingSet)) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <p className="text-primary font-serif animate-pulse text-2xl">Joining Live Floor...</p>
@@ -40,12 +42,12 @@ export default function PublicLivePage() {
     );
   }
 
-  if (!auction || !set) {
+  if (!auction || (auction.status === 'idle' && !auction.currentPlayerId)) {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-background p-4 text-center">
         <Trophy className="h-20 w-20 text-primary mb-4" />
-        <h1 className="text-4xl font-serif text-primary mb-2">Auction Not Active</h1>
-        <p className="text-muted-foreground">The moderator hasn't started this auction session yet.</p>
+        <h1 className="text-4xl font-serif text-primary mb-2">Floor Currently Closed</h1>
+        <p className="text-muted-foreground">The moderator hasn't started the session yet. Stay tuned.</p>
       </div>
     );
   }
@@ -56,7 +58,7 @@ export default function PublicLivePage() {
         <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
         <span className="text-red-600 font-bold uppercase tracking-[0.2em] text-xs">Live View</span>
         <div className="hidden sm:block h-4 w-px bg-primary/20 mx-2" />
-        <span className="text-primary font-serif font-bold text-lg hidden sm:block">{set.name}</span>
+        <span className="text-primary font-serif font-bold text-lg hidden sm:block">{set?.name || 'Session Active'}</span>
       </div>
 
       <div className="w-full max-w-4xl">
@@ -121,9 +123,9 @@ export default function PublicLivePage() {
                         <div className="w-full grid grid-cols-2 gap-3">
                             {[
                               { label: 'Origin', value: currentPlayer.country },
-                              { label: 'Specialism', value: currentPlayer.specialism },
+                              { label: 'Role', value: currentPlayer.specialism },
                               { label: 'Category', value: currentPlayer.cua },
-                              { label: 'Points', value: currentPlayer.points },
+                              { label: 'Rating', value: currentPlayer.points },
                             ].map((stat, i) => stat.value && (
                               <div key={i} className="flex flex-col p-3 bg-secondary/30 border-l-4 border-primary">
                                 <span className="text-[10px] text-primary font-bold uppercase mb-1">{stat.label}</span>

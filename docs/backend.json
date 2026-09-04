@@ -132,6 +132,10 @@
         "currentPlayerId": {
           "type": "string"
         },
+        "setId": {
+          "type": "string",
+          "description": "The ID of the set currently being auctioned."
+        },
         "currentBid": {
           "type": "number"
         },
@@ -201,7 +205,7 @@
           "schema": {
             "$ref": "#/entities/ActiveAuctionState"
           },
-          "description": "Stores the real-time state of the active auction floor."
+          "description": "Stores the real-time state of the active auction floor. auctionId is the Admin's UID for persistent links."
         }
       }
     ]

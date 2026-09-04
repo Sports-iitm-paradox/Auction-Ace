@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { X, RefreshCw, Keyboard, Clock3, Shield, History, Trophy, Gavel, Share2 } from 'lucide-react';
+import { X, RefreshCw, Keyboard, Clock3, Shield, History, Trophy, Gavel, Share2, Menu } from 'lucide-react';
 import { Player, PlayerSet, ActiveAuctionState } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -69,9 +69,11 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
   const syncToLiveFloor = useCallback((state: Partial<ActiveAuctionState>) => {
     if (!firestore || !user || !set.id) return;
-    const auctionRef = doc(firestore, 'activeAuctions', set.id);
+    // Use user.uid as the document ID for persistent public links
+    const auctionRef = doc(firestore, 'activeAuctions', user.uid);
     updateDocumentNonBlocking(auctionRef, {
         ...state,
+        setId: set.id,
         userId: user.uid,
         lastUpdated: serverTimestamp()
     });
@@ -217,11 +219,13 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   };
 
   const copyLiveLink = () => {
-    const link = `${window.location.origin}/live/${set.id}`;
+    if (!user) return;
+    // Public link is now tied to the admin user ID for persistence across sets
+    const link = `${window.location.origin}/live/${user.uid}`;
     navigator.clipboard.writeText(link);
     toast({
-        title: 'Public Link Copied',
-        description: 'Share this with participants to follow live.',
+        title: 'Persistent Link Copied',
+        description: 'Share this with participants to follow your live auctions across all sets.',
     });
   }
 
@@ -258,10 +262,11 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   // Initial Sync on Mount
   useEffect(() => {
       if (firestore && user && set.id) {
-          const auctionRef = doc(firestore, 'activeAuctions', set.id);
+          const auctionRef = doc(firestore, 'activeAuctions', user.uid);
           setDocumentNonBlocking(auctionRef, {
               status: 'idle',
               currentPlayerId: '',
+              setId: set.id,
               currentBid: 0,
               isSold: false,
               isUnsold: false,
