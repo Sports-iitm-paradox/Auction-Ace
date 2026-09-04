@@ -26,6 +26,14 @@ export interface PlayerSet extends DocumentData {
   order: number;
 }
 
+export interface ActionEvent {
+  type: 'draw' | 'bid' | 'sold' | 'unsold' | 'undo' | 'reset';
+  playerId?: string;
+  bid?: number;
+  timestamp: any;
+  statusBefore?: string;
+}
+
 export interface ActiveAuctionState extends DocumentData {
   currentPlayerId: string;
   setId: string;
@@ -35,6 +43,8 @@ export interface ActiveAuctionState extends DocumentData {
   isUnsold: boolean;
   userId: string;
   lastUpdated: any;
+  history: ActionEvent[];
+  undrawnIds: string[]; // Shuffled IDs to maintain order across refreshes
 }
 
 export interface Squad extends DocumentData {
