@@ -35,7 +35,6 @@ export default function SquadsPage() {
 
     const playersQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        // Filter players by current admin to ensure correct mapping
         return query(collection(firestore, 'players'), where('userId', '==', user.uid));
     }, [firestore, user]);
 
@@ -302,8 +301,8 @@ export default function SquadsPage() {
                                     {squadData.map((house) => (
                                         <TableRow key={house.id} className="hover:bg-primary/5 transition-colors border-b border-primary/5">
                                             <TableCell className="font-serif text-lg sm:text-xl text-white py-6">{house.name}</TableCell>
-                                            <TableCell className="text-right font-mono text-sm hidden sm:table-cell text-muted-foreground">{house.moneySpent} Cr</TableCell>
-                                            <TableCell className="text-right font-mono text-primary font-black text-xl sm:text-2xl">{house.moneyLeft} Cr</TableCell>
+                                            <TableCell className="text-right font-mono text-sm hidden sm:table-cell text-muted-foreground">{house.moneySpent}L</TableCell>
+                                            <TableCell className="text-right font-mono text-primary font-black text-xl sm:text-2xl">{house.moneyLeft}L</TableCell>
                                             <TableCell className="text-center">
                                                 <Badge variant={house.budgetStatus === 'OK' ? 'default' : 'destructive'} className="gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-xs">
                                                     {house.budgetStatus === 'OK' ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
