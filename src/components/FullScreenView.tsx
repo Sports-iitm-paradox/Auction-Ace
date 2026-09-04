@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -318,29 +317,29 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         )}
       </AnimatePresence>
 
-      <div className={cn('absolute top-1/2 -translate-y-1/2 z-40 transition-all', isSidebarOpen ? 'left-80 hidden sm:block' : 'left-0')}>
+      <div className={cn('absolute top-1/2 -translate-y-1/2 z-40 transition-all', isSidebarOpen ? 'left-80 hidden lg:block' : 'left-0')}>
         <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-            className="w-8 sm:w-10 h-16 sm:h-20 bg-primary text-primary-foreground flex flex-col items-center justify-center rounded-r-2xl shadow-2xl hover:brightness-110 transition-all group"
+            className="w-8 lg:w-10 h-16 lg:h-20 bg-primary text-primary-foreground flex flex-col items-center justify-center rounded-r-2xl shadow-2xl hover:brightness-110 transition-all group"
         >
           {isSidebarOpen ? <ChevronsLeft size={24} /> : <ChevronsRight size={24} />}
-          <span className="hidden sm:block [writing-mode:vertical-rl] text-[10px] font-black tracking-widest mt-2 uppercase">History</span>
+          <span className="hidden lg:block [writing-mode:vertical-rl] text-[10px] font-black tracking-widest mt-2 uppercase">History</span>
         </button>
       </div>
 
-      <div className="absolute top-4 sm:top-6 right-4 sm:right-6 z-40 flex gap-2 sm:gap-3">
-        <button onClick={() => setIsHelpOpen(true)} title="Keyboard Shortcuts" className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center bg-black/40 border border-white/20 text-white/60 hover:text-white transition-all rounded-lg">
-          <Keyboard size={18} />
+      <div className="absolute top-4 lg:top-8 right-4 lg:right-8 z-40 flex gap-2 lg:gap-4">
+        <button onClick={() => setIsHelpOpen(true)} title="Keyboard Shortcuts" className="h-9 w-9 lg:h-12 lg:w-12 flex items-center justify-center bg-black/40 border border-white/20 text-white/60 hover:text-white transition-all rounded-lg backdrop-blur-sm">
+          <Keyboard size={20} />
         </button>
-        <button onClick={resetAuction} title="Reset Session" className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center bg-black/40 border border-white/20 text-white/60 hover:text-red-500 transition-all rounded-lg">
-          <RefreshCw size={18} />
+        <button onClick={resetAuction} title="Reset Session" className="h-9 w-9 lg:h-12 lg:w-12 flex items-center justify-center bg-black/40 border border-white/20 text-white/60 hover:text-red-500 transition-all rounded-lg backdrop-blur-sm">
+          <RefreshCw size={20} />
         </button>
-        <button onClick={() => router.push('/')} title="Exit" className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center bg-black/40 border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground transition-all rounded-lg">
-          <X size={20} />
+        <button onClick={() => router.push('/')} title="Exit" className="h-9 w-9 lg:h-12 lg:w-12 flex items-center justify-center bg-black/40 border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground transition-all rounded-lg backdrop-blur-sm">
+          <X size={24} />
         </button>
       </div>
 
-      <div className="flex-1 flex items-center justify-center w-full max-w-7xl px-4 mt-12 sm:mt-8 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 flex items-center justify-center w-full px-4 lg:px-12 mt-16 lg:mt-0 overflow-y-auto lg:overflow-visible custom-scrollbar">
         <AnimatePresence mode="wait">
           {!isDrawing && currentPlayer ? (
             <motion.div 
@@ -348,38 +347,38 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
               initial={{ opacity: 0, scale: 0.98 }} 
               animate={{ opacity: 1, scale: 1 }} 
               exit={{ opacity: 0, scale: 1.02 }}
-              className="relative w-full max-w-[950px] bg-[#1a0202]/80 backdrop-blur-md p-0.5 sm:p-1 shadow-2xl border border-primary/40"
+              className="relative w-full max-w-[1200px] bg-[#1a0202]/85 backdrop-blur-xl p-1 lg:p-2 shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-primary/40 ornate-border"
             >
               <AnimatePresence>
                 {(isSold || isUnsold) && (
                     <motion.div 
                         initial={{ opacity: 0, scale: 1.1 }} 
                         animate={{ opacity: 1, scale: 1 }} 
-                        className="absolute inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl p-4"
+                        className="absolute inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-2xl p-4 lg:p-12"
                     >
                         <div className={cn(
-                            "relative p-6 sm:p-12 border-4 rotate-[-4deg] bg-[#1a0202] shadow-[0_0_100px_rgba(0,0,0,1)] flex flex-col items-center w-full sm:min-w-[450px] ornate-border",
+                            "relative p-8 lg:p-16 border-8 rotate-[-3deg] bg-[#1a0202] shadow-[0_0_150px_rgba(0,0,0,1)] flex flex-col items-center w-full lg:max-w-xl ornate-border",
                             isSold ? "border-primary" : "border-red-600"
                         )}>
-                            <div className="absolute -top-6 sm:-top-12 -right-6 sm:-right-12">
-                                {isSold ? <Trophy className="h-16 w-16 sm:h-24 sm:w-24 text-primary drop-shadow-[0_0_20px_rgba(255,204,0,0.5)]" /> : <Ban className="h-16 w-16 sm:h-24 sm:w-24 text-red-600 drop-shadow-[0_0_20px_rgba(220,38,38,0.5)]" />}
+                            <div className="absolute -top-8 lg:-top-16 -right-8 lg:-right-16">
+                                {isSold ? <Trophy className="h-20 w-20 lg:h-32 lg:w-32 text-primary drop-shadow-[0_0_30px_rgba(255,204,0,0.6)]" /> : <Ban className="h-20 w-20 lg:h-32 lg:w-32 text-red-600 drop-shadow-[0_0_30px_rgba(220,38,38,0.6)]" />}
                             </div>
-                            <p className="text-[8px] sm:text-[10px] text-white/40 font-black tracking-[0.4em] sm:tracking-[0.8em] uppercase mb-4">Official Declaration</p>
+                            <p className="text-[10px] lg:text-[12px] text-white/40 font-black tracking-[0.5em] lg:tracking-[1em] uppercase mb-6">Official Declaration</p>
                             <h2 className={cn(
-                                "text-5xl sm:text-8xl font-black uppercase tracking-tighter italic drop-shadow-lg mb-2 text-center",
+                                "text-6xl lg:text-9xl font-black uppercase tracking-tighter italic drop-shadow-2xl mb-4 text-center leading-none",
                                 isSold ? "text-primary" : "text-red-600"
                             )}>
                                 {isSold ? 'SOLD' : 'UNSOLD'}
                             </h2>
-                            <div className="h-px w-20 sm:w-40 bg-white/10 my-4" />
-                            <h3 className="text-xl sm:text-2xl font-serif text-white uppercase mb-6 text-center">{currentPlayer.playerName}</h3>
+                            <div className="h-px w-32 lg:w-64 bg-white/10 my-6" />
+                            <h3 className="text-2xl lg:text-4xl font-serif text-white uppercase mb-8 text-center">{currentPlayer.playerName}</h3>
                             
                             {isSold && (
                                 <div className="text-center">
-                                    <p className="text-white/40 font-bold uppercase tracking-[0.2em] sm:tracking-[0.4em] text-[8px] sm:text-[9px] mb-2">FINAL HAMMER PRICE</p>
-                                    <div className="flex items-baseline justify-center gap-2">
-                                        <span className="text-5xl sm:text-7xl font-mono font-black text-white">{currentBid}</span>
-                                        <span className="text-xl sm:text-3xl font-serif text-primary font-bold">LAKH</span>
+                                    <p className="text-white/40 font-bold uppercase tracking-[0.3em] lg:tracking-[0.5em] text-[10px] lg:text-[12px] mb-4">FINAL HAMMER PRICE</p>
+                                    <div className="flex items-baseline justify-center gap-3">
+                                        <span className="text-6xl lg:text-9xl font-mono font-black text-white leading-none">{currentBid}</span>
+                                        <span className="text-2xl lg:text-4xl font-serif text-primary font-bold italic">LAKH</span>
                                     </div>
                                 </div>
                             )}
@@ -388,34 +387,37 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                 )}
               </AnimatePresence>
 
-              <div className="border border-primary/20 p-4 sm:p-6 flex flex-col lg:flex-row gap-6 sm:gap-8 items-stretch">
+              <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 p-4 lg:p-8">
                 
                 {/* Left Side: Photo + Insight */}
-                <div className="flex flex-col items-center shrink-0 w-full lg:w-[320px]">
-                  <div className="p-1 border border-primary/60 bg-black/40 shadow-2xl w-full max-w-[240px] sm:max-w-full">
-                      <div className="border border-primary/20 p-1.5 sm:p-2">
-                           <div className="relative aspect-[3/4] overflow-hidden bg-[#2a0303]">
+                <div className="flex flex-col items-center shrink-0 w-full lg:w-[380px]">
+                  <div className="p-1 border-2 border-primary/60 bg-black/40 shadow-2xl w-full">
+                      <div className="border border-primary/30 p-2">
+                           <div className="relative aspect-[3/4] overflow-hidden bg-[#2a0303] ornate-border">
                               {currentPlayer.imageUrl ? (
                                   <Image src={currentPlayer.imageUrl} alt={currentPlayer.playerName} fill className="object-cover" />
                               ) : (
-                                  <div className="w-full h-full flex items-center justify-center font-serif text-7xl sm:text-9xl text-primary/5">?</div>
+                                  <div className="w-full h-full flex items-center justify-center font-serif text-7xl lg:text-9xl text-primary/5">?</div>
                               )}
                            </div>
                       </div>
                   </div>
-                  <div className="mt-3 sm:mt-4 bg-primary px-4 sm:px-6 py-1.5 sm:py-2 w-full max-w-[240px] sm:max-w-full text-center shadow-lg">
-                      <span className="text-[8px] sm:text-[10px] font-black tracking-[0.2em] text-primary-foreground uppercase">LIST SR.NO {currentPlayer.playerNumber}</span>
+                  <div className="mt-4 bg-primary px-8 py-2 w-full text-center shadow-2xl border-b-4 border-black/20">
+                      <span className="text-[10px] lg:text-[12px] font-black tracking-[0.4em] text-primary-foreground uppercase">LIST SR.NO {currentPlayer.playerNumber}</span>
                   </div>
 
-                  {/* Auction Insight Placement - NOW UNDER THE PHOTO */}
+                  {/* Auction Insight Placement */}
                   {currentPlayer.auctionInsight && (
                     <motion.div 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mt-6 p-4 bg-secondary/20 border-l-4 border-primary/60 w-full"
+                        className="mt-8 p-6 bg-secondary/20 border-l-4 border-primary/80 w-full shadow-xl relative overflow-hidden"
                     >
-                        <p className="text-[7px] text-primary font-black tracking-widest uppercase mb-2">Auction Insight</p>
-                        <p className="text-[11px] leading-relaxed text-white/80 italic font-medium">
+                        <div className="absolute top-0 right-0 p-2 opacity-10">
+                            <Info size={40} className="text-primary" />
+                        </div>
+                        <p className="text-[9px] text-primary font-black tracking-widest uppercase mb-3">Scout Insight</p>
+                        <p className="text-[13px] lg:text-[15px] leading-relaxed text-white/90 italic font-medium font-sans">
                             "{currentPlayer.auctionInsight}"
                         </p>
                     </motion.div>
@@ -423,73 +425,73 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                 </div>
 
                 {/* Right Side: Data + Bidding */}
-                <div className="flex-1 flex flex-col justify-between w-full">
+                <div className="flex-1 flex flex-col justify-start w-full space-y-8 lg:space-y-10">
                   
-                  <div className="text-center lg:text-left mb-4 sm:mb-6">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-2 justify-center lg:justify-start">
-                        <span className="h-px w-6 sm:w-8 bg-primary/40" />
-                        <p className="text-[8px] sm:text-[9px] text-primary font-black tracking-[0.3em] sm:tracking-[0.5em] uppercase opacity-80">LOT PROFILE</p>
-                        <span className="h-px w-6 sm:w-8 bg-primary/40" />
+                  <div className="text-center lg:text-left">
+                    <div className="flex items-center gap-3 lg:gap-4 mb-3 justify-center lg:justify-start">
+                        <span className="h-px w-8 lg:w-16 bg-primary/40" />
+                        <p className="text-[10px] lg:text-[12px] text-primary font-black tracking-[0.4em] lg:tracking-[0.6em] uppercase opacity-80">LOT PROFILE</p>
+                        <span className="h-px w-8 lg:w-16 bg-primary/40" />
                     </div>
-                    <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold text-white uppercase tracking-tight leading-none text-center lg:text-left">{currentPlayer.playerName}</h1>
+                    <h1 className="text-4xl lg:text-7xl font-serif font-bold text-white uppercase tracking-tight leading-none text-center lg:text-left drop-shadow-2xl">{currentPlayer.playerName}</h1>
                   </div>
 
                   {/* Stats Grid */}
-                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-4 sm:mb-6">
+                  <div className="grid grid-cols-2 gap-3 lg:gap-4">
                       {[
                           { label: 'ORIGIN', value: currentPlayer.country },
                           { label: 'SPECIALISM', value: currentPlayer.specialism },
                           { label: 'CATEGORY', value: currentPlayer.cua },
                           { label: 'POINTS', value: currentPlayer.points },
-                          { label: 'RESERVE', value: `${currentPlayer.reservePrice} L` },
+                          { label: 'RESERVE PRICE', value: `${currentPlayer.reservePrice} L` },
                       ].map((s, i) => (
                           <div key={i} className={cn(
-                              "bg-black/40 border-l-2 border-primary/30 p-2 sm:p-3",
-                              i === 4 && "col-span-2 border-primary"
+                              "bg-black/50 border-l-4 border-primary/40 p-4 lg:p-6 shadow-lg transition-all hover:bg-primary/5",
+                              i === 4 && "col-span-2 border-primary bg-primary/10"
                           )}>
-                              <span className="text-[7px] sm:text-[8px] text-primary/60 font-black tracking-[0.2em] sm:tracking-[0.3em] block mb-0.5 sm:mb-1 uppercase">{s.label}</span>
-                              <span className="font-serif text-sm sm:text-base text-white uppercase tracking-wide truncate block">{s.value || 'N/A'}</span>
+                              <span className="text-[8px] lg:text-[10px] text-primary/70 font-black tracking-[0.3em] lg:tracking-[0.4em] block mb-2 uppercase">{s.label}</span>
+                              <span className="font-serif text-lg lg:text-2xl text-white uppercase tracking-wider block font-bold">{s.value || 'N/A'}</span>
                           </div>
                       ))}
                   </div>
 
                   {/* Live Bidding Console */}
-                  <div className="relative border border-primary/40 bg-black/60 p-4 sm:p-6 shadow-2xl">
-                      <div className="flex flex-col sm:flex-row items-center justify-between relative z-10 gap-4 sm:gap-0">
-                          <div className="flex-1 text-center sm:text-left">
-                              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3 justify-center sm:justify-start">
-                                <span className="text-[8px] sm:text-[10px] text-primary font-black tracking-[0.2em] sm:tracking-[0.4em] uppercase">LIVE HAMMER STATUS</span>
-                                <div className="h-2 w-2 rounded-full bg-red-600 animate-pulse" />
+                  <div className="relative border-2 border-primary/50 bg-black/80 p-6 lg:p-10 shadow-[0_0_50px_rgba(255,204,0,0.15)] ornate-border">
+                      <div className="flex flex-col lg:flex-row items-center justify-between relative z-10 gap-8 lg:gap-0">
+                          <div className="flex-1 text-center lg:text-left">
+                              <div className="flex items-center gap-3 mb-4 justify-center lg:justify-start">
+                                <span className="text-[10px] lg:text-[12px] text-primary font-black tracking-[0.4em] lg:tracking-[0.6em] uppercase">LIVE HAMMER STATUS</span>
+                                <div className="h-3 w-3 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_red]" />
                               </div>
-                              <div className="flex items-baseline gap-2 sm:gap-3 justify-center sm:justify-start">
-                                  <span className="text-4xl sm:text-6xl font-mono font-black text-white">{currentBid}</span>
-                                  <span className="text-xl sm:text-2xl font-serif text-primary font-bold italic">LAKH</span>
+                              <div className="flex items-baseline gap-4 justify-center lg:justify-start">
+                                  <span className="text-6xl lg:text-8xl font-mono font-black text-white leading-none tracking-tighter drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">{currentBid}</span>
+                                  <span className="text-3xl lg:text-5xl font-serif text-primary font-black italic">LAKH</span>
                               </div>
                               {!isSold && !isUnsold && (
-                                  <div className="mt-2 sm:mt-3 flex items-center gap-2 justify-center sm:justify-start">
-                                      <Plus size={10} className="text-primary" />
-                                      <p className="text-[8px] sm:text-[10px] text-white/70 font-bold uppercase tracking-[0.1em] sm:tracking-[0.2em]">
-                                          NEXT BID: <span className="text-primary font-mono ml-1 sm:ml-2">{nextValidBid} LAKH</span>
+                                  <div className="mt-6 flex items-center gap-3 justify-center lg:justify-start text-primary">
+                                      <Plus size={16} strokeWidth={3} />
+                                      <p className="text-[11px] lg:text-[14px] font-black uppercase tracking-[0.3em] lg:tracking-[0.4em]">
+                                          NEXT BID: <span className="font-mono text-white ml-2 text-lg">{nextValidBid} LAKH</span>
                                       </p>
                                   </div>
                               )}
                           </div>
 
-                          <div className="flex flex-col items-center gap-4 sm:gap-6 border-t sm:border-t-0 sm:border-l border-white/10 pt-4 sm:pt-0 sm:pl-8 sm:ml-6 min-w-full sm:min-w-[200px]">
+                          <div className="flex flex-col items-center gap-6 lg:gap-8 border-t lg:border-t-0 lg:border-l border-white/10 pt-8 lg:pt-0 lg:pl-12 lg:ml-12 min-w-full lg:min-w-[280px]">
                              {isTimerActive && !isSold && !isUnsold && finalCallStatus === 'none' && (
                                 <div className={cn(
-                                    "relative flex items-center justify-center transition-transform scale-100 sm:scale-125",
-                                    timer <= 5 && "animate-[shake_0.2s_infinite]"
+                                    "relative flex items-center justify-center transition-transform scale-125 lg:scale-[1.7]",
+                                    timer <= 5 && "animate-[shake_0.1s_infinite]"
                                 )}>
-                                    <svg className="w-16 h-16 sm:w-20 sm:h-20 transform -rotate-90">
-                                        <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-white/5" />
-                                        <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="3" fill="transparent" 
+                                    <svg className="w-16 h-16 transform -rotate-90">
+                                        <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/5" />
+                                        <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="4" fill="transparent" 
                                             className={cn("transition-all duration-1000", timer <= 10 ? "text-red-600" : "text-primary")}
                                             strokeDasharray="251" strokeDashoffset={251 - (251 * timer) / DEFAULT_TIMER}
                                         />
                                     </svg>
                                     <span className={cn(
-                                        "absolute font-bold text-xl sm:text-2xl font-mono",
+                                        "absolute font-black text-xl font-mono",
                                         timer <= 5 ? "text-red-600 scale-125" : "text-white"
                                     )}>
                                         {timer}
@@ -497,36 +499,35 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                 </div>
                              )}
 
-                             <div className="flex flex-col items-center gap-3 sm:gap-4 w-full">
-                                <div className="flex gap-2 sm:gap-3 justify-center">
-                                    <div className={cn(
-                                        "w-8 sm:w-12 h-2 sm:h-3 rounded-full transition-all duration-500", 
-                                        finalCallStatus !== 'none' ? "bg-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.8)]" : "bg-white/10"
-                                    )} />
-                                    <div className={cn(
-                                        "w-8 sm:w-12 h-2 sm:h-3 rounded-full transition-all duration-500", 
-                                        finalCallStatus === 'twice' || finalCallStatus === 'final' ? "bg-orange-600 shadow-[0_0_20px_rgba(234,88,12,0.8)]" : "bg-white/10"
-                                    )} />
-                                    <div className={cn(
-                                        "w-8 sm:w-12 h-2 sm:h-3 rounded-full transition-all duration-500", 
-                                        finalCallStatus === 'final' ? "bg-red-600 shadow-[0_0_20px_rgba(220,38,38,0.8)]" : "bg-white/10"
-                                    )} />
+                             <div className="flex flex-col items-center gap-4 lg:gap-6 w-full">
+                                <div className="flex gap-3 lg:gap-4 justify-center">
+                                    {[1, 2, 3].map((idx) => {
+                                        const isActive = (idx === 1 && finalCallStatus !== 'none') || 
+                                                       (idx === 2 && (finalCallStatus === 'twice' || finalCallStatus === 'final')) ||
+                                                       (idx === 3 && finalCallStatus === 'final');
+                                        return (
+                                            <div key={idx} className={cn(
+                                                "w-12 lg:w-16 h-2 lg:h-3 rounded-full transition-all duration-700", 
+                                                isActive ? (idx === 3 ? "bg-red-600 shadow-[0_0_25px_rgba(220,38,38,1)]" : "bg-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.8)]") : "bg-white/10"
+                                            )} />
+                                        );
+                                    })}
                                 </div>
-                                <div className="h-8 sm:h-10 flex items-center justify-center w-full">
+                                <div className="h-10 lg:h-12 flex items-center justify-center w-full">
                                     <AnimatePresence mode="wait">
                                         {finalCallStatus !== 'none' && (
                                             <motion.span 
                                                 key={finalCallStatus}
-                                                initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                                                animate={{ opacity: 1, scale: 1.1, y: 0 }}
-                                                exit={{ opacity: 0, scale: 1.2, y: -10 }}
-                                                className="text-sm sm:text-lg font-black tracking-[0.2em] sm:tracking-[0.4em] uppercase text-primary text-center whitespace-nowrap drop-shadow-[0_0_10px_rgba(255,204,0,0.5)]"
+                                                initial={{ opacity: 0, scale: 0.8, y: 15 }}
+                                                animate={{ opacity: 1, scale: 1.2, y: 0 }}
+                                                exit={{ opacity: 0, scale: 1.3, y: -15 }}
+                                                className="text-lg lg:text-3xl font-black tracking-[0.4em] lg:tracking-[0.6em] uppercase text-primary text-center whitespace-nowrap drop-shadow-[0_0_15px_rgba(255,204,0,0.8)] italic"
                                             >
                                                 {finalCallStatus === 'once' ? 'GOING ONCE' : finalCallStatus === 'twice' ? 'GOING TWICE' : 'FINAL CALL'}
                                             </motion.span>
                                         )}
                                         {finalCallStatus === 'none' && isTimerActive && (
-                                             <span className="text-[10px] font-black tracking-[0.3em] sm:tracking-[0.5em] uppercase text-white/20 text-center">BIDDING ACTIVE</span>
+                                             <span className="text-[12px] font-black tracking-[0.6em] uppercase text-white/30 text-center">BIDDING SESSION ACTIVE</span>
                                         )}
                                     </AnimatePresence>
                                 </div>
@@ -538,25 +539,26 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
               </div>
             </motion.div>
           ) : isDrawing ? (
-            <div className="flex flex-col items-center gap-6 sm:gap-8 py-10 sm:py-20">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-primary border-t-transparent animate-spin rounded-full shadow-[0_0_40px_rgba(255,204,0,0.4)]" />
-              <div className="text-center space-y-3 sm:space-y-4">
-                <h1 className="text-3xl sm:text-5xl text-primary font-black font-serif uppercase tracking-[0.2em] sm:tracking-[0.4em] animate-pulse">REVEALING LOT</h1>
-                <p className="text-primary/40 text-[8px] sm:text-[10px] font-bold tracking-[0.4em] sm:tracking-[0.6em] uppercase">CONSULTING OFFICIAL POOL...</p>
+            <div className="flex flex-col items-center gap-8 py-20">
+              <div className="w-24 h-24 border-8 border-primary border-t-transparent animate-spin rounded-full shadow-[0_0_60px_rgba(255,204,0,0.6)]" />
+              <div className="text-center space-y-4">
+                <h1 className="text-4xl lg:text-7xl text-primary font-black font-serif uppercase tracking-[0.5em] animate-pulse">REVEALING NEXT LOT</h1>
+                <p className="text-primary/40 text-[10px] lg:text-[14px] font-black tracking-[1em] uppercase">ACCESSING PARADOX PLAYER POOL</p>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center text-center gap-6 sm:gap-8 py-10 sm:py-20">
-              <div className="p-6 sm:p-10 border-2 border-primary/20 rounded-full animate-pulse bg-primary/5">
-                <Gavel className="h-20 w-20 sm:h-32 sm:w-32 text-primary/20" />
+            <div className="flex flex-col items-center text-center gap-10 py-20">
+              <div className="p-10 lg:p-16 border-4 border-primary/20 rounded-full animate-pulse bg-primary/5 shadow-2xl relative">
+                <Gavel className="h-32 w-32 lg:h-48 lg:w-48 text-primary/20" />
+                <div className="absolute inset-0 border-4 border-primary/10 rounded-full animate-ping" />
               </div>
-              <div className="space-y-4 sm:space-y-6">
-                <h1 className="text-3xl sm:text-7xl font-serif font-black text-primary tracking-tight uppercase px-4">Auction Session Ready</h1>
-                <div className="flex flex-col items-center gap-3 sm:gap-4">
-                    <p className="text-white/40 text-sm sm:text-lg tracking-[0.2em] sm:tracking-[0.5em] uppercase font-bold animate-bounce">Tap REVEAL to start Lot</p>
-                    <div className="flex items-center gap-2">
-                        <Info size={12} className="text-primary/40" />
-                        <span className="text-[8px] sm:text-[10px] text-primary/40 uppercase font-black tracking-widest px-4 text-center">Moderator: Use keyboard or screen buttons</span>
+              <div className="space-y-6 lg:space-y-8">
+                <h1 className="text-4xl lg:text-8xl font-serif font-black text-primary tracking-tight uppercase px-4 leading-none">Auction Floor Open</h1>
+                <div className="flex flex-col items-center gap-6">
+                    <p className="text-white/40 text-lg lg:text-2xl tracking-[0.6em] uppercase font-bold animate-bounce">MODERATOR: REVEAL TO START</p>
+                    <div className="flex items-center gap-3 bg-black/40 px-6 py-3 rounded-full border border-primary/20 backdrop-blur-sm">
+                        <Keyboard size={18} className="text-primary/60" />
+                        <span className="text-[10px] lg:text-[12px] text-primary/60 uppercase font-black tracking-widest text-center">SPACE: Draw/Bid • F: Hammer • U: Unsold</span>
                     </div>
                 </div>
               </div>
@@ -566,55 +568,55 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       </div>
 
       {/* Footer Controls */}
-      <div className="w-full max-w-6xl mx-auto flex flex-col items-center gap-4 sm:gap-6 pb-6 sm:pb-10 px-4 sm:px-6">
+      <div className="w-full max-w-7xl mx-auto flex flex-col items-center gap-6 pb-8 lg:pb-12 px-6">
         
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full">
+        <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 w-full">
           {currentPlayer && !isSold && !isUnsold ? (
             <>
-              <Button onClick={handleIncreaseBid} size="lg" className="h-12 sm:h-14 px-6 sm:px-10 font-serif font-black text-sm sm:text-xl rounded-none bg-primary text-primary-foreground tracking-widest uppercase shadow-2xl hover:scale-105 active:scale-95 border-b-4 border-black/20 flex-1 sm:flex-none">
+              <Button onClick={handleIncreaseBid} size="lg" className="h-14 lg:h-20 px-10 lg:px-16 font-serif font-black text-xl lg:text-3xl rounded-none bg-primary text-primary-foreground tracking-widest uppercase shadow-[0_8px_0_rgba(0,0,0,0.4)] hover:scale-105 active:translate-y-1 active:shadow-none transition-all flex-1 lg:flex-none">
                 + RAISE BID
               </Button>
-              <Button onClick={() => { setTimer(DEFAULT_TIMER); setIsTimerActive(true); setFinalCallStatus('none'); }} variant="outline" className="h-12 sm:h-14 px-4 sm:px-6 font-black rounded-none border-white/20 bg-[#1a0202] text-white uppercase text-[8px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.3em] flex items-center gap-2 flex-1 sm:flex-none">
-                <RefreshCw size={14}/> RESET
+              <Button onClick={() => { setTimer(DEFAULT_TIMER); setIsTimerActive(true); setFinalCallStatus('none'); }} variant="outline" className="h-14 lg:h-20 px-6 lg:px-10 font-black rounded-none border-white/20 bg-[#1a0202] text-white uppercase text-[10px] lg:text-[14px] tracking-[0.4em] flex items-center gap-3 flex-1 lg:flex-none hover:bg-white hover:text-black">
+                <RefreshCw size={20}/> RESET
               </Button>
               <Button 
                 onClick={startHammerSequence} 
                 disabled={finalCallStatus !== 'none'}
                 variant="secondary" 
-                className="h-12 sm:h-14 px-6 sm:px-8 font-serif font-black text-[10px] sm:text-sm rounded-none bg-orange-600 text-white tracking-widest uppercase shadow-xl hover:scale-105 active:scale-95 disabled:opacity-50 w-full sm:w-auto"
+                className="h-14 lg:h-20 px-10 lg:px-14 font-serif font-black text-[12px] lg:text-lg rounded-none bg-orange-600 text-white tracking-widest uppercase shadow-[0_8px_0_rgba(0,0,0,0.4)] hover:scale-105 active:translate-y-1 active:shadow-none transition-all disabled:opacity-50 w-full lg:w-auto"
               >
-                <Clock3 className="mr-2 h-4 w-4"/> {finalCallStatus === 'none' ? 'START HAMMER' : 'HAMMER IN PROGRESS'}
+                <Clock3 className="mr-3 h-6 w-6"/> {finalCallStatus === 'none' ? 'START HAMMER' : 'HAMMER RUNNING'}
               </Button>
-              <Button onClick={handleUnsold} variant="outline" className="h-12 sm:h-14 px-4 sm:px-6 font-black rounded-none border-red-600/40 text-red-500 bg-black/60 text-[8px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.3em] uppercase w-full sm:w-auto mt-1 sm:mt-0">
-                <Ban className="mr-2 h-4 w-4"/> UNSOLD
+              <Button onClick={handleUnsold} variant="outline" className="h-14 lg:h-20 px-6 lg:px-10 font-black rounded-none border-red-600 text-red-500 bg-black/60 text-[10px] lg:text-[14px] tracking-[0.4em] uppercase w-full lg:w-auto hover:bg-red-600 hover:text-white">
+                <Ban className="mr-3 h-6 w-6"/> MARK UNSOLD
               </Button>
             </>
           ) : undrawnPlayers.length > 0 && !isDrawing && !isSold && !isUnsold ? (
-            <Button onClick={handleDrawPlayer} disabled={isDrawing} className="h-14 sm:h-16 w-full max-w-[440px] text-lg sm:text-2xl font-black font-serif border-4 border-primary bg-primary text-primary-foreground tracking-[0.2em] uppercase shadow-2xl hover:scale-105 active:scale-95">
+            <Button onClick={handleDrawPlayer} disabled={isDrawing} className="h-16 lg:h-24 w-full max-w-[600px] text-2xl lg:text-4xl font-black font-serif border-4 border-primary bg-primary text-primary-foreground tracking-[0.4em] uppercase shadow-[0_12px_0_rgba(0,0,0,0.4)] hover:scale-105 active:translate-y-2 active:shadow-none transition-all">
               REVEAL NEXT LOT
             </Button>
           ) : (isSold || isUnsold) ? (
-             <Button onClick={handleDrawPlayer} className="h-14 sm:h-16 w-full sm:w-80 font-black border-4 border-primary bg-primary text-primary-foreground uppercase tracking-[0.1em] sm:tracking-[0.2em] text-lg sm:text-xl">
-                {undrawnPlayers.length > 0 ? 'NEXT LOT' : 'FINISH SESSION'}
+             <Button onClick={handleDrawPlayer} className="h-16 lg:h-24 w-full lg:w-[500px] font-black border-4 border-primary bg-primary text-primary-foreground uppercase tracking-[0.3em] text-2xl lg:text-3xl shadow-[0_12px_0_rgba(0,0,0,0.4)] hover:scale-105 active:translate-y-2">
+                {undrawnPlayers.length > 0 ? 'NEXT PLAYER' : 'FINISH AUCTION'}
              </Button>
           ) : undrawnPlayers.length === 0 && !isDrawing && (
-            <Button onClick={() => router.push('/')} variant="outline" className="h-14 sm:h-16 w-full sm:w-80 font-black border-primary/30 text-primary bg-black/40 uppercase tracking-[0.1em] sm:tracking-[0.2em] text-lg sm:text-xl">CLOSE SESSION</Button>
+            <Button onClick={() => router.push('/')} variant="outline" className="h-16 lg:h-24 w-full lg:w-[500px] font-black border-primary/30 text-primary bg-black/40 uppercase tracking-[0.3em] text-2xl lg:text-3xl hover:bg-primary hover:text-white transition-all">CLOSE SESSION</Button>
           )}
         </div>
 
-        <div className="flex flex-col items-center gap-1 sm:gap-2">
-          <div className="bg-primary px-4 sm:px-8 py-1 text-primary-foreground text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] sm:tracking-[0.5em] shadow-2xl flex items-center gap-2 sm:gap-3 text-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="bg-primary/90 px-8 py-2 text-primary-foreground text-[10px] lg:text-[13px] font-black uppercase tracking-[0.6em] shadow-2xl flex items-center gap-4 text-center border-x-4 border-white/20">
             {undrawnPlayers.length} LOTS REMAINING • {set.name}
           </div>
-          <p className="text-[7px] sm:text-[9px] text-white/20 font-black uppercase tracking-[0.4em] sm:tracking-[0.6em] mt-1 text-center">SAAVAN '26 • SPORTS DEPT • IIT MADRAS PARADOX</p>
+          <p className="text-[8px] lg:text-[11px] text-white/20 font-black uppercase tracking-[0.8em] mt-3 text-center">SAAVAN '26 • SPORTS DEPARTMENT • IIT MADRAS PARADOX</p>
         </div>
       </div>
 
       <style jsx global>{`
         @keyframes shake {
           0%, 100% { transform: translate(0, 0); }
-          25% { transform: translate(-2px, 0); }
-          75% { transform: translate(2px, 0); }
+          25% { transform: translate(-3px, 0); }
+          75% { transform: translate(3px, 0); }
         }
       `}</style>
     </div>
