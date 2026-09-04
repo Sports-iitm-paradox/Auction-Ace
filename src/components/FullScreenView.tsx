@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -15,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import confetti from 'canvas-confetti';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 interface FullScreenViewProps {
     players: Player[];
@@ -50,7 +50,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   const [finalCallStatus, setFinalCallStatus] = useState<'none' | 'once' | 'twice' | 'final'>('none');
   const [shouldShake, setShouldShake] = useState(false);
 
-  const timerInterval = useRef<NodeJS.Timeout>(null);
+  const timerInterval = useRef<NodeJS.Timeout | null>(null);
 
   const auctionRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -220,7 +220,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     const lastEvent = history.pop();
     if (!lastEvent) return;
 
-    // If it was a sale, we need to manually revert the house data (complex for this prototype, so we prompt)
     if (lastEvent.type === 'sold') {
       toast({ title: "Manual Correction Needed", description: "Purse and squad for the house must be manually adjusted after undoing a sale.", variant: "destructive" });
     }
@@ -272,7 +271,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       else if (role?.includes("bowler")) stats.bowlers++;
       
       if (cat?.includes("uncapped")) stats.uncapped++;
-      // Logic for overseas needs player country check, assuming database 'country' field
     });
     return stats;
   };
@@ -326,7 +324,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
             <AnimatePresence mode="wait">
                 {auction.status !== 'drawing' && currentPlayer ? (
                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1, x: shouldShake ? [0, -10, 10, -10, 10, 0] : 0 }} className={cn("w-full max-w-5xl aspect-[16/9] ornate-border bg-[#1a0202]/95 backdrop-blur-xl shadow-2xl flex overflow-hidden relative", auction.currentBid >= MARQUEE_THRESHOLD && "border-primary shadow-[0_0_50px_rgba(255,215,0,0.2)]")}>
-                        {/* Sold Overlay */}
                         {(auction.isSold || auction.isUnsold) && (
                             <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md p-10">
                                 <h2 className={cn("text-8xl font-serif font-black uppercase italic tracking-tighter drop-shadow-2xl", auction.isSold ? "text-primary text-glow-gold" : "text-destructive")}>{auction.isSold ? 'SOLD' : 'UNSOLD'}</h2>
