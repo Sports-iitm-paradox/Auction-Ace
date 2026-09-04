@@ -3,7 +3,6 @@
 
 import React from 'react';
 import { Squad, Player } from '@/lib/player-data';
-import Image from 'next/image';
 import { Trophy, Shield } from 'lucide-react';
 
 interface SquadPosterProps {
@@ -12,12 +11,19 @@ interface SquadPosterProps {
 }
 
 export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) => {
-  // Parse the player list
+  // Parse the player list robustly
   const playerEntries = (squad.playersList || '').split(';').filter(Boolean).map(entry => {
-    const [name, price] = entry.split(':');
-    const playerInfo = allPlayers.find(p => p.playerName.toLowerCase() === name.toLowerCase());
+    const parts = entry.split(':');
+    if (parts.length < 2) return null;
+    
+    const name = parts[0].trim();
+    const price = parts[1].trim();
+    
+    // Exact matching with fallback for spacing
+    const playerInfo = allPlayers.find(p => p.playerName.toLowerCase().trim() === name.toLowerCase());
+    
     return { name, price, playerInfo };
-  });
+  }).filter((e): e is NonNullable<typeof e> => e !== null);
 
   return (
     <div 
@@ -47,32 +53,40 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
 
       {/* Stats Summary */}
       <div className="flex gap-12 z-10">
-        <div className="text-center">
+        <div className="text-center border-l-2 border-primary/40 pl-8">
           <p className="text-xs font-black uppercase tracking-widest text-primary/60 mb-1">Total Points</p>
-          <p className="text-5xl font-mono font-black text-white">{squad.totalPoints}</p>
+          <p className="text-6xl font-mono font-black text-white">{squad.totalPoints}</p>
         </div>
-        <div className="text-center">
+        <div className="text-center border-l-2 border-primary/40 pl-8">
           <p className="text-xs font-black uppercase tracking-widest text-primary/60 mb-1">Purse Remaining</p>
-          <p className="text-5xl font-mono font-black text-primary">{squad.moneyLeft} Cr</p>
+          <p className="text-6xl font-mono font-black text-primary">{squad.moneyLeft} Cr</p>
         </div>
       </div>
 
       {/* Players Grid */}
       <div className="w-full grid grid-cols-4 gap-6 z-10 flex-1 py-12">
         {playerEntries.slice(0, 16).map((entry, idx) => (
-          <div key={idx} className="bg-black/40 border border-primary/20 p-4 flex flex-col items-center text-center relative group">
-             <div className="w-full aspect-[3/4] relative bg-black/60 mb-3 border border-primary/10 overflow-hidden">
+          <div key={idx} className="bg-black/60 border border-primary/30 p-4 flex flex-col items-center text-center relative shadow-2xl">
+             <div className="w-full aspect-[3/4] relative bg-black/80 mb-3 border border-primary/10 overflow-hidden flex items-center justify-center">
                 {entry.playerInfo?.imageUrl ? (
                   <img src={entry.playerInfo.imageUrl} alt={entry.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center opacity-20">
-                    <Shield className="h-12 w-12 text-primary" />
+                    <Shield className="h-16 w-16 text-primary" />
                   </div>
                 )}
              </div>
-             <p className="text-[14px] font-serif font-bold truncate w-full uppercase">{entry.name}</p>
-             <p className="text-[10px] font-mono text-primary font-black uppercase tracking-tighter mt-1">{entry.price}L</p>
+             <p className="text-[14px] font-serif font-black truncate w-full uppercase text-white tracking-wider">{entry.name}</p>
+             <div className="mt-1 bg-primary/20 border border-primary/40 px-3 py-0.5">
+                <p className="text-[10px] font-mono text-primary font-black uppercase tracking-tighter">{entry.price}L</p>
+             </div>
           </div>
+        ))}
+        {/* Placeholder for empty spots if squad is small */}
+        {playerEntries.length < 12 && Array.from({ length: 12 - playerEntries.length }).map((_, i) => (
+           <div key={`empty-${i}`} className="bg-black/20 border border-white/5 p-4 flex flex-col items-center justify-center opacity-30">
+              <Shield className="h-12 w-12 text-white/10" />
+           </div>
         ))}
       </div>
 

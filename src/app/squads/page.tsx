@@ -34,11 +34,10 @@ export default function SquadsPage() {
 
     const { data: squadData, isLoading: isLoadingSquads } = useCollection<Squad>(squadsQuery);
 
-    // Only fetch all players if the user is an admin (logged in), needed for posters
     const playersQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
-        return query(collection(firestore, 'players'), where('userId', '==', user.uid));
-    }, [firestore, user]);
+        if (!firestore) return null;
+        return query(collection(firestore, 'players'));
+    }, [firestore]);
 
     const { data: allPlayers } = useCollection<Player>(playersQuery);
 
@@ -60,20 +59,37 @@ export default function SquadsPage() {
                     const existingSnap = await getDocs(squadsCollectionRef);
                     existingSnap.forEach(d => batch.delete(d.ref));
 
-                    // 2. Add new data
+                    // 2. Add new data with specific header matching
                     const parsedData = results.data as any[];
                     parsedData.forEach((row, index) => {
                         const houseName = row['House Name'] || 'N/A';
+                        
+                        // Extract numeric values safely, ignoring #NUM! or #N/A strings
+                        const parseSafeFloat = (val: any) => {
+                            if (!val || typeof val !== 'string') return 0;
+                            const cleaned = val.replace(/[^0-9.]/g, '');
+                            return parseFloat(cleaned) || 0;
+                        };
+
+                        const parseSafeInt = (val: any) => {
+                            if (!val || typeof val !== 'string') return 0;
+                            const cleaned = val.replace(/[^0-9]/g, '');
+                            return parseInt(cleaned, 10) || 0;
+                        };
+
+                        // Exact header matching from user specification
+                        const playersList = row['Players List (Format: Name1:Price1;Name2:Price2)'] || row['Players List'] || '';
+
                         const newSquadRef = doc(squadsCollectionRef);
                         batch.set(newSquadRef, {
-                            name: houseName,
-                            moneySpent: parseFloat(row['Total Money Spent']) || 0,
-                            moneyLeft: parseFloat(row['Money Left']) || 0,
-                            budgetUsed: parseFloat(row['Budget Used (in %)']) || 0,
+                            name: houseName.trim(),
+                            moneySpent: parseSafeFloat(row['Total Money Spent']),
+                            moneyLeft: parseSafeFloat(row['Money Left']),
+                            budgetUsed: parseSafeFloat(row['Budget Used (in %)']),
                             budgetStatus: row['Budget Status']?.includes('OK') ? 'OK' : 'OVER',
                             eligibilityStatus: row['Eligibility Status'] || 'N/A',
-                            totalPoints: row['Total No. of Points'] === '#N/A' ? 0 : parseInt(row['Total No. of Points'], 10) || 0,
-                            playersList: row['Players List'] || '', // Format: Name1:Price1;Name2:Price2
+                            totalPoints: parseSafeInt(row['Total No. of Points']),
+                            playersList: playersList.trim(), 
                             userId: user.uid,
                             order: index
                         });
@@ -83,14 +99,15 @@ export default function SquadsPage() {
 
                     toast({
                         title: 'Standings Updated',
-                        description: `Live squad data for ${parsedData.length} houses is now persistent.`,
+                        description: `Live squad data for ${parsedData.length} houses has been synchronized.`,
                     });
                 } catch(error: any) {
                      toast({
                         title: 'Update Failed',
-                        description: 'Could not sync the CSV data to Firestore.',
+                        description: 'Could not sync the CSV data. Check console for details.',
                         variant: 'destructive',
                     });
+                     console.error(error);
                 } finally {
                     setIsProcessing(false);
                 }
@@ -112,14 +129,12 @@ export default function SquadsPage() {
         const doc = new jsPDF();
         const timestamp = new Date().toLocaleString();
         
-        // Title Page
         doc.setFontSize(22);
-        doc.text('SAAVAN \'26 - Official Auction Wrap-up', 20, 30);
+        doc.text("SAAVAN '26 - Official Auction Wrap-up", 20, 30);
         doc.setFontSize(12);
         doc.text(`Generated on: ${timestamp}`, 20, 40);
         doc.text('Sports Department, IIT Madras Paradox', 20, 47);
         
-        // Final Standings Table
         doc.setFontSize(16);
         doc.text('Final House Standings', 20, 65);
         
@@ -138,7 +153,6 @@ export default function SquadsPage() {
             headStyles: { fillColor: [184, 134, 11] }
         });
 
-        // Detailed Ledger
         doc.addPage();
         doc.setFontSize(18);
         doc.text('Official Sales Ledger', 20, 20);
@@ -147,8 +161,12 @@ export default function SquadsPage() {
         squadData.forEach(squad => {
             const players = (squad.playersList || '').split(';').filter(Boolean);
             players.forEach(p => {
-                const [name, price] = p.split(':');
-                ledgerData.push([name, `${price} Lakh`, squad.name]);
+                const parts = p.split(':');
+                if (parts.length >= 2) {
+                    const name = parts[0].trim();
+                    const price = parts[1].trim();
+                    ledgerData.push([name, `${price} Lakh`, squad.name]);
+                }
             });
         });
 
@@ -172,7 +190,7 @@ export default function SquadsPage() {
             for (const squad of squadData) {
                 const element = document.getElementById(`poster-${squad.id}`);
                 if (element) {
-                    const dataUrl = await toPng(element, { quality: 0.95 });
+                    const dataUrl = await toPng(element, { quality: 0.95, pixelRatio: 2 });
                     const link = document.createElement('a');
                     link.download = `Squad_Poster_${squad.name.replace(/\s+/g, '_')}.png`;
                     link.href = dataUrl;
@@ -195,9 +213,8 @@ export default function SquadsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
         >
-            {/* Hidden Poster Container for Image Generation - Only for Admin */}
             {user && squadData && allPlayers && (
-                <div className="fixed -left-[2000px] top-0 pointer-events-none" ref={posterContainerRef}>
+                <div className="fixed -left-[4000px] top-0 pointer-events-none" ref={posterContainerRef}>
                     {squadData.map(squad => (
                         <SquadPoster key={squad.id} squad={squad} allPlayers={allPlayers} />
                     ))}
@@ -236,7 +253,7 @@ export default function SquadsPage() {
                                 <div className="p-3 bg-black/40 border border-primary/10 rounded-md">
                                   <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-1">CSV Header Requirement:</p>
                                   <code className="text-[9px] text-muted-foreground break-all">
-                                    House Name, Total Money Spent, Money Left, Budget Used (in %), Budget Status, Eligibility Status, Total No. of Points, Players List (Format: Name1:Price1;Name2:Price2)
+                                    House Name, Total Money Spent, Money Left, Budget Status, Total No. of Points, Players List (Format: Name1:Price1;Name2:Price2)
                                   </code>
                                 </div>
                             </CardContent>
