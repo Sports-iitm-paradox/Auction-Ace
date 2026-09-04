@@ -27,7 +27,7 @@ export interface PlayerSet extends DocumentData {
 }
 
 export interface ActionEvent {
-  type: 'draw' | 'bid' | 'sold' | 'unsold' | 'undo' | 'reset';
+  type: 'draw' | 'bid' | 'sold' | 'unsold' | 'undo' | 'reset' | 'once' | 'twice';
   playerId?: string;
   bid?: number;
   houseId?: string;
@@ -40,6 +40,7 @@ export interface ActiveAuctionState extends DocumentData {
   setId: string;
   currentBid: number;
   status: 'idle' | 'drawing' | 'bidding' | 'sold' | 'unsold';
+  hammerStep: number; // 0: None, 1: Once, 2: Twice, 3: Sold
   isSold: boolean;
   isUnsold: boolean;
   userId: string;

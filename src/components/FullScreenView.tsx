@@ -1,14 +1,15 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { X, History, Trophy, Gavel, Undo2, RotateCcw, Shield, LayoutDashboard } from 'lucide-react';
+import { X, History, Trophy, Gavel, Undo2, RotateCcw, Shield, LayoutDashboard, Hammer } from 'lucide-react';
 import { Player, PlayerSet, ActiveAuctionState, Squad, SQUAD_RULES } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn, shuffleArray } from '@/lib/utils';
 import Image from 'next/image';
-import { useFirestore, useUser, useDoc, useMemoFirebase, updateDocumentNonBlocking, useCollection } from '@/firebase';
+import { useFirestore, useUser, useDoc, useMemoFirebase, updateDocumentNonBlocking, useCollection, setDocumentNonBlocking } from '@/firebase';
 import { doc, serverTimestamp, DocumentReference, collection, query, orderBy } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import confetti from 'canvas-confetti';
@@ -48,7 +49,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     return doc(firestore, 'activeAuctions', user.uid) as DocumentReference<ActiveAuctionState>;
   }, [firestore, user]);
 
-  const { data: auction } = useDoc<ActiveAuctionState>(auctionRef);
+  const { data: auction, isLoading: isLoadingAuction } = useDoc<ActiveAuctionState>(auctionRef);
 
   const squadsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -56,6 +57,25 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   }, [firestore]);
 
   const { data: squads } = useCollection<Squad>(squadsQuery);
+
+  // Auto-initialize auction if it doesn't exist
+  useEffect(() => {
+    if (!isLoadingAuction && !auction && auctionRef && user) {
+        setDocumentNonBlocking(auctionRef, {
+            currentPlayerId: "",
+            setId: set.id,
+            currentBid: 0,
+            status: 'idle',
+            hammerStep: 0,
+            isSold: false,
+            isUnsold: false,
+            userId: user.uid,
+            lastUpdated: serverTimestamp(),
+            history: [],
+            undrawnIds: shuffleArray(set.players.map(p => p.id))
+        }, { merge: true });
+    }
+  }, [auction, isLoadingAuction, auctionRef, user, set]);
 
   const currentPlayer = useMemo(() => {
     if (!auction?.currentPlayerId) return null;
@@ -104,7 +124,13 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     if (!nextPlayer) return;
 
     setTimer(DEFAULT_TIMER);
-    updateDocumentNonBlocking(auctionRef, { status: 'drawing', isSold: false, isUnsold: false, lastUpdated: serverTimestamp() });
+    updateDocumentNonBlocking(auctionRef, { 
+        status: 'drawing', 
+        hammerStep: 0, 
+        isSold: false, 
+        isUnsold: false, 
+        lastUpdated: serverTimestamp() 
+    });
 
     setTimeout(() => {
       playSound('reveal');
@@ -112,6 +138,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         status: 'bidding',
         currentPlayerId: nextId,
         currentBid: nextPlayer.reservePrice || 0,
+        hammerStep: 0,
         undrawnIds: undrawn,
         history: [...(auction.history || []), { type: 'draw', playerId: nextId, timestamp: new Date().toISOString() }],
         lastUpdated: serverTimestamp()
@@ -142,21 +169,39 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
     setTimer(DEFAULT_TIMER);
     setIsTimerActive(true);
-    updateDocumentNonBlocking(auctionRef, { currentBid: newBid, lastUpdated: serverTimestamp() });
+    updateDocumentNonBlocking(auctionRef, { 
+        currentBid: newBid, 
+        hammerStep: 0, // Reset hammer call if bid increases
+        lastUpdated: serverTimestamp() 
+    });
   };
 
-  const handleInitialSold = () => {
+  const handleHammerCall = () => {
     if (!auction || !auctionRef || !currentPlayer || auction.status !== 'bidding') return;
-    setIsTimerActive(false);
-    playSound('sold');
-    if (auction.currentBid >= MARQUEE_THRESHOLD) {
-        confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
+    
+    const nextStep = (auction.hammerStep || 0) + 1;
+    
+    if (nextStep === 3) {
+        // Hammer Fall (Sold)
+        setIsTimerActive(false);
+        playSound('sold');
+        if (auction.currentBid >= MARQUEE_THRESHOLD) {
+            confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
+        }
+        updateDocumentNonBlocking(auctionRef, {
+            status: 'sold',
+            hammerStep: 3,
+            isSold: true,
+            lastUpdated: serverTimestamp()
+        });
+    } else {
+        // Going Once / Twice
+        playSound('reveal');
+        updateDocumentNonBlocking(auctionRef, {
+            hammerStep: nextStep,
+            lastUpdated: serverTimestamp()
+        });
     }
-    updateDocumentNonBlocking(auctionRef, {
-        status: 'sold',
-        isSold: true,
-        lastUpdated: serverTimestamp()
-    });
   };
 
   const handleConfirmAssignment = async () => {
@@ -217,12 +262,9 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     const lastEvent = history.pop();
     if (!lastEvent) return;
 
-    if (lastEvent.type === 'sold') {
-      toast({ title: "Manual Correction Needed", description: "Undo removes history. Manually adjust house purse if needed.", variant: "destructive" });
-    }
-
     updateDocumentNonBlocking(auctionRef, {
         status: 'bidding',
+        hammerStep: 0,
         isSold: false,
         isUnsold: false,
         history: history,
@@ -240,6 +282,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         status: 'idle',
         currentPlayerId: "",
         currentBid: 0,
+        hammerStep: 0,
         isSold: false,
         isUnsold: false,
         undrawnIds: shuffled,
@@ -280,6 +323,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       if (!currentPlayer) handleDrawPlayer();
       else if (!auction?.isSold && !auction?.isUnsold) handleIncreaseBid();
     }
+    if (e.key === 'Enter' && auction?.status === 'bidding') {
+        e.preventDefault();
+        handleHammerCall();
+    }
   }, [auction, currentPlayer]);
 
   useEffect(() => {
@@ -287,7 +334,14 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  if (!auction) return <div className="fixed inset-0 flex items-center justify-center bg-[#1a0202] text-primary font-serif">Connecting Floor...</div>;
+  if (isLoadingAuction || !auction) {
+      return (
+          <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#1a0202] text-primary font-serif">
+              <div className="w-16 h-16 border-4 border-primary border-t-transparent animate-spin rounded-full mb-6" />
+              <h1 className="text-2xl uppercase tracking-[0.5em] animate-pulse">Establishing Secure Floor Connection...</h1>
+          </div>
+      );
+  }
 
   return (
     <div className="fixed inset-0 flex flex-col items-center bg-background sunburst-bg select-none overflow-hidden h-screen text-foreground">
@@ -315,7 +369,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         <AnimatePresence>
             {isHistoryOpen && (
                 <motion.aside initial={{ x: -320 }} animate={{ x: 0 }} exit={{ x: -320 }} className="w-80 bg-black/60 backdrop-blur-3xl border-r border-primary/20 h-full p-4 overflow-hidden z-30 flex flex-col">
-                    <h3 className="text-primary font-serif uppercase tracking-[0.3em] text-[10px] font-black mb-4 flex items-center gap-2"><History size={14}/> Session History</h3>
+                    <h3 className="text-primary font-serif uppercase tracking-[0.3em] text-[10px] font-black mb-4 flex items-center gap-2"><History size={14}/> Official Ledger</h3>
                     <ScrollArea className="flex-1">
                         <div className="space-y-2 pr-2">
                             {drawnPlayers.slice().reverse().map((p: any, i) => (
@@ -376,64 +430,73 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                             </motion.div>
                         )}
 
+                        {/* Going Once/Twice Ticker */}
+                        {auction.hammerStep > 0 && auction.hammerStep < 3 && !auction.isSold && (
+                            <motion.div initial={{ y: -100 }} animate={{ y: 0 }} className="absolute top-0 left-0 w-full bg-primary/90 py-4 flex items-center justify-center z-40 border-b-2 border-primary-foreground shadow-2xl">
+                                <h2 className="text-4xl font-serif font-black uppercase italic tracking-[0.4em] text-primary-foreground">
+                                    GOING {auction.hammerStep === 1 ? 'ONCE' : 'TWICE'}
+                                </h2>
+                            </motion.div>
+                        )}
+
                         {/* Player Frame */}
-                        <div className="w-[40%] h-full bg-black/40 border-r border-primary/20 p-8 flex flex-col gap-6">
-                            <div className="w-full aspect-[3/4] relative ornate-border bg-black overflow-hidden shadow-2xl">
+                        <div className="w-[35%] h-full bg-black/40 border-r border-primary/20 p-6 flex flex-col gap-4 overflow-hidden">
+                            <div className="w-full aspect-[3/4] relative ornate-border bg-black overflow-hidden shadow-2xl flex-shrink-0">
                                 {currentPlayer.imageUrl ? <Image src={currentPlayer.imageUrl} alt="" fill className="object-cover" /> : <Shield className="w-full h-full p-20 opacity-10 text-primary" />}
                             </div>
-                            <div className="flex-1 bg-black/20 p-4 border border-primary/5 overflow-y-auto custom-scrollbar">
-                                <span className="text-[9px] text-primary font-black uppercase tracking-[0.4em] block mb-2">Auction Insight</span>
-                                <p className="text-[11px] italic text-foreground/70 leading-relaxed font-medium">{currentPlayer.auctionInsight || 'Official scouting data pending confirmation.'}</p>
+                            <div className="flex-1 bg-black/20 p-3 border border-primary/5 overflow-y-auto custom-scrollbar">
+                                <span className="text-[9px] text-primary font-black uppercase tracking-[0.4em] block mb-1">Auction Insight</span>
+                                <p className="text-[10px] italic text-foreground/70 leading-relaxed font-medium">{currentPlayer.auctionInsight || 'Official scouting data pending confirmation.'}</p>
                             </div>
                         </div>
 
                         {/* Bidding Control Frame */}
-                        <div className="flex-1 p-10 flex flex-col justify-between overflow-hidden">
+                        <div className="flex-1 p-8 flex flex-col justify-between overflow-hidden">
                             <div className="overflow-hidden">
-                                <div className="flex items-center gap-4 mb-6">
+                                <div className="flex items-center gap-4 mb-4">
                                     <span className="text-[10px] text-primary font-black uppercase tracking-widest px-2 py-0.5 border border-primary/20">LOT {currentPlayer.playerNumber}</span>
                                     {auction.currentBid >= MARQUEE_THRESHOLD && <Badge className="bg-primary text-primary-foreground animate-bounce">MARQUEE</Badge>}
                                 </div>
-                                <h1 className="text-7xl font-serif font-black text-white uppercase italic tracking-tighter leading-[0.9]">{currentPlayer.playerName}</h1>
-                                <div className="grid grid-cols-2 gap-8 mt-12">
+                                <h1 className="text-6xl font-serif font-black text-white uppercase italic tracking-tighter leading-[0.9]">{currentPlayer.playerName}</h1>
+                                <div className="grid grid-cols-2 gap-4 mt-8">
                                     {[
                                         { label: 'Role', value: currentPlayer.specialism },
                                         { label: 'Status', value: currentPlayer.cua },
                                         { label: 'Country', value: currentPlayer.country },
                                         { label: 'Rating', value: currentPlayer.points },
                                     ].map((s, i) => (
-                                        <div key={i} className="border-l-2 border-primary/20 pl-6">
-                                            <span className="text-[8px] text-primary/40 font-black uppercase tracking-widest block mb-1">{s.label}</span>
-                                            <span className="text-2xl font-serif font-bold text-white/90">{s.value}</span>
+                                        <div key={i} className="border-l-2 border-primary/20 pl-4">
+                                            <span className="text-[8px] text-primary/40 font-black uppercase tracking-widest block mb-0.5">{s.label}</span>
+                                            <span className="text-xl font-serif font-bold text-white/90">{s.value}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
-                            <div className="bg-black/60 border border-primary/30 p-8 relative flex items-center justify-between shadow-2xl">
+                            <div className="bg-black/60 border border-primary/30 p-6 relative flex items-center justify-between shadow-2xl mt-4">
                                 {isTimerActive && (
-                                    <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-[#1a0202] border-4 border-primary flex items-center justify-center z-40 shadow-2xl">
-                                        <span className={cn("text-3xl font-mono font-black", timer <= 5 ? "text-destructive animate-pulse" : "text-primary")}>{timer}</span>
+                                    <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full bg-[#1a0202] border-4 border-primary flex items-center justify-center z-40 shadow-2xl">
+                                        <span className={cn("text-2xl font-mono font-black", timer <= 5 ? "text-destructive animate-pulse" : "text-primary")}>{timer}</span>
                                     </div>
                                 )}
                                 <div>
-                                    <span className="text-[10px] text-primary font-black uppercase tracking-[0.5em] block mb-2">Live Floor Valuation</span>
+                                    <span className="text-[10px] text-primary font-black uppercase tracking-[0.5em] block mb-1">Floor Valuation</span>
                                     <div className="flex items-baseline gap-2">
-                                        <span className="text-8xl font-mono font-black text-white tracking-tighter">{auction.currentBid}</span>
-                                        <span className="text-4xl font-serif text-primary italic font-black">L</span>
+                                        <span className="text-7xl font-mono font-black text-white tracking-tighter">{auction.currentBid}</span>
+                                        <span className="text-3xl font-serif text-primary italic font-black">L</span>
                                     </div>
                                 </div>
-                                <div className="text-right flex flex-col gap-1">
+                                <div className="text-right flex flex-col gap-0.5">
                                     <span className="text-[9px] text-primary/40 font-black uppercase block">Base Price</span>
-                                    <span className="text-2xl font-mono text-white/30 font-black">{currentPlayer.reservePrice}L</span>
+                                    <span className="text-xl font-mono text-white/30 font-black">{currentPlayer.reservePrice}L</span>
                                 </div>
                             </div>
                         </div>
                     </motion.div>
                 ) : (
-                    <div className="flex flex-col items-center gap-10">
-                        <Trophy size={120} className="text-primary animate-pulse" />
-                        <h1 className="text-5xl font-serif font-black text-primary uppercase tracking-[0.6em] text-center italic">Auction Floor Waiting</h1>
+                    <div className="flex flex-col items-center gap-8">
+                        <Trophy size={100} className="text-primary animate-pulse" />
+                        <h1 className="text-4xl font-serif font-black text-primary uppercase tracking-[0.6em] text-center italic">Auction Floor Waiting</h1>
                         <Button onClick={handleDrawPlayer} className="h-16 px-20 text-xl font-serif font-black uppercase tracking-widest shadow-2xl hover:scale-105 transition-transform">Begin Next Drawing</Button>
                     </div>
                 )}
@@ -479,15 +542,16 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       </div>
 
       {/* Persistent Moderator Controls */}
-      <footer className="w-full bg-black/95 border-t border-primary/30 p-8 z-50">
-        <div className="max-w-6xl mx-auto flex items-center gap-6">
+      <footer className="w-full bg-black/95 border-t border-primary/30 p-6 z-50">
+        <div className="max-w-6xl mx-auto flex items-center gap-4">
             {currentPlayer && !auction.isSold && !auction.isUnsold ? (
                 <>
                     <Button onClick={handleIncreaseBid} className="h-20 flex-1 text-2xl font-serif font-black tracking-widest uppercase shadow-[0_0_30px_rgba(255,215,0,0.1)]">+ RAISE FLOOR BID</Button>
-                    <Button onClick={handleInitialSold} className="h-20 px-16 bg-primary text-primary-foreground font-black tracking-widest uppercase hover:bg-primary/90 text-lg">
-                        <Gavel className="mr-3 h-6 w-6"/> Record Sold
+                    <Button onClick={handleHammerCall} className="h-20 px-16 bg-primary text-primary-foreground font-black tracking-widest uppercase hover:bg-primary/90 text-lg">
+                        <Gavel className="mr-3 h-6 w-6"/> 
+                        {auction.hammerStep === 0 ? 'Start Hammer' : auction.hammerStep === 1 ? 'Going Twice' : 'Sold'}
                     </Button>
-                    <Button onClick={handleUnsold} variant="destructive" className="h-20 px-16 font-black tracking-widest uppercase text-lg">Mark Unsold</Button>
+                    <Button onClick={handleUnsold} variant="destructive" className="h-20 px-16 font-black tracking-widest uppercase text-lg">Unsold</Button>
                 </>
             ) : (
                 <Button onClick={handleDrawPlayer} disabled={auction.status === 'drawing'} className="h-20 w-full text-3xl font-serif font-black tracking-[0.5em] uppercase shadow-[0_0_50px_rgba(255,215,0,0.2)]">
