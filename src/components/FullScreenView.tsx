@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -69,7 +68,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
   const syncToLiveFloor = useCallback((state: Partial<ActiveAuctionState>) => {
     if (!firestore || !user || !set.id) return;
-    // Use user.uid as the document ID for persistent public links
     const auctionRef = doc(firestore, 'activeAuctions', user.uid);
     updateDocumentNonBlocking(auctionRef, {
         ...state,
@@ -154,13 +152,13 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   };
 
   const getIncrement = (value: number) => {
-    if (value < 100) return 5;
-    if (value < 200) return 10;
-    if (value < 500) return 20;
-    return 50;
+    if (value < 1) return 0.05; // If using CR directly and small values
+    if (value < 5) return 0.10;
+    if (value < 10) return 0.20;
+    return 0.50;
   };
 
-  const nextValidBid = currentBid + getIncrement(currentBid);
+  const nextValidBid = parseFloat((currentBid + getIncrement(currentBid)).toFixed(2));
 
   const handleSold = useCallback(() => {
     if (!currentPlayer || isSold || isUnsold) return;
@@ -220,12 +218,11 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
   const copyLiveLink = () => {
     if (!user) return;
-    // Public link is now tied to the admin user ID for persistence across sets
     const link = `${window.location.origin}/live/${user.uid}`;
     navigator.clipboard.writeText(link);
     toast({
         title: 'Persistent Link Copied',
-        description: 'Share this with participants to follow your live auctions across all sets.',
+        description: 'Share this with participants to follow the live auction floor.',
     });
   }
 
@@ -259,7 +256,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Initial Sync on Mount
   useEffect(() => {
       if (firestore && user && set.id) {
           const auctionRef = doc(firestore, 'activeAuctions', user.uid);
@@ -350,7 +346,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                             {p.status}
                                         </span>
                                         {p.status === 'sold' && (
-                                            <span className="text-xs font-mono font-black text-primary">{p.finalPrice}L</span>
+                                            <span className="text-xs font-mono font-black text-primary">{p.finalPrice} Cr</span>
                                         )}
                                     </div>
                                 </motion.div>
@@ -410,7 +406,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                             {isSold && (
                                                 <div className="flex items-baseline justify-center gap-4 bg-primary/10 px-8 sm:px-16 py-4 sm:py-6 border-2 border-primary/40 backdrop-blur-md">
                                                     <span className="text-6xl sm:text-8xl font-mono font-black text-white">{currentBid}</span>
-                                                    <span className="text-2xl sm:text-4xl font-serif text-primary italic font-black uppercase tracking-widest">Lakh</span>
+                                                    <span className="text-2xl sm:text-4xl font-serif text-primary italic font-black uppercase tracking-widest">Cr</span>
                                                 </div>
                                             )}
                                         </div>
@@ -547,16 +543,16 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                     >
                                         {currentBid}
                                     </motion.span>
-                                    <span className="text-2xl sm:text-3xl font-serif text-primary italic font-black uppercase tracking-[0.2em]">Lakh</span>
+                                    <span className="text-2xl sm:text-3xl font-serif text-primary italic font-black uppercase tracking-[0.2em]">Cr</span>
                                 </div>
 
                                 <div className="flex items-center justify-between border-t border-primary/30 pt-3">
                                     <div className="text-[9px] text-primary/60 font-bold uppercase tracking-[0.3em]">
-                                        Base Entry: <span className="text-white ml-2">{currentPlayer.reservePrice}L</span>
+                                        Base Entry: <span className="text-white ml-2">{currentPlayer.reservePrice} Cr</span>
                                     </div>
                                     <div className="bg-primary/20 px-3 py-0.5 border border-primary/30">
                                         <span className="text-[9px] text-primary font-black uppercase tracking-[0.3em]">
-                                            Next Slab: <span className="text-white ml-2">{nextValidBid}L</span>
+                                            Next Slab: <span className="text-white ml-2">{nextValidBid} Cr</span>
                                         </span>
                                     </div>
                                 </div>
@@ -599,7 +595,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         onClick={handleIncreaseBid} 
                         className="h-14 flex-1 bg-primary text-primary-foreground font-serif font-black text-lg tracking-[0.2em] uppercase rounded-none hover:shadow-[0_0_20px_gold] transition-all"
                     >
-                        + Raise Bid ({getIncrement(currentBid)}L)
+                        + Raise Bid ({getIncrement(currentBid).toFixed(2)} Cr)
                     </Button>
                     
                     <Button 

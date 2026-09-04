@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef } from 'react';
@@ -35,9 +34,10 @@ export default function SquadsPage() {
     const { data: squadData, isLoading: isLoadingSquads } = useCollection<Squad>(squadsQuery);
 
     const playersQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
-        return query(collection(firestore, 'players'));
-    }, [firestore]);
+        if (!firestore || !user) return null;
+        // Filter players by current admin to ensure correct mapping
+        return query(collection(firestore, 'players'), where('userId', '==', user.uid));
+    }, [firestore, user]);
 
     const { data: allPlayers } = useCollection<Player>(playersQuery);
 
@@ -55,48 +55,50 @@ export default function SquadsPage() {
                     const squadsCollectionRef = collection(firestore, 'squads');
                     const batch = writeBatch(firestore);
 
-                    // Clear existing squads
                     const existingSnap = await getDocs(squadsCollectionRef);
                     existingSnap.forEach(d => batch.delete(d.ref));
 
                     const parsedData = results.data as any[];
                     
-                    // Robust column finder helper (fuzzy matching)
                     const getVal = (row: any, searchTerms: string[]) => {
                         const keys = Object.keys(row);
                         for (const term of searchTerms) {
-                            const foundKey = keys.find(k => k.toLowerCase().replace(/\s/g, '').includes(term.toLowerCase().replace(/\s/g, '')));
+                            const foundKey = keys.find(k => {
+                                const normalizedK = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+                                const normalizedT = term.toLowerCase().replace(/[^a-z0-9]/g, '');
+                                return normalizedK.includes(normalizedT);
+                            });
                             if (foundKey) return row[foundKey];
                         }
                         return '';
                     };
 
                     parsedData.forEach((row, index) => {
-                        const houseName = getVal(row, ['house name', 'house']) || 'N/A';
+                        const houseName = getVal(row, ['house name', 'house', 'name']) || 'N/A';
                         
                         const parseSafeFloat = (val: any) => {
-                            if (val === undefined || val === null || val === '#NUM!' || val === '#N/A') return 0;
-                            const str = String(val).replace(/[^0-9.]/g, '');
+                            if (val === undefined || val === null || val === '#NUM!' || val === '#N/A' || val === '#VALUE!') return 0;
+                            const str = String(val).replace(/[^0-9.-]/g, '');
                             return parseFloat(str) || 0;
                         };
 
                         const parseSafeInt = (val: any) => {
-                            if (val === undefined || val === null || val === '#NUM!' || val === '#N/A') return 0;
+                            if (val === undefined || val === null || val === '#NUM!' || val === '#N/A' || val === '#VALUE!') return 0;
                             const str = String(val).replace(/[^0-9]/g, '');
                             return parseInt(str, 10) || 0;
                         };
 
-                        const playersList = getVal(row, ['players list', 'format', 'squad list', 'squad members', 'purchased']) || '';
+                        const playersList = getVal(row, ['players list', 'squad list', 'purchased', 'members']) || '';
 
                         const newSquadRef = doc(squadsCollectionRef);
                         batch.set(newSquadRef, {
                             name: String(houseName).trim(),
-                            moneySpent: parseSafeFloat(getVal(row, ['total money spent', 'spent'])),
-                            moneyLeft: parseSafeFloat(getVal(row, ['money left', 'purse'])),
-                            budgetUsed: parseSafeFloat(getVal(row, ['budget used'])),
-                            budgetStatus: String(getVal(row, ['budget status'])).toLowerCase().includes('ok') ? 'OK' : 'OVER',
-                            eligibilityStatus: getVal(row, ['eligibility status']) || 'N/A',
-                            totalPoints: parseSafeInt(getVal(row, ['total no of points', 'total points', 'points'])),
+                            moneySpent: parseSafeFloat(getVal(row, ['spent', 'money spent', 'total money'])),
+                            moneyLeft: parseSafeFloat(getVal(row, ['money left', 'purse', 'remaining'])),
+                            budgetUsed: parseSafeFloat(getVal(row, ['budget used', 'used %'])),
+                            budgetStatus: String(getVal(row, ['status', 'budget status'])).toLowerCase().includes('ok') ? 'OK' : 'OVER',
+                            eligibilityStatus: getVal(row, ['eligibility', 'eligible']) || 'N/A',
+                            totalPoints: parseSafeInt(getVal(row, ['points', 'total no of points', 'score'])),
                             playersList: String(playersList).trim(), 
                             userId: user.uid,
                             order: index
@@ -104,28 +106,16 @@ export default function SquadsPage() {
                     });
 
                     await batch.commit();
-
-                    toast({
-                        title: 'Standings Updated',
-                        description: `Live squad data for ${parsedData.length} houses has been synchronized.`,
-                    });
+                    toast({ title: 'Standings Updated', description: 'Session data synced successfully.' });
                 } catch(error: any) {
-                     toast({
-                        title: 'Update Failed',
-                        description: 'Could not sync the CSV data. Check console for details.',
-                        variant: 'destructive',
-                    });
+                     toast({ title: 'Update Failed', description: 'Check CSV format.', variant: 'destructive' });
                      console.error(error);
                 } finally {
                     setIsProcessing(false);
                 }
             },
             error: (error: any) => {
-                toast({
-                    title: 'Parsing Failed',
-                    description: error.message,
-                    variant: 'destructive',
-                });
+                toast({ title: 'Parsing Failed', description: error.message, variant: 'destructive' });
                 setIsProcessing(false);
             },
         });
@@ -173,7 +163,7 @@ export default function SquadsPage() {
                 if (parts.length >= 2) {
                     const name = parts[0].trim();
                     const price = parts[1].trim();
-                    ledgerData.push([name, `${price} Lakh`, squad.name]);
+                    ledgerData.push([name, `${price} Cr`, squad.name]);
                 }
             });
         });
@@ -247,7 +237,7 @@ export default function SquadsPage() {
                             <CardHeader className="p-6">
                                 <CardTitle className="text-xl flex items-center font-serif text-primary"><Upload className="mr-2 h-5 w-5"/>Sync Session Data</CardTitle>
                                 <CardDescription>
-                                    Upload the latest tracking CSV to refresh standings.
+                                    Upload tracking CSV to refresh standings.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="px-6 pb-6 space-y-4">
@@ -258,12 +248,6 @@ export default function SquadsPage() {
                                     disabled={isProcessing}
                                     className="file:text-primary file:font-bold border-primary/30 bg-background/50 cursor-pointer"
                                 />
-                                <div className="p-3 bg-black/40 border border-primary/10 rounded-md">
-                                  <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-1">CSV Header Requirement:</p>
-                                  <code className="text-[9px] text-muted-foreground break-all">
-                                    House Name, Total Money Spent, Money Left, Budget Status, Total No. of Points, Players List (Format: Name:Price;...)
-                                  </code>
-                                </div>
                             </CardContent>
                         </Card>
 
@@ -281,7 +265,7 @@ export default function SquadsPage() {
                                   disabled={!squadData || squadData.length === 0}
                                   className="h-12 font-bold border-primary/40 text-primary hover:bg-primary/10"
                                 >
-                                  <FileText className="mr-2 h-4 w-4" /> Download Official PDF Ledger
+                                  <FileText className="mr-2 h-4 w-4" /> Download PDF Ledger
                                 </Button>
                                 <Button 
                                   variant="default" 
@@ -310,7 +294,6 @@ export default function SquadsPage() {
                                         <TableHead className="font-black text-primary uppercase tracking-widest min-w-[180px]">House</TableHead>
                                         <TableHead className="text-right font-black text-primary uppercase tracking-widest hidden sm:table-cell">Spent</TableHead>
                                         <TableHead className="text-right font-black text-primary uppercase tracking-widest text-lg">Purse Left</TableHead>
-                                        <TableHead className="text-center font-black text-primary uppercase tracking-widest hidden md:table-cell">Used %</TableHead>
                                         <TableHead className="text-center font-black text-primary uppercase tracking-widest">Budget</TableHead>
                                         <TableHead className="text-center font-black text-primary uppercase tracking-widest">Points</TableHead>
                                     </TableRow>
@@ -321,7 +304,6 @@ export default function SquadsPage() {
                                             <TableCell className="font-serif text-lg sm:text-xl text-white py-6">{house.name}</TableCell>
                                             <TableCell className="text-right font-mono text-sm hidden sm:table-cell text-muted-foreground">{house.moneySpent} Cr</TableCell>
                                             <TableCell className="text-right font-mono text-primary font-black text-xl sm:text-2xl">{house.moneyLeft} Cr</TableCell>
-                                            <TableCell className="text-center font-mono text-sm hidden md:table-cell">{house.budgetUsed}%</TableCell>
                                             <TableCell className="text-center">
                                                 <Badge variant={house.budgetStatus === 'OK' ? 'default' : 'destructive'} className="gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-xs">
                                                     {house.budgetStatus === 'OK' ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
@@ -339,7 +321,7 @@ export default function SquadsPage() {
                             <Info className="mx-auto h-20 w-20 text-muted-foreground opacity-10 mb-4" />
                             <h3 className="text-2xl font-serif text-primary uppercase tracking-widest">Standings Ledger Empty</h3>
                             <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto italic">
-                                {user ? "Please upload the final tracking CSV to generate posters and reports." : "The administrator has not yet uploaded the session wrap-up data."}
+                                The administrator has not yet uploaded the session wrap-up data.
                             </p>
                         </div>
                     )}

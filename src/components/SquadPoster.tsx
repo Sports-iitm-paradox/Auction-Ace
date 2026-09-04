@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -63,7 +62,7 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
         </div>
       </div>
 
-      {/* Players Grid - Switched to 5 columns to fit 15 players in 3 rows */}
+      {/* Players Grid - 5 columns for up to 15 players */}
       <div className="w-full grid grid-cols-5 gap-4 z-10 flex-1 py-8 px-4">
         {playerEntries.map((entry, idx) => (
           <div key={idx} className="bg-black/60 border border-primary/30 p-3 flex flex-col items-center text-center relative shadow-2xl h-fit">
@@ -78,7 +77,7 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
              </div>
              <p className="text-[11px] font-serif font-black truncate w-full uppercase text-white tracking-wider leading-tight">{entry.name}</p>
              <div className="mt-1 bg-primary/20 border border-primary/40 px-2 py-0.5">
-                <p className="text-[9px] font-mono text-primary font-black uppercase tracking-tighter">{entry.price}L</p>
+                <p className="text-[9px] font-mono text-primary font-black uppercase tracking-tighter">{entry.price} Cr</p>
              </div>
           </div>
         ))}

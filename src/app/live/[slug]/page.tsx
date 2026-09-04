@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -172,7 +171,7 @@ export default function PublicLivePage() {
                                         <span className="text-[10px] font-black text-primary uppercase tracking-[0.5em] mb-2">Live Floor Valuation</span>
                                         <div className="flex items-baseline gap-4">
                                             <span className="text-6xl lg:text-8xl font-mono font-black text-white">{auction.currentBid}</span>
-                                            <span className="text-2xl lg:text-4xl font-serif text-primary italic font-black uppercase tracking-widest">Lakh</span>
+                                            <span className="text-2xl lg:text-4xl font-serif text-primary italic font-black uppercase tracking-widest">Cr</span>
                                         </div>
                                     </div>
                                 </div>
