@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef } from 'react';
@@ -137,7 +138,7 @@ export default function SquadsPage() {
         
         const standingsData = squadData.map(s => [
             s.name, 
-            `${s.moneyLeft} Cr`, 
+            `${s.moneyLeft} L`, 
             s.totalPoints === 0 ? 'N/A' : s.totalPoints.toString(), 
             s.budgetStatus
         ]);
@@ -162,7 +163,7 @@ export default function SquadsPage() {
                 if (parts.length >= 2) {
                     const name = parts[0].trim();
                     const price = parts[1].trim();
-                    ledgerData.push([name, `${price} Cr`, squad.name]);
+                    ledgerData.push([name, `${price} L`, squad.name]);
                 }
             });
         });
