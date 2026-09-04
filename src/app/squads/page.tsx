@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ShieldCheck, CheckCircle, AlertTriangle, Clock, Upload, Loader2, Info } from 'lucide-react';
+import { ShieldCheck, CheckCircle, AlertTriangle, Clock, Upload, Loader2, Info, FileText, ImageIcon, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -11,15 +11,21 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import Papa from 'papaparse';
-import { Squad } from '@/lib/player-data';
+import { Squad, Player } from '@/lib/player-data';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, writeBatch, doc, getDocs, query, orderBy } from 'firebase/firestore';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import { toPng } from 'html-to-image';
+import { SquadPoster } from '@/components/SquadPoster';
 
 export default function SquadsPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const posterContainerRef = useRef<HTMLDivElement>(null);
 
     const squadsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -27,6 +33,13 @@ export default function SquadsPage() {
     }, [firestore]);
 
     const { data: squadData, isLoading: isLoadingSquads } = useCollection<Squad>(squadsQuery);
+
+    const playersQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return collection(firestore, 'players');
+    }, [firestore]);
+
+    const { data: allPlayers } = useCollection<Player>(playersQuery);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -42,7 +55,7 @@ export default function SquadsPage() {
                     const squadsCollectionRef = collection(firestore, 'squads');
                     const batch = writeBatch(firestore);
 
-                    // 1. Clear existing squads for this admin (simple clear all for MVP)
+                    // 1. Clear existing squads
                     const existingSnap = await getDocs(squadsCollectionRef);
                     existingSnap.forEach(d => batch.delete(d.ref));
 
@@ -59,6 +72,7 @@ export default function SquadsPage() {
                             budgetStatus: row['Budget Status']?.includes('OK') ? 'OK' : 'OVER',
                             eligibilityStatus: row['Eligibility Status'] || 'N/A',
                             totalPoints: row['Total No. of Points'] === '#N/A' ? 0 : parseInt(row['Total No. of Points'], 10) || 0,
+                            playersList: row['Players List'] || '', // Format: Name1:Price1;Name2:Price2
                             userId: user.uid,
                             order: index
                         });
@@ -91,83 +105,202 @@ export default function SquadsPage() {
         });
     };
 
+    const generatePDF = () => {
+        if (!squadData) return;
+        
+        const doc = new jsPDF();
+        const timestamp = new Date().toLocaleString();
+        
+        // Title Page
+        doc.setFontSize(22);
+        doc.text('SAAVAN \'26 - Official Auction Wrap-up', 20, 30);
+        doc.setFontSize(12);
+        doc.text(`Generated on: ${timestamp}`, 20, 40);
+        doc.text('Sports Department, IIT Madras Paradox', 20, 47);
+        
+        // Final Standings Table
+        doc.setFontSize(16);
+        doc.text('Final House Standings', 20, 65);
+        
+        const standingsData = squadData.map(s => [
+            s.name, 
+            `${s.moneyLeft} Cr`, 
+            s.totalPoints.toString(), 
+            s.budgetStatus
+        ]);
+        
+        (doc as any).autoTable({
+            startY: 70,
+            head: [['House Name', 'Purse Left', 'Total Points', 'Budget Status']],
+            body: standingsData,
+            theme: 'striped',
+            headStyles: { fillColor: [184, 134, 11] }
+        });
+
+        // Detailed Ledger
+        doc.addPage();
+        doc.setFontSize(18);
+        doc.text('Official Sales Ledger', 20, 20);
+        
+        const ledgerData: string[][] = [];
+        squadData.forEach(squad => {
+            const players = (squad.playersList || '').split(';').filter(Boolean);
+            players.forEach(p => {
+                const [name, price] = p.split(':');
+                ledgerData.push([name, `${price} Lakh`, squad.name]);
+            });
+        });
+
+        (doc as any).autoTable({
+            startY: 25,
+            head: [['Player Name', 'Final Bid', 'Purchased By']],
+            body: ledgerData,
+            theme: 'grid',
+            headStyles: { fillColor: [139, 0, 0] }
+        });
+
+        doc.save(`SAAVAN_26_Auction_Wrapup.pdf`);
+        toast({ title: 'PDF Ledger Generated', description: 'The official record has been saved.' });
+    };
+
+    const generatePosters = async () => {
+        if (!squadData || !allPlayers) return;
+        setIsGenerating(true);
+        
+        try {
+            for (const squad of squadData) {
+                const element = document.getElementById(`poster-${squad.id}`);
+                if (element) {
+                    const dataUrl = await toPng(element, { quality: 0.95 });
+                    const link = document.createElement('a');
+                    link.download = `Squad_Poster_${squad.name.replace(/\s+/g, '_')}.png`;
+                    link.href = dataUrl;
+                    link.click();
+                }
+            }
+            toast({ title: 'Posters Generated', description: 'All team posters have been downloaded.' });
+        } catch (error) {
+            console.error(error);
+            toast({ title: 'Poster Generation Failed', variant: 'destructive' });
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     return (
         <motion.div
-            className="w-full max-w-7xl mx-auto px-2 sm:px-4"
+            className="w-full max-w-7xl mx-auto px-2 sm:px-4 pb-20"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
         >
-            <Card className="bg-card/90 backdrop-blur-sm">
-                <CardHeader className="text-center sm:text-left">
-                    <CardTitle className="flex flex-col sm:flex-row items-center text-2xl sm:text-3xl gap-3">
-                        <ShieldCheck className="h-8 w-8 text-primary shrink-0" />
-                        Live Squad Status
+            {/* Hidden Poster Container for Image Generation */}
+            <div className="fixed -left-[2000px] top-0 pointer-events-none" ref={posterContainerRef}>
+              {squadData && allPlayers && squadData.map(squad => (
+                <SquadPoster key={squad.id} squad={squad} allPlayers={allPlayers} />
+              ))}
+            </div>
+
+            <Card className="bg-card/90 backdrop-blur-sm ornate-border">
+                <CardHeader className="text-center sm:text-left border-b border-primary/20 pb-8">
+                    <CardTitle className="flex flex-col sm:flex-row items-center text-3xl sm:text-4xl gap-3 font-serif text-primary">
+                        <ShieldCheck className="h-10 w-10 text-primary shrink-0" />
+                        Live Ledger & Standings
                     </CardTitle>
-                    <CardDescription>
-                        Dashboard for house purse, points, and squad eligibility.
+                    <CardDescription className="text-lg italic">
+                        Real-time tracking for SAAVAN '26 Official Auction
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-8 pt-8">
+                    
                     {user && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Card className="bg-secondary/10 border-primary/20">
-                            <CardHeader className="p-4 sm:p-6">
-                                <CardTitle className="text-lg sm:text-xl flex items-center"><Upload className="mr-2 h-5 w-5"/>Refresh Master Data</CardTitle>
+                            <CardHeader className="p-6">
+                                <CardTitle className="text-xl flex items-center font-serif text-primary"><Upload className="mr-2 h-5 w-5"/>Sync Session Data</CardTitle>
                                 <CardDescription>
-                                    Upload the latest tracking CSV to update live standings for all participants.
+                                    Upload the latest tracking CSV to refresh standings.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="p-4 sm:p-6 pt-0 flex flex-col sm:flex-row gap-4 items-center">
+                            <CardContent className="px-6 pb-6 space-y-4">
                                 <Input
                                     type="file"
                                     accept=".csv"
                                     onChange={handleFileChange}
                                     disabled={isProcessing}
-                                    className="file:text-primary-foreground file:bg-primary file:hover:bg-primary/90 file:font-bold file:rounded-md file:px-3 file:py-1 cursor-pointer w-full"
+                                    className="file:text-primary file:font-bold border-primary/30 bg-background/50 cursor-pointer"
                                 />
-                                {isProcessing && <Loader2 className="h-6 w-6 animate-spin text-primary" />}
+                                <div className="p-3 bg-black/40 border border-primary/10 rounded-md">
+                                  <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-1">CSV Header Requirement:</p>
+                                  <code className="text-[9px] text-muted-foreground break-all">
+                                    House Name, Total Money Spent, Money Left, Budget Used (in %), Budget Status, Eligibility Status, Total No. of Points, Players List (Format: Name1:Price1;Name2:Price2)
+                                  </code>
+                                </div>
                             </CardContent>
                         </Card>
+
+                        <Card className="bg-primary/5 border-primary/20">
+                            <CardHeader className="p-6">
+                                <CardTitle className="text-xl flex items-center font-serif text-primary"><Download className="mr-2 h-5 w-5"/>Wrap-up Tools</CardTitle>
+                                <CardDescription>
+                                    Generate official assets for distribution.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="px-6 pb-6 grid grid-cols-1 gap-3">
+                                <Button 
+                                  variant="outline" 
+                                  onClick={generatePDF} 
+                                  disabled={!squadData || squadData.length === 0}
+                                  className="h-12 font-bold border-primary/40 text-primary hover:bg-primary/10"
+                                >
+                                  <FileText className="mr-2 h-4 w-4" /> Download Official PDF Ledger
+                                </Button>
+                                <Button 
+                                  variant="default" 
+                                  onClick={generatePosters} 
+                                  disabled={!squadData || squadData.length === 0 || isGenerating}
+                                  className="h-12 font-bold"
+                                >
+                                  {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageIcon className="mr-2 h-4 w-4" />}
+                                  Generate Team Posters
+                                </Button>
+                            </CardContent>
+                        </Card>
+                      </div>
                     )}
 
                     {isLoadingSquads ? (
-                        <div className="flex justify-center p-20">
-                            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                        <div className="flex flex-col items-center justify-center p-20 gap-4">
+                            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                            <p className="font-serif text-primary animate-pulse tracking-widest uppercase">Fetching Ledger...</p>
                         </div>
                     ) : squadData && squadData.length > 0 ? (
-                        <div className="border border-primary/20 rounded-lg overflow-hidden w-full overflow-x-auto shadow-2xl">
+                        <div className="border border-primary/20 rounded-lg overflow-hidden w-full overflow-x-auto shadow-2xl bg-black/20">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="bg-muted/50 hover:bg-muted/80">
-                                        <TableHead className="font-bold min-w-[150px]">House Name</TableHead>
-                                        <TableHead className="text-right font-bold hidden sm:table-cell">Spent</TableHead>
-                                        <TableHead className="text-right font-bold">Purse Left</TableHead>
-                                        <TableHead className="text-center font-bold hidden md:table-cell">Used %</TableHead>
-                                        <TableHead className="text-center font-bold">Budget</TableHead>
-                                        <TableHead className="text-center font-bold hidden sm:table-cell">Eligibility</TableHead>
-                                        <TableHead className="text-center font-bold">Points</TableHead>
+                                    <TableRow className="bg-muted/30 hover:bg-muted/50 border-b border-primary/20">
+                                        <TableHead className="font-black text-primary uppercase tracking-widest min-w-[180px]">House</TableHead>
+                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest hidden sm:table-cell">Spent</TableHead>
+                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest text-lg">Purse Left</TableHead>
+                                        <TableHead className="text-center font-black text-primary uppercase tracking-widest hidden md:table-cell">Used %</TableHead>
+                                        <TableHead className="text-center font-black text-primary uppercase tracking-widest">Budget</TableHead>
+                                        <TableHead className="text-center font-black text-primary uppercase tracking-widest">Points</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {squadData.map((house) => (
-                                        <TableRow key={house.id} className="hover:bg-primary/5 transition-colors">
-                                            <TableCell className="font-serif text-base sm:text-lg text-foreground">{house.name}</TableCell>
-                                            <TableCell className="text-right font-mono text-xs hidden sm:table-cell">{house.moneySpent} Cr</TableCell>
-                                            <TableCell className="text-right font-mono text-primary font-black text-sm sm:text-lg">{house.moneyLeft} Cr</TableCell>
-                                            <TableCell className="text-center font-mono text-xs hidden md:table-cell">{house.budgetUsed}%</TableCell>
+                                        <TableRow key={house.id} className="hover:bg-primary/5 transition-colors border-b border-primary/5">
+                                            <TableCell className="font-serif text-lg sm:text-xl text-white py-6">{house.name}</TableCell>
+                                            <TableCell className="text-right font-mono text-sm hidden sm:table-cell text-muted-foreground">{house.moneySpent} Cr</TableCell>
+                                            <TableCell className="text-right font-mono text-primary font-black text-xl sm:text-2xl">{house.moneyLeft} Cr</TableCell>
+                                            <TableCell className="text-center font-mono text-sm hidden md:table-cell">{house.budgetUsed}%</TableCell>
                                             <TableCell className="text-center">
-                                                <Badge variant={house.budgetStatus === 'OK' ? 'default' : 'destructive'} className="gap-1 items-center bg-green-500 hover:bg-green-600 text-white text-[10px] sm:text-xs">
+                                                <Badge variant={house.budgetStatus === 'OK' ? 'default' : 'destructive'} className="gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-xs">
                                                     {house.budgetStatus === 'OK' ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
                                                     {house.budgetStatus}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="text-center hidden sm:table-cell">
-                                                <Badge variant="outline" className="gap-1 items-center text-[10px] border-primary/30">
-                                                    <Clock className="h-3 w-3 text-primary" />
-                                                    {house.eligibilityStatus}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-center font-mono font-black text-sm sm:text-lg text-primary">{house.totalPoints}</TableCell>
+                                            <TableCell className="text-center font-mono font-black text-xl sm:text-2xl text-white">{house.totalPoints}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -175,10 +308,10 @@ export default function SquadsPage() {
                         </div>
                     ) : (
                          <div className="text-center py-20 border-2 border-dashed border-primary/20 rounded-lg bg-background/50">
-                            <Info className="mx-auto h-16 w-16 text-muted-foreground opacity-20" />
-                            <h3 className="mt-4 text-xl font-serif text-primary">Standings Empty</h3>
-                            <p className="mt-2 text-sm text-muted-foreground max-w-xs mx-auto">
-                                {user ? "Upload the tracking CSV to broadcast live standings." : "The administrator has not uploaded squad data yet."}
+                            <Info className="mx-auto h-20 w-20 text-muted-foreground opacity-10 mb-4" />
+                            <h3 className="text-2xl font-serif text-primary uppercase tracking-widest">Standings Ledger Empty</h3>
+                            <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto italic">
+                                {user ? "Please upload the final tracking CSV to generate posters and reports." : "The administrator has not yet uploaded the session wrap-up data."}
                             </p>
                         </div>
                     )}

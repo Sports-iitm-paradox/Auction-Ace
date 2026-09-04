@@ -173,7 +173,11 @@
         "eligibilityStatus": { "type": "string" },
         "totalPoints": { "type": "number" },
         "userId": { "type": "string" },
-        "order": { "type": "number" }
+        "order": { "type": "number" },
+        "playersList": {
+           "type": "string",
+           "description": "Serialized list of players and their prices (e.g., 'Player A:40;Player B:20')"
+        }
       }
     }
   },

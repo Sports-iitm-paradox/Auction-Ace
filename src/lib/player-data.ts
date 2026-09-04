@@ -46,4 +46,7 @@ export interface Squad extends DocumentData {
     budgetStatus: 'OK' | 'OVER';
     eligibilityStatus: string;
     totalPoints: number | 'N/A';
+    playersList?: string; // Format: "Name:Price;Name:Price"
+    userId: string;
+    order: number;
 }
