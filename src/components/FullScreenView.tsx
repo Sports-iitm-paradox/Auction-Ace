@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { X, RefreshCw, Keyboard, Clock3, Shield, History, Trophy, Gavel, Share2, Menu } from 'lucide-react';
+import { X, RefreshCw, Keyboard, Clock3, Shield, History, Trophy, Gavel, Share2 } from 'lucide-react';
 import { Player, PlayerSet, ActiveAuctionState } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -151,10 +152,17 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     }
   };
 
+  /**
+   * Official SAAVAN '26 Increment Slabs:
+   * Up to 1.00 Cr (100L): 5L
+   * 1.00 Cr to < 2.00 Cr (100L-199L): 10L
+   * 2.00 Cr to < 5.00 Cr (200L-499L): 20L
+   * Above 5.00 Cr (500L+): 50L
+   */
   const getIncrement = (value: number) => {
-    if (value < 10) return 5; 
-    if (value < 50) return 10;
-    if (value < 100) return 20;
+    if (value < 100) return 5; 
+    if (value < 200) return 10;
+    if (value < 500) return 20;
     return 50;
   };
 
