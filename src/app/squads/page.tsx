@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ShieldCheck, Loader2, FileText, ImageIcon, Download, RotateCcw, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -85,7 +85,7 @@ export default function SquadsPage() {
             link.download = `Squad_Poster_${squadId}.png`;
             link.href = dataUrl;
             link.click();
-            toast({ title: "Poster Downloaded", description: "The high-resolution squad poster is ready." });
+            toast({ title: "Poster Downloaded", description: "High-resolution squad poster is ready." });
         } catch (err) {
             toast({ title: "Download Failed", variant: "destructive" });
         } finally {
@@ -98,8 +98,6 @@ export default function SquadsPage() {
         const doc = new jsPDF();
         doc.setFontSize(22);
         doc.text("IPL Auction '26 - Official Standings", 20, 30);
-        doc.setFontSize(12);
-        doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 40);
         
         const rows = squadData.map(s => [s.name, `${s.moneyLeft} Cr`, s.totalPoints, s.budgetStatus]);
         (doc as any).autoTable({
