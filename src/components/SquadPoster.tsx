@@ -28,7 +28,7 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
   return (
     <div 
       id={`poster-${squad.id}`}
-      className="w-[1080px] h-[1350px] bg-[#1a0202] text-white p-12 relative flex flex-col items-center justify-between overflow-hidden"
+      className="w-[1080px] h-[1350px] bg-[#1a0202] text-white p-10 relative flex flex-col items-center justify-between overflow-hidden"
       style={{
         backgroundImage: 'radial-gradient(circle at center, #3a0505 0%, #1a0202 100%)',
       }}
@@ -38,61 +38,61 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
       <div className="absolute inset-8 border border-primary/20 pointer-events-none" />
       
       {/* Header */}
-      <div className="text-center z-10 w-full">
-        <div className="flex justify-center mb-6">
-          <Trophy className="h-20 w-20 text-primary drop-shadow-[0_0_20px_rgba(255,215,0,0.5)]" />
+      <div className="text-center z-10 w-full mt-4">
+        <div className="flex justify-center mb-4">
+          <Trophy className="h-16 w-16 text-primary drop-shadow-[0_0_20px_rgba(255,215,0,0.5)]" />
         </div>
         <h1 className="text-7xl font-serif font-black text-primary uppercase tracking-[0.2em] mb-2 italic">
           {squad.name}
         </h1>
         <div className="h-1 w-64 bg-primary mx-auto mb-4" />
-        <p className="text-xl font-serif text-white/60 tracking-[0.5em] uppercase">
+        <p className="text-lg font-serif text-white/60 tracking-[0.5em] uppercase">
           Official SAAVAN '26 Squad
         </p>
       </div>
 
       {/* Stats Summary */}
-      <div className="flex gap-12 z-10">
+      <div className="flex gap-12 z-10 mt-2">
         <div className="text-center border-l-2 border-primary/40 pl-8">
-          <p className="text-xs font-black uppercase tracking-widest text-primary/60 mb-1">Total Points</p>
-          <p className="text-6xl font-mono font-black text-white">{squad.totalPoints}</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-primary/60 mb-1">Total Points</p>
+          <p className="text-5xl font-mono font-black text-white">{squad.totalPoints}</p>
         </div>
         <div className="text-center border-l-2 border-primary/40 pl-8">
-          <p className="text-xs font-black uppercase tracking-widest text-primary/60 mb-1">Purse Remaining</p>
-          <p className="text-6xl font-mono font-black text-primary">{squad.moneyLeft} Cr</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-primary/60 mb-1">Purse Remaining</p>
+          <p className="text-5xl font-mono font-black text-primary">{squad.moneyLeft} Cr</p>
         </div>
       </div>
 
-      {/* Players Grid */}
-      <div className="w-full grid grid-cols-4 gap-6 z-10 flex-1 py-12">
+      {/* Players Grid - Switched to 5 columns to fit 15 players in 3 rows */}
+      <div className="w-full grid grid-cols-5 gap-4 z-10 flex-1 py-8 px-4">
         {playerEntries.map((entry, idx) => (
-          <div key={idx} className="bg-black/60 border border-primary/30 p-4 flex flex-col items-center text-center relative shadow-2xl">
-             <div className="w-full aspect-[3/4] relative bg-black/80 mb-3 border border-primary/10 overflow-hidden flex items-center justify-center">
+          <div key={idx} className="bg-black/60 border border-primary/30 p-3 flex flex-col items-center text-center relative shadow-2xl h-fit">
+             <div className="w-full aspect-[3/4] relative bg-black/80 mb-2 border border-primary/10 overflow-hidden flex items-center justify-center">
                 {entry.playerInfo?.imageUrl ? (
                   <img src={entry.playerInfo.imageUrl} alt={entry.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center opacity-20">
-                    <Shield className="h-16 w-16 text-primary" />
+                    <Shield className="h-12 w-12 text-primary" />
                   </div>
                 )}
              </div>
-             <p className="text-[14px] font-serif font-black truncate w-full uppercase text-white tracking-wider">{entry.name}</p>
-             <div className="mt-1 bg-primary/20 border border-primary/40 px-3 py-0.5">
-                <p className="text-[10px] font-mono text-primary font-black uppercase tracking-tighter">{entry.price}L</p>
+             <p className="text-[11px] font-serif font-black truncate w-full uppercase text-white tracking-wider leading-tight">{entry.name}</p>
+             <div className="mt-1 bg-primary/20 border border-primary/40 px-2 py-0.5">
+                <p className="text-[9px] font-mono text-primary font-black uppercase tracking-tighter">{entry.price}L</p>
              </div>
           </div>
         ))}
-        {/* Fill the remaining grid with placeholders only if squad is very small */}
-        {playerEntries.length < 12 && Array.from({ length: 12 - playerEntries.length }).map((_, i) => (
-           <div key={`empty-${i}`} className="bg-black/20 border border-white/5 p-4 flex flex-col items-center justify-center opacity-30">
-              <Shield className="h-12 w-12 text-white/10" />
+        {/* Fill the remaining grid with placeholders to maintain layout */}
+        {playerEntries.length < 15 && Array.from({ length: 15 - playerEntries.length }).map((_, i) => (
+           <div key={`empty-${i}`} className="bg-black/20 border border-white/5 p-3 flex flex-col items-center justify-center opacity-20 aspect-[3/4.5]">
+              <Shield className="h-10 w-10 text-white/10" />
            </div>
         ))}
       </div>
 
       {/* Footer Branding */}
-      <div className="w-full text-center z-10 border-t border-primary/20 pt-8 mt-4">
-        <p className="text-sm font-black text-white/40 tracking-[0.8em] uppercase">
+      <div className="w-full text-center z-10 border-t border-primary/20 pt-6 mb-4">
+        <p className="text-xs font-black text-white/40 tracking-[0.8em] uppercase">
           IIT Madras Paradox • Sports Department
         </p>
       </div>
