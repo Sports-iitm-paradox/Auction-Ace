@@ -154,7 +154,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
   useEffect(() => {
     if (finalCallStatus !== 'none' && !isSold && !isUnsold) {
-      const stepDuration = 1500; // Reduced to 1.5 seconds per user request
+      const stepDuration = 1500;
       const hammerTimer = setTimeout(() => {
         if (finalCallStatus === 'once') {
           setFinalCallStatus('twice');
@@ -339,7 +339,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                         </div>
                                         
                                         <div className="text-center flex-1 flex flex-col justify-center items-center py-4">
-                                            <h3 className="text-2xl sm:text-4xl font-serif text-white uppercase tracking-[0.4em] mb-4">
+                                            <h3 className="text-2xl sm:text-4xl font-serif text-white uppercase tracking-[0.4em] mb-4 text-center">
                                                 {currentPlayer.playerName}
                                             </h3>
                                             {isSold && (
@@ -448,7 +448,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                 </AnimatePresence>
 
                                 {isTimerActive && (
-                                    <div className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-[#1a0202] border-4 border-primary flex items-center justify-center z-20 shadow-[0_0_20px_gold]">
+                                    <div className="absolute top-2 right-2 w-12 h-12 rounded-full bg-[#1a0202] border-4 border-primary flex items-center justify-center z-40 shadow-[0_0_20px_gold]">
                                         <span className={cn(
                                             "text-lg font-mono font-black",
                                             timer <= 5 ? "text-destructive animate-pulse" : "text-primary"
@@ -462,7 +462,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                     <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_red]" />
                                     <span className="text-[10px] text-primary font-black tracking-[0.3em] uppercase">Live Floor Valuation</span>
                                     
-                                    <div className="ml-auto flex gap-1.5">
+                                    <div className="ml-auto flex gap-1.5 pr-14">
                                         {[1, 2, 3].map((idx) => (
                                             <div key={idx} className={cn(
                                                 "w-8 h-1.5 transition-all duration-500 rounded-sm", 
