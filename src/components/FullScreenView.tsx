@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -32,6 +31,8 @@ const SOUNDS = {
 
 type FinalCallStatus = 'none' | 'once' | 'twice' | 'final';
 
+const DEFAULT_TIMER = 20;
+
 export default function FullScreenView({ players, set, onReset }: FullScreenViewProps) {
   const [undrawnPlayers, setUndrawnPlayers] = useState<Player[]>([...players]);
   const [drawnPlayers, setDrawnPlayers] = useState<DrawnPlayer[]>([]);
@@ -42,7 +43,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   const router = useRouter();
   
   const [currentBid, setCurrentBid] = useState<number>(0);
-  const [timer, setTimer] = useState<number>(30);
+  const [timer, setTimer] = useState<number>(DEFAULT_TIMER);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isSold, setIsSold] = useState(false);
   const [isUnsold, setIsUnsold] = useState(false);
@@ -102,7 +103,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setIsUnsold(false);
     setIsTimerActive(false);
     setFinalCallStatus('none');
-    setTimer(30);
+    setTimer(DEFAULT_TIMER);
 
     setTimeout(() => {
       const randomIndex = Math.floor(Math.random() * undrawnPlayers.length);
@@ -124,6 +125,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         setIsSold(false);
         setIsUnsold(false);
         setDrawnPlayers([]);
+        setTimer(DEFAULT_TIMER);
     }
   };
 
@@ -177,7 +179,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     if (isSold || isUnsold) return;
     const newBid = nextValidBid;
     setCurrentBid(newBid);
-    setTimer(30);
+    setTimer(DEFAULT_TIMER);
     setFinalCallStatus('none');
     setIsTimerActive(true);
   };
@@ -203,7 +205,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       } else if (event.key === 'f' && currentPlayer && !isSold && !isUnsold) {
         startHammerSequence();
       } else if (event.key === 'r' && currentPlayer && !isSold && !isUnsold) {
-        setTimer(30);
+        setTimer(DEFAULT_TIMER);
         setIsTimerActive(true);
         setFinalCallStatus('none');
       } else if (event.key === '?' || event.key === 'h') {
@@ -489,7 +491,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                         <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-white/5" />
                                         <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="3" fill="transparent" 
                                             className={cn("transition-all duration-1000", timer <= 10 ? "text-red-600" : "text-primary")}
-                                            strokeDasharray="251" strokeDashoffset={251 - (251 * timer) / 30}
+                                            strokeDasharray="251" strokeDashoffset={251 - (251 * timer) / DEFAULT_TIMER}
                                         />
                                     </svg>
                                     <span className={cn(
@@ -579,7 +581,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
               <Button onClick={handleIncreaseBid} size="lg" className="h-14 px-10 font-serif font-black text-xl rounded-none bg-primary text-primary-foreground tracking-widest uppercase shadow-2xl hover:scale-105 transition-transform active:scale-95 border-b-4 border-black/20">
                 + RAISE BID ({getIncrement(currentBid)}L)
               </Button>
-              <Button onClick={() => { setTimer(30); setIsTimerActive(true); setFinalCallStatus('none'); }} variant="outline" className="h-14 px-6 font-black rounded-none border-white/20 bg-[#1a0202] text-white uppercase text-[10px] tracking-[0.3em] hover:bg-white/10 transition-all flex items-center gap-3">
+              <Button onClick={() => { setTimer(DEFAULT_TIMER); setIsTimerActive(true); setFinalCallStatus('none'); }} variant="outline" className="h-14 px-6 font-black rounded-none border-white/20 bg-[#1a0202] text-white uppercase text-[10px] tracking-[0.3em] hover:bg-white/10 transition-all flex items-center gap-3">
                 <RefreshCw className="h-4 w-4"/> RESET / CLEAR
               </Button>
               <Button 
