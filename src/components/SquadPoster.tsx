@@ -65,7 +65,7 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
 
       {/* Players Grid */}
       <div className="w-full grid grid-cols-4 gap-6 z-10 flex-1 py-12">
-        {playerEntries.slice(0, 16).map((entry, idx) => (
+        {playerEntries.map((entry, idx) => (
           <div key={idx} className="bg-black/60 border border-primary/30 p-4 flex flex-col items-center text-center relative shadow-2xl">
              <div className="w-full aspect-[3/4] relative bg-black/80 mb-3 border border-primary/10 overflow-hidden flex items-center justify-center">
                 {entry.playerInfo?.imageUrl ? (
@@ -82,7 +82,7 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
              </div>
           </div>
         ))}
-        {/* Placeholder for empty spots if squad is small */}
+        {/* Fill the remaining grid with placeholders only if squad is very small */}
         {playerEntries.length < 12 && Array.from({ length: 12 - playerEntries.length }).map((_, i) => (
            <div key={`empty-${i}`} className="bg-black/20 border border-white/5 p-4 flex flex-col items-center justify-center opacity-30">
               <Shield className="h-12 w-12 text-white/10" />

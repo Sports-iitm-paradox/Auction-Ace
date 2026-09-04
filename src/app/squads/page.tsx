@@ -14,7 +14,7 @@ import Papa from 'papaparse';
 import { Squad, Player } from '@/lib/player-data';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, writeBatch, doc, getDocs, query, orderBy, where } from 'firebase/firestore';
-import { jsPDF } from 'jspdf';
+import { jsPDF } from 'jsPDF';
 import 'jspdf-autotable';
 import { toPng } from 'html-to-image';
 import { SquadPoster } from '@/components/SquadPoster';
@@ -55,41 +55,49 @@ export default function SquadsPage() {
                     const squadsCollectionRef = collection(firestore, 'squads');
                     const batch = writeBatch(firestore);
 
-                    // 1. Clear existing squads
+                    // Clear existing squads
                     const existingSnap = await getDocs(squadsCollectionRef);
                     existingSnap.forEach(d => batch.delete(d.ref));
 
-                    // 2. Add new data with specific header matching
                     const parsedData = results.data as any[];
+                    
+                    // Robust column finder helper
+                    const getVal = (row: any, searchTerms: string[]) => {
+                        const keys = Object.keys(row);
+                        for (const term of searchTerms) {
+                            const foundKey = keys.find(k => k.toLowerCase().includes(term.toLowerCase()));
+                            if (foundKey) return row[foundKey];
+                        }
+                        return '';
+                    };
+
                     parsedData.forEach((row, index) => {
-                        const houseName = row['House Name'] || 'N/A';
+                        const houseName = getVal(row, ['house name', 'house']) || 'N/A';
                         
-                        // Extract numeric values safely, ignoring #NUM! or #N/A strings
                         const parseSafeFloat = (val: any) => {
-                            if (!val || typeof val !== 'string') return 0;
-                            const cleaned = val.replace(/[^0-9.]/g, '');
-                            return parseFloat(cleaned) || 0;
+                            if (!val) return 0;
+                            const str = String(val).replace(/[^0-9.]/g, '');
+                            return parseFloat(str) || 0;
                         };
 
                         const parseSafeInt = (val: any) => {
-                            if (!val || typeof val !== 'string') return 0;
-                            const cleaned = val.replace(/[^0-9]/g, '');
-                            return parseInt(cleaned, 10) || 0;
+                            if (!val) return 0;
+                            const str = String(val).replace(/[^0-9]/g, '');
+                            return parseInt(str, 10) || 0;
                         };
 
-                        // Exact header matching from user specification
-                        const playersList = row['Players List (Format: Name1:Price1;Name2:Price2)'] || row['Players List'] || '';
+                        const playersList = getVal(row, ['players list', 'format', 'squad list']) || '';
 
                         const newSquadRef = doc(squadsCollectionRef);
                         batch.set(newSquadRef, {
-                            name: houseName.trim(),
-                            moneySpent: parseSafeFloat(row['Total Money Spent']),
-                            moneyLeft: parseSafeFloat(row['Money Left']),
-                            budgetUsed: parseSafeFloat(row['Budget Used (in %)']),
-                            budgetStatus: row['Budget Status']?.includes('OK') ? 'OK' : 'OVER',
-                            eligibilityStatus: row['Eligibility Status'] || 'N/A',
-                            totalPoints: parseSafeInt(row['Total No. of Points']),
-                            playersList: playersList.trim(), 
+                            name: String(houseName).trim(),
+                            moneySpent: parseSafeFloat(getVal(row, ['total money spent', 'spent'])),
+                            moneyLeft: parseSafeFloat(getVal(row, ['money left', 'purse'])),
+                            budgetUsed: parseSafeFloat(getVal(row, ['budget used'])),
+                            budgetStatus: String(getVal(row, ['budget status'])).includes('OK') ? 'OK' : 'OVER',
+                            eligibilityStatus: getVal(row, ['eligibility status']) || 'N/A',
+                            totalPoints: parseSafeInt(getVal(row, ['total no. of points', 'points'])),
+                            playersList: String(playersList).trim(), 
                             userId: user.uid,
                             order: index
                         });
@@ -253,7 +261,7 @@ export default function SquadsPage() {
                                 <div className="p-3 bg-black/40 border border-primary/10 rounded-md">
                                   <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-1">CSV Header Requirement:</p>
                                   <code className="text-[9px] text-muted-foreground break-all">
-                                    House Name, Total Money Spent, Money Left, Budget Status, Total No. of Points, Players List (Format: Name1:Price1;Name2:Price2)
+                                    House Name, Total Money Spent, Money Left, Budget Status, Total No. of Points, Players List (Format: Name:Price;...)
                                   </code>
                                 </div>
                             </CardContent>
@@ -340,3 +348,4 @@ export default function SquadsPage() {
         </motion.div>
     );
 }
+
