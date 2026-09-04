@@ -40,7 +40,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(true);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const router = useRouter();
   
   const [currentBid, setCurrentBid] = useState<number>(0);
@@ -240,7 +240,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         </button>
       </div>
 
-      {/* Collapsible Left History Panel */}
+      {/* Collapsible History Panel */}
       <AnimatePresence>
         {isHistoryOpen && (
           <motion.aside
@@ -288,7 +288,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         )}
       </AnimatePresence>
 
-      {/* Main Container - Dynamic padding based on left history state */}
+      {/* Main Container */}
       <main className={cn(
         "flex-1 w-full flex flex-col items-center justify-center p-4 transition-all duration-500",
         isHistoryOpen ? "pl-72" : ""
@@ -300,7 +300,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
               initial={{ opacity: 0, scale: 0.95 }} 
               animate={{ opacity: 1, scale: 1 }} 
               exit={{ opacity: 0, scale: 1.05 }}
-              className="relative w-full max-w-[960px] max-h-[68vh] aspect-[16/9] ornate-border bg-[#1a0202]/95 backdrop-blur-xl shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden flex"
+              className="relative w-full max-w-[960px] max-h-[65vh] aspect-[16/9] ornate-border bg-[#1a0202]/95 backdrop-blur-xl shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden flex"
             >
               <div className="absolute inset-1 pointer-events-none border border-primary/20 z-10" />
 
@@ -347,20 +347,20 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                   </div>
                 </div>
 
-                <h1 className="text-5xl font-serif font-black text-white uppercase italic tracking-tighter mb-8 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+                <h1 className="text-4xl font-serif font-black text-white uppercase italic tracking-tighter mb-6 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
                   {currentPlayer.playerName}
                 </h1>
 
-                <div className="grid grid-cols-2 gap-x-12 gap-y-4 mb-8">
+                <div className="grid grid-cols-2 gap-x-8 gap-y-3 mb-6">
                     {[
                       { label: 'Origin', value: currentPlayer.country },
                       { label: 'Specialism', value: currentPlayer.specialism },
                       { label: 'Category', value: currentPlayer.cua },
                       { label: 'Points', value: currentPlayer.points },
                     ].map((stat, i) => (
-                      <div key={i} className="flex flex-col border-b border-primary/10 pb-2">
-                        <span className="text-[9px] text-primary/40 font-black tracking-[0.2em] uppercase mb-1">{stat.label}</span>
-                        <span className="font-serif text-base text-white font-bold tracking-wider">{stat.value || 'N/A'}</span>
+                      <div key={i} className="flex flex-col border-b border-primary/10 pb-1">
+                        <span className="text-[9px] text-primary/40 font-black tracking-[0.2em] uppercase mb-0.5">{stat.label}</span>
+                        <span className="font-serif text-sm text-white font-bold tracking-wider">{stat.value || 'N/A'}</span>
                       </div>
                     ))}
                 </div>
@@ -398,11 +398,11 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                             key={currentBid}
                             initial={{ scale: 0.8, opacity: 0 }} 
                             animate={{ scale: 1, opacity: 1 }}
-                            className="text-7xl font-mono font-black text-white leading-none tracking-tighter"
+                            className="text-6xl font-mono font-black text-white leading-none tracking-tighter"
                         >
                             {currentBid}
                         </motion.span>
-                        <span className="text-3xl font-serif text-primary italic font-black uppercase tracking-widest">Lakh</span>
+                        <span className="text-2xl font-serif text-primary italic font-black uppercase tracking-widest">Lakh</span>
                     </div>
 
                     <div className="flex items-center justify-between border-t border-primary/20 pt-3">
@@ -414,22 +414,25 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         </div>
                     </div>
                     
-                    {/* ENLARGED Hammer Text Overlay */}
+                    {/* Hammer Overlay - Fixed positioning relative to the frame */}
                     <AnimatePresence>
                         {finalCallStatus !== 'none' && (
                             <motion.div 
-                                initial={{ opacity: 0, scale: 1.2, y: 10 }} 
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                className="absolute left-1/2 -translate-x-1/2 -top-20 bg-primary px-16 py-4 text-4xl font-serif font-black text-primary-foreground uppercase italic tracking-[0.3em] shadow-[0_0_50px_gold] z-50 whitespace-nowrap"
+                                initial={{ opacity: 0, y: 20 }} 
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 z-50 flex items-center justify-center bg-primary/90 text-primary-foreground"
                             >
-                                {finalCallStatus === 'once' ? 'GOING ONCE' : finalCallStatus === 'twice' ? 'GOING TWICE' : 'FINAL CALL'}
+                                <span className="text-4xl font-serif font-black uppercase italic tracking-[0.2em]">
+                                    {finalCallStatus === 'once' ? 'GOING ONCE' : finalCallStatus === 'twice' ? 'GOING TWICE' : 'FINAL CALL'}
+                                </span>
                             </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
               </div>
 
-              {/* ENLARGED Sold/Unsold Global Overlay */}
+              {/* Full-Frame Ceremony Overlay */}
               <AnimatePresence>
                 {(isSold || isUnsold) && (
                     <motion.div 
@@ -438,35 +441,35 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         className="absolute inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-xl"
                     >
                         <motion.div 
-                          initial={{ scale: 0.6, opacity: 0, rotate: -5 }} 
-                          animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                          initial={{ scale: 0.8, opacity: 0 }} 
+                          animate={{ scale: 1, opacity: 1 }}
                           className={cn(
-                            "p-20 border-[8px] bg-[#1a0202] shadow-[0_0_120px_rgba(0,0,0,1)] flex flex-col items-center ornate-border relative",
+                            "w-[90%] h-[90%] border-[6px] bg-[#1a0202] shadow-[0_0_60px_rgba(0,0,0,1)] flex flex-col items-center justify-center ornate-border relative",
                             isSold ? "border-primary" : "border-destructive"
                         )}>
-                            <div className="absolute -top-12 bg-background px-10 py-3 border-2 border-primary/30">
-                                <Trophy className={cn("w-16 h-16", isSold ? "text-primary" : "text-destructive")} />
+                            <div className="absolute top-6">
+                                <Trophy className={cn("w-12 h-12", isSold ? "text-primary" : "text-destructive")} />
                             </div>
                             
                             <h2 className={cn(
-                                "text-[12rem] font-black uppercase italic mb-2 tracking-tighter drop-shadow-[0_15px_40px_rgba(0,0,0,0.9)] leading-none",
+                                "text-[10rem] font-black uppercase italic mb-2 tracking-tighter leading-none",
                                 isSold ? "text-primary" : "text-destructive"
                             )}>
                                 {isSold ? 'SOLD' : 'UNSOLD'}
                             </h2>
                             
-                            <h3 className="text-4xl font-serif text-white uppercase tracking-[0.5em] mb-12 border-y border-primary/20 py-4 w-full text-center">
+                            <h3 className="text-3xl font-serif text-white uppercase tracking-[0.4em] mb-8 border-y border-primary/20 py-3 w-full text-center">
                               {currentPlayer.playerName}
                             </h3>
 
                             {isSold && (
-                                <div className="flex items-baseline gap-6 mb-16 bg-primary/10 px-16 py-6 border-2 border-primary/40">
-                                    <span className="text-[10rem] font-mono font-black text-white leading-none">{currentBid}</span>
-                                    <span className="text-5xl font-serif text-primary italic font-black uppercase">Lakh</span>
+                                <div className="flex items-baseline gap-4 mb-10 bg-primary/10 px-12 py-4 border-2 border-primary/40">
+                                    <span className="text-8xl font-mono font-black text-white">{currentBid}</span>
+                                    <span className="text-3xl font-serif text-primary italic font-black uppercase">Lakh</span>
                                 </div>
                             )}
 
-                            <Button onClick={handleDrawPlayer} className="h-20 px-24 bg-primary text-primary-foreground font-black uppercase tracking-[0.5em] hover:scale-110 transition-transform rounded-none shadow-[0_0_60px_gold] text-2xl">
+                            <Button onClick={handleDrawPlayer} className="h-16 px-16 bg-primary text-primary-foreground font-black uppercase tracking-[0.3em] hover:scale-105 transition-transform rounded-none shadow-[0_0_40px_gold] text-xl">
                                 Next Lot
                             </Button>
                         </motion.div>
@@ -485,10 +488,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
               className={cn("flex flex-col items-center gap-10 text-center transition-all", isHistoryOpen ? "pl-72" : "")}
             >
               <div className="space-y-3">
-                <h1 className="text-8xl font-serif font-black text-primary tracking-[0.3em] uppercase italic drop-shadow-[0_0_20px_rgba(255,215,0,0.4)]">Saavan '26</h1>
-                <p className="text-white/40 text-[12px] tracking-[1.5em] font-black uppercase ml-[1.5em]">Official Auction Terminal</p>
+                <h1 className="text-7xl font-serif font-black text-primary tracking-[0.3em] uppercase italic drop-shadow-[0_0_20px_rgba(255,215,0,0.4)]">Saavan '26</h1>
+                <p className="text-white/40 text-[10px] tracking-[1.2em] font-black uppercase ml-[1.2em]">Official Auction Terminal</p>
               </div>
-              <Button onClick={handleDrawPlayer} className="h-16 px-24 text-xl font-black font-serif bg-primary text-primary-foreground tracking-[0.5em] uppercase hover:scale-105 transition-transform shadow-[0_0_20px_gold] rounded-none">
+              <Button onClick={handleDrawPlayer} className="h-16 px-20 text-lg font-black font-serif bg-primary text-primary-foreground tracking-[0.4em] uppercase hover:scale-105 transition-transform shadow-[0_0_20px_gold] rounded-none">
                 Open Floor
               </Button>
             </motion.div>
@@ -498,7 +501,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
       {/* Moderator Deck */}
       <footer className={cn(
-        "w-full flex flex-col items-center gap-4 pb-8 px-8 z-50 transition-all duration-500",
+        "w-full flex flex-col items-center gap-3 pb-6 px-8 z-50 transition-all duration-500",
         isHistoryOpen ? "pl-72" : ""
       )}>
         <div className="flex items-center gap-4 w-full max-w-[960px]">
@@ -506,7 +509,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
             <>
               <Button 
                 onClick={handleIncreaseBid} 
-                className="h-14 flex-1 bg-primary text-primary-foreground font-serif font-black text-lg tracking-[0.2em] uppercase rounded-none shadow-[0_5px_20px_rgba(255,215,0,0.2)]"
+                className="h-12 flex-1 bg-primary text-primary-foreground font-serif font-black text-base tracking-[0.1em] uppercase rounded-none"
               >
                 + Raise Bid ({getIncrement(currentBid)}L)
               </Button>
@@ -514,35 +517,35 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
               <Button 
                 onClick={() => { setTimer(DEFAULT_TIMER); setIsTimerActive(true); setFinalCallStatus('none'); }} 
                 variant="outline" 
-                className="h-14 px-8 border-white/20 bg-black/40 text-white font-serif font-black text-[10px] tracking-[0.2em] uppercase rounded-none hover:bg-white/10"
+                className="h-12 px-6 border-white/20 bg-black/40 text-white font-serif font-black text-[10px] tracking-[0.1em] uppercase rounded-none hover:bg-white/10"
               >
-                <Clock3 className="mr-3 h-4 w-4"/> Reset Timer
+                <Clock3 className="mr-2 h-4 w-4"/> Reset Timer
               </Button>
 
               <Button 
                 onClick={startHammerSequence} 
                 disabled={finalCallStatus !== 'none'} 
-                className="h-14 px-10 bg-[#e65100] hover:bg-[#ef6c00] text-white font-serif font-black text-[11px] tracking-[0.2em] uppercase rounded-none shadow-lg"
+                className="h-12 px-8 bg-[#e65100] hover:bg-[#ef6c00] text-white font-serif font-black text-[10px] tracking-[0.1em] uppercase rounded-none shadow-lg"
               >
                 Start Hammer
               </Button>
 
               <Button 
                 onClick={handleUnsold} 
-                className="h-14 px-8 bg-[#1a0202] border border-red-900/40 text-red-500 font-serif font-black text-[10px] tracking-[0.2em] uppercase rounded-none hover:bg-red-600 hover:text-white"
+                className="h-12 px-6 bg-[#1a0202] border border-red-900/40 text-red-500 font-serif font-black text-[10px] tracking-[0.1em] uppercase rounded-none hover:bg-red-600 hover:text-white"
               >
                 Unsold
               </Button>
             </>
           ) : (undrawnPlayers.length > 0 && !isDrawing) || (isSold || isUnsold) ? (
-            <Button onClick={handleDrawPlayer} className="h-14 w-full font-black font-serif text-base bg-primary text-primary-foreground tracking-[0.5em] uppercase rounded-none">
+            <Button onClick={handleDrawPlayer} className="h-12 w-full font-black font-serif text-sm bg-primary text-primary-foreground tracking-[0.3em] uppercase rounded-none">
               {undrawnPlayers.length > 0 ? 'Reveal Next Lot' : 'Session Concluded'}
             </Button>
           ) : null}
         </div>
 
-        <div className="bg-primary/5 border border-primary/20 px-8 py-1.5">
-            <span className="text-[10px] font-mono font-black text-primary tracking-[0.4em] uppercase">
+        <div className="bg-primary/5 border border-primary/20 px-6 py-1">
+            <span className="text-[9px] font-mono font-black text-primary tracking-[0.3em] uppercase">
                 {undrawnPlayers.length} Lots Remaining • {set.name}
             </span>
         </div>
