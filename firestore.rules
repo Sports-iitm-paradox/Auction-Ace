@@ -9,10 +9,11 @@ service cloud.firestore {
       allow read, write: if request.auth.uid == userId;
     }
 
-    // A user can create players linked to their UID
+    // Players are publicly readable for the auction, but only owners can manage them
     match /players/{playerId} {
+      allow read: if true;
       allow create: if request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth.uid == resource.data.userId;
+      allow update, delete: if request.auth.uid == resource.data.userId;
     }
     
     // Anyone can view the sets.
@@ -22,13 +23,13 @@ service cloud.firestore {
       allow update, delete: if request.auth.uid == resource.data.userId;
     }
 
-    // Active auction state
+    // Active auction state is publicly viewable; only the owner can modify
     match /activeAuctions/{auctionId} {
       allow read: if true;
       allow create, update, delete: if request.auth.uid == request.resource.data.userId || (resource != null && request.auth.uid == resource.data.userId);
     }
 
-    // Squad standings
+    // Squad standings are publicly viewable
     match /squads/{houseId} {
       allow read: if true;
       allow write: if request.auth.uid != null;

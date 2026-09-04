@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import Papa from 'papaparse';
 import { Squad, Player } from '@/lib/player-data';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, writeBatch, doc, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, writeBatch, doc, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { toPng } from 'html-to-image';
@@ -34,10 +34,11 @@ export default function SquadsPage() {
 
     const { data: squadData, isLoading: isLoadingSquads } = useCollection<Squad>(squadsQuery);
 
+    // Only fetch all players if the user is an admin (logged in), needed for posters
     const playersQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
-        return collection(firestore, 'players');
-    }, [firestore]);
+        if (!firestore || !user) return null;
+        return query(collection(firestore, 'players'), where('userId', '==', user.uid));
+    }, [firestore, user]);
 
     const { data: allPlayers } = useCollection<Player>(playersQuery);
 
@@ -194,12 +195,14 @@ export default function SquadsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
         >
-            {/* Hidden Poster Container for Image Generation */}
-            <div className="fixed -left-[2000px] top-0 pointer-events-none" ref={posterContainerRef}>
-              {squadData && allPlayers && squadData.map(squad => (
-                <SquadPoster key={squad.id} squad={squad} allPlayers={allPlayers} />
-              ))}
-            </div>
+            {/* Hidden Poster Container for Image Generation - Only for Admin */}
+            {user && squadData && allPlayers && (
+                <div className="fixed -left-[2000px] top-0 pointer-events-none" ref={posterContainerRef}>
+                    {squadData.map(squad => (
+                        <SquadPoster key={squad.id} squad={squad} allPlayers={allPlayers} />
+                    ))}
+                </div>
+            )}
 
             <Card className="bg-card/90 backdrop-blur-sm ornate-border">
                 <CardHeader className="text-center sm:text-left border-b border-primary/20 pb-8">
@@ -258,7 +261,7 @@ export default function SquadsPage() {
                                 <Button 
                                   variant="default" 
                                   onClick={generatePosters} 
-                                  disabled={!squadData || squadData.length === 0 || isGenerating}
+                                  disabled={!squadData || squadData.length === 0 || !allPlayers || isGenerating}
                                   className="h-12 font-bold"
                                 >
                                   {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageIcon className="mr-2 h-4 w-4" />}
