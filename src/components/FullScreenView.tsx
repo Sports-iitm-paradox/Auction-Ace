@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { X, RefreshCw, Keyboard, Clock3, Shield, History, Trophy, Gavel } from 'lucide-react';
+import { X, RefreshCw, Keyboard, Clock3, Shield, History, Trophy, Gavel, Sparkles } from 'lucide-react';
 import { Player, PlayerSet } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -219,370 +219,430 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   }, [handleKeyDown]);
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#2b0303] sunburst-bg select-none overflow-hidden h-screen text-foreground">
+    <div className="fixed inset-0 flex flex-col items-center bg-background sunburst-bg select-none overflow-hidden h-screen text-foreground">
       
-      {/* Top Header Controls */}
-      <div className="absolute top-6 right-6 z-40 flex gap-3">
-        <button onClick={() => setIsHistoryOpen(!isHistoryOpen)} className={cn(
-          "h-10 w-10 flex items-center justify-center rounded-lg backdrop-blur-md transition-all border",
-          isHistoryOpen ? "bg-primary text-primary-foreground border-primary" : "bg-black/40 border-primary/20 text-primary hover:bg-primary/20"
-        )}>
-          <History size={20} />
-        </button>
-        <button onClick={() => setIsHelpOpen(true)} className="h-10 w-10 flex items-center justify-center bg-black/40 border border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground rounded-lg backdrop-blur-md transition-all">
-          <Keyboard size={20} />
-        </button>
-        <button onClick={resetAuction} className="h-10 w-10 flex items-center justify-center bg-black/40 border border-red-900/40 text-red-500 hover:bg-red-600 hover:text-white rounded-lg backdrop-blur-md transition-all">
-          <RefreshCw size={18} />
-        </button>
-        <button onClick={() => router.push('/')} className="h-10 w-10 flex items-center justify-center bg-black/40 border border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground rounded-lg backdrop-blur-md transition-all">
-          <X size={22} />
-        </button>
+      {/* Top Controls Bar */}
+      <div className="w-full flex items-center justify-between px-6 py-4 z-40 bg-black/20 backdrop-blur-sm border-b border-primary/20">
+        <div className="flex items-center gap-4">
+            <Trophy className="h-6 w-6 text-primary" />
+            <h2 className="font-serif text-lg text-primary tracking-[0.2em] uppercase font-bold">SAAVAN '26</h2>
+        </div>
+        <div className="flex gap-2">
+            <button 
+                onClick={() => setIsHistoryOpen(!isHistoryOpen)} 
+                className={cn(
+                    "h-9 px-4 flex items-center gap-2 rounded border transition-all text-xs font-bold uppercase tracking-widest",
+                    isHistoryOpen ? "bg-primary text-primary-foreground border-primary" : "bg-black/40 border-primary/20 text-primary hover:bg-primary/20"
+                )}
+            >
+                <History size={16} /> History
+            </button>
+            <button onClick={() => setIsHelpOpen(true)} className="h-9 px-4 flex items-center gap-2 bg-black/40 border border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground rounded transition-all text-xs font-bold uppercase tracking-widest">
+                <Keyboard size={16} /> Help
+            </button>
+            <button onClick={resetAuction} className="h-9 w-9 flex items-center justify-center bg-black/40 border border-red-900/40 text-red-500 hover:bg-red-600 hover:text-white rounded transition-all">
+                <RefreshCw size={16} />
+            </button>
+            <button onClick={() => router.push('/')} className="h-9 w-9 flex items-center justify-center bg-black/40 border border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground rounded transition-all">
+                <X size={20} />
+            </button>
+        </div>
       </div>
 
-      {/* Collapsible History Panel */}
-      <AnimatePresence>
-        {isHistoryOpen && (
-          <motion.aside
-            initial={{ x: -300, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -300, opacity: 0 }}
-            className="fixed left-0 top-0 bottom-0 w-72 bg-black/60 backdrop-blur-xl border-r border-primary/20 z-30 pt-20 px-4 flex flex-col"
-          >
-            <div className="flex items-center gap-2 mb-6 border-b border-primary/20 pb-4">
-              <History className="text-primary h-5 w-5" />
-              <h2 className="font-serif text-lg text-primary uppercase tracking-widest">History</h2>
-            </div>
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pb-24">
-              {drawnPlayers.length > 0 ? (
-                drawnPlayers.map((p, i) => (
-                  <div key={i} className="bg-black/40 border border-primary/10 p-3 rounded flex items-center gap-3">
-                    <div className={cn(
-                      "w-2 h-10 shrink-0",
-                      p.status === 'sold' ? "bg-primary" : "bg-destructive"
-                    )} />
-                    <div className="flex-1">
-                      <p className="font-serif text-xs text-white uppercase tracking-wider truncate">{p.playerName}</p>
-                      <div className="flex items-baseline justify-between mt-1">
-                        <span className={cn(
-                          "text-[9px] font-black uppercase tracking-widest",
-                          p.status === 'sold' ? "text-primary/60" : "text-destructive/60"
-                        )}>
-                          {p.status}
-                        </span>
-                        {p.status === 'sold' && (
-                          <span className="text-xs font-mono font-bold text-white">{p.finalPrice}L</span>
-                        )}
-                      </div>
+      <div className="flex flex-1 w-full relative overflow-hidden">
+        
+        {/* Collapsible Left History Panel */}
+        <AnimatePresence>
+            {isHistoryOpen && (
+                <motion.aside
+                    initial={{ x: -300, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: -300, opacity: 0 }}
+                    className="w-80 bg-black/40 backdrop-blur-xl border-r border-primary/20 h-full flex flex-col shadow-2xl z-30"
+                >
+                    <div className="p-6 border-b border-primary/20 flex items-center justify-between">
+                        <span className="font-serif text-sm text-primary uppercase tracking-[0.3em] font-black">Auction Log</span>
+                        <History size={16} className="text-primary/40" />
                     </div>
-                  </div>
-                ))
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center opacity-20 text-center px-4">
-                  <Gavel size={48} className="text-primary mb-4" />
-                  <p className="text-xs uppercase tracking-[0.2em] font-bold">No Records Yet</p>
-                </div>
-              )}
-            </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
-
-      {/* Main Container */}
-      <main className={cn(
-        "flex-1 w-full flex flex-col items-center justify-center p-4 transition-all duration-500",
-        isHistoryOpen ? "pl-72" : ""
-      )}>
-        <AnimatePresence mode="wait">
-          {!isDrawing && currentPlayer ? (
-            <motion.div 
-              key={currentPlayer.id} 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              exit={{ opacity: 0, scale: 1.05 }}
-              className="relative w-full max-w-[960px] max-h-[65vh] aspect-[16/9] ornate-border bg-[#1a0202]/95 backdrop-blur-xl shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden flex"
-            >
-              <div className="absolute inset-1 pointer-events-none border border-primary/20 z-10" />
-
-              {/* Left Column: Image & Insight */}
-              <div className="w-[300px] h-full flex flex-col p-6 bg-black/20 border-r border-primary/20">
-                <div className="w-full aspect-[3/4] relative border border-primary/30 p-1 bg-black/40 overflow-hidden">
-                    <div className="absolute inset-0 border border-primary/10 z-10" />
-                    <div className="bg-background w-full h-full flex items-center justify-center relative">
-                        {currentPlayer.imageUrl ? (
-                            <Image 
-                                src={currentPlayer.imageUrl} 
-                                alt={currentPlayer.playerName} 
-                                fill 
-                                className="object-cover"
-                                sizes="300px"
-                                priority
-                            />
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+                        {drawnPlayers.length > 0 ? (
+                            drawnPlayers.map((p, i) => (
+                                <motion.div 
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    key={i} 
+                                    className="bg-black/60 border border-primary/10 p-3 rounded relative overflow-hidden group"
+                                >
+                                    <div className={cn(
+                                        "absolute left-0 top-0 bottom-0 w-1",
+                                        p.status === 'sold' ? "bg-primary shadow-[0_0_10px_gold]" : "bg-destructive shadow-[0_0_10px_red]"
+                                    )} />
+                                    <p className="font-serif text-[11px] text-white uppercase tracking-wider truncate mb-1">{p.playerName}</p>
+                                    <div className="flex items-center justify-between">
+                                        <span className={cn(
+                                            "text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded",
+                                            p.status === 'sold' ? "bg-primary/20 text-primary" : "bg-destructive/20 text-destructive"
+                                        )}>
+                                            {p.status}
+                                        </span>
+                                        {p.status === 'sold' && (
+                                            <span className="text-xs font-mono font-black text-primary">{p.finalPrice}L</span>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            ))
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center opacity-10">
-                                <Shield size={80} className="text-primary" />
+                            <div className="h-full flex flex-col items-center justify-center opacity-20 text-center px-4">
+                                <Gavel size={40} className="text-primary mb-4" />
+                                <p className="text-[10px] uppercase tracking-[0.3em] font-black">Floor Empty</p>
                             </div>
                         )}
                     </div>
-                </div>
+                </motion.aside>
+            )}
+        </AnimatePresence>
 
-                {/* Insight Box */}
-                <div className="mt-4 flex-1 border border-primary/20 bg-black/40 p-4 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-8 h-8 border-t border-l border-primary/40" />
-                    <span className="text-[9px] text-primary/60 font-black tracking-[0.2em] uppercase block mb-2">Scout Analysis</span>
-                    <div className="h-[calc(100%-25px)] overflow-y-auto custom-scrollbar">
-                        <p className="text-[11px] font-sans italic text-foreground/80 leading-relaxed pr-2">
-                            {currentPlayer.auctionInsight || 'Strategic asset identified. High performance potential in the upcoming season.'}
-                        </p>
-                    </div>
-                </div>
-              </div>
-
-              {/* Right Column: Profile & Bidding */}
-              <div className="flex-1 flex flex-col p-8 relative">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[10px] text-primary font-black tracking-[0.4em] uppercase border-l-2 border-primary pl-3">Official Lot</span>
-                  <div className="bg-primary/10 border border-primary/30 px-3 py-1">
-                    <span className="text-[9px] text-primary font-black tracking-widest uppercase italic">NO. {currentPlayer.playerNumber}</span>
-                  </div>
-                </div>
-
-                <h1 className="text-4xl font-serif font-black text-white uppercase italic tracking-tighter mb-6 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
-                  {currentPlayer.playerName}
-                </h1>
-
-                <div className="grid grid-cols-2 gap-x-8 gap-y-3 mb-6">
-                    {[
-                      { label: 'Origin', value: currentPlayer.country },
-                      { label: 'Specialism', value: currentPlayer.specialism },
-                      { label: 'Category', value: currentPlayer.cua },
-                      { label: 'Points', value: currentPlayer.points },
-                    ].map((stat, i) => (
-                      <div key={i} className="flex flex-col border-b border-primary/10 pb-1">
-                        <span className="text-[9px] text-primary/40 font-black tracking-[0.2em] uppercase mb-0.5">{stat.label}</span>
-                        <span className="font-serif text-sm text-white font-bold tracking-wider">{stat.value || 'N/A'}</span>
-                      </div>
-                    ))}
-                </div>
-
-                <div className="mt-auto border-2 border-primary/30 bg-black/60 p-6 relative">
-                    {isTimerActive && (
-                        <div className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-[#1a0202] border-2 border-primary flex items-center justify-center z-20 shadow-[0_0_20px_gold]">
-                            <span className={cn(
-                                "text-lg font-mono font-black",
-                                timer <= 5 ? "text-destructive animate-pulse" : "text-primary"
-                            )}>
-                                {timer}
-                            </span>
-                        </div>
-                    )}
-
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse shadow-[0_0_8px_red]" />
-                        <span className="text-[10px] text-primary font-black tracking-[0.2em] uppercase">Live Floor</span>
-                        
-                        <div className="ml-auto flex gap-2">
-                             {[1, 2, 3].map((idx) => (
-                                <div key={idx} className={cn(
-                                    "w-12 h-2 rounded-sm transition-all duration-500", 
-                                    ((idx === 1 && finalCallStatus !== 'none') || (idx === 2 && (finalCallStatus === 'twice' || finalCallStatus === 'final')) || (idx === 3 && finalCallStatus === 'final')) 
-                                    ? "bg-primary shadow-[0_0_15px_gold]" 
-                                    : "bg-white/5"
-                                )} />
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="flex items-baseline gap-4 mb-3">
-                        <motion.span 
-                            key={currentBid}
-                            initial={{ scale: 0.8, opacity: 0 }} 
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="text-6xl font-mono font-black text-white leading-none tracking-tighter"
-                        >
-                            {currentBid}
-                        </motion.span>
-                        <span className="text-2xl font-serif text-primary italic font-black uppercase tracking-widest">Lakh</span>
-                    </div>
-
-                    <div className="flex items-center justify-between border-t border-primary/20 pt-3">
-                        <div className="text-[10px] text-primary/60 font-bold uppercase tracking-[0.2em]">
-                            Base: <span className="text-white ml-1">{currentPlayer.reservePrice}L</span>
-                        </div>
-                        <div className="text-[10px] text-primary font-black uppercase tracking-[0.2em] bg-primary/10 px-2 py-0.5">
-                            Next: <span className="text-white ml-2">{nextValidBid}L</span>
-                        </div>
-                    </div>
-                    
-                    {/* Hammer Overlay - Fixed positioning relative to the frame */}
-                    <AnimatePresence>
-                        {finalCallStatus !== 'none' && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: 20 }} 
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0 }}
-                                className="absolute inset-0 z-50 flex items-center justify-center bg-primary/90 text-primary-foreground"
-                            >
-                                <span className="text-4xl font-serif font-black uppercase italic tracking-[0.2em]">
-                                    {finalCallStatus === 'once' ? 'GOING ONCE' : finalCallStatus === 'twice' ? 'GOING TWICE' : 'FINAL CALL'}
-                                </span>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-              </div>
-
-              {/* Full-Frame Ceremony Overlay */}
-              <AnimatePresence>
-                {(isSold || isUnsold) && (
+        {/* Main Presentation Stage */}
+        <main className="flex-1 flex flex-col items-center justify-center p-6 relative">
+            <AnimatePresence mode="wait">
+                {!isDrawing && currentPlayer ? (
                     <motion.div 
-                        initial={{ opacity: 0 }} 
-                        animate={{ opacity: 1 }} 
-                        className="absolute inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-xl"
+                        key={currentPlayer.id}
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.02 }}
+                        className="w-full max-w-5xl aspect-[16/9] max-h-[68vh] ornate-border bg-[#1a0202]/95 backdrop-blur-xl shadow-[0_0_100px_rgba(0,0,0,0.8)] flex overflow-hidden relative"
                     >
-                        <motion.div 
-                          initial={{ scale: 0.8, opacity: 0 }} 
-                          animate={{ scale: 1, opacity: 1 }}
-                          className={cn(
-                            "w-[90%] h-[90%] border-[6px] bg-[#1a0202] shadow-[0_0_60px_rgba(0,0,0,1)] flex flex-col items-center justify-center ornate-border relative",
-                            isSold ? "border-primary" : "border-destructive"
-                        )}>
-                            <div className="absolute top-6">
-                                <Trophy className={cn("w-12 h-12", isSold ? "text-primary" : "text-destructive")} />
-                            </div>
-                            
-                            <h2 className={cn(
-                                "text-[10rem] font-black uppercase italic mb-2 tracking-tighter leading-none",
-                                isSold ? "text-primary" : "text-destructive"
-                            )}>
-                                {isSold ? 'SOLD' : 'UNSOLD'}
-                            </h2>
-                            
-                            <h3 className="text-3xl font-serif text-white uppercase tracking-[0.4em] mb-8 border-y border-primary/20 py-3 w-full text-center">
-                              {currentPlayer.playerName}
-                            </h3>
+                        {/* Sold / Unsold Ceremony Overlay */}
+                        <AnimatePresence>
+                            {(isSold || isUnsold) && (
+                                <motion.div 
+                                    initial={{ opacity: 0 }} 
+                                    animate={{ opacity: 1 }} 
+                                    className="absolute inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl p-8"
+                                >
+                                    <motion.div 
+                                        initial={{ scale: 0.9, opacity: 0 }} 
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        className={cn(
+                                            "w-full h-full border-[8px] flex flex-col items-center justify-center relative overflow-hidden ornate-border",
+                                            isSold ? "border-primary shadow-[inset_0_0_60px_rgba(255,215,0,0.2)]" : "border-destructive shadow-[inset_0_0_60px_rgba(255,0,0,0.2)]"
+                                        )}
+                                    >
+                                        <div className="absolute top-10 flex flex-col items-center">
+                                            <Trophy className={cn("w-16 h-16 mb-2", isSold ? "text-primary animate-bounce" : "text-destructive")} />
+                                            <div className="h-px w-48 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                                        </div>
+                                        
+                                        <h2 className={cn(
+                                            "text-[12rem] font-serif font-black uppercase italic tracking-tighter leading-none drop-shadow-[0_0_30px_black]",
+                                            isSold ? "text-primary text-glow-gold" : "text-destructive text-glow-red"
+                                        )}>
+                                            {isSold ? 'SOLD' : 'UNSOLD'}
+                                        </h2>
+                                        
+                                        <div className="text-center mt-2 mb-12">
+                                            <h3 className="text-4xl font-serif text-white uppercase tracking-[0.4em] mb-4">
+                                                {currentPlayer.playerName}
+                                            </h3>
+                                            {isSold && (
+                                                <div className="flex items-baseline justify-center gap-4 bg-primary/10 px-16 py-6 border-2 border-primary/40 backdrop-blur-md">
+                                                    <span className="text-9xl font-mono font-black text-white">{currentBid}</span>
+                                                    <span className="text-4xl font-serif text-primary italic font-black uppercase tracking-widest">Lakh</span>
+                                                </div>
+                                            )}
+                                        </div>
 
-                            {isSold && (
-                                <div className="flex items-baseline gap-4 mb-10 bg-primary/10 px-12 py-4 border-2 border-primary/40">
-                                    <span className="text-8xl font-mono font-black text-white">{currentBid}</span>
-                                    <span className="text-3xl font-serif text-primary italic font-black uppercase">Lakh</span>
-                                </div>
+                                        <Button 
+                                            onClick={handleDrawPlayer} 
+                                            className="h-14 px-20 bg-primary text-primary-foreground font-black uppercase tracking-[0.4em] hover:scale-105 transition-all shadow-[0_0_50px_gold] text-xl rounded-none"
+                                        >
+                                            Next Entry
+                                        </Button>
+                                    </motion.div>
+                                </motion.div>
                             )}
+                        </AnimatePresence>
 
-                            <Button onClick={handleDrawPlayer} className="h-16 px-16 bg-primary text-primary-foreground font-black uppercase tracking-[0.3em] hover:scale-105 transition-transform rounded-none shadow-[0_0_40px_gold] text-xl">
-                                Next Lot
-                            </Button>
-                        </motion.div>
+                        {/* Left Column: Media & Scout Insight */}
+                        <div className="w-[320px] h-full flex flex-col bg-black/40 border-r border-primary/20 overflow-hidden">
+                            <div className="flex-1 p-6 flex flex-col gap-6">
+                                <div className="w-full aspect-[3/4] relative border-4 border-primary/40 bg-black/60 shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden">
+                                    <div className="absolute inset-0 z-10 pointer-events-none border border-primary/20" />
+                                    <div className="w-full h-full relative">
+                                        {currentPlayer.imageUrl ? (
+                                            <Image 
+                                                src={currentPlayer.imageUrl} 
+                                                alt={currentPlayer.playerName} 
+                                                fill 
+                                                className="object-cover"
+                                                sizes="320px"
+                                                priority
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center opacity-10">
+                                                <Shield size={100} className="text-primary" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 border border-primary/30 bg-secondary/5 p-5 relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/40" />
+                                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary/40" />
+                                    <span className="text-[9px] text-primary font-black tracking-[0.4em] uppercase block mb-3 border-b border-primary/20 pb-2">Scout Analysis</span>
+                                    <div className="h-[calc(100%-35px)] overflow-y-auto custom-scrollbar pr-2">
+                                        <p className="text-[12px] font-sans italic text-foreground/90 leading-relaxed">
+                                            {currentPlayer.auctionInsight || 'High-value strategic asset with exceptional performance metrics. Identified as a core rotation player for top-tier squads.'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Column: Profile & Valuation */}
+                        <div className="flex-1 flex flex-col p-8 relative bg-[radial-gradient(circle_at_top_right,rgba(255,215,0,0.05),transparent)]">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-3">
+                                    <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                                    <span className="text-[10px] text-primary font-black tracking-[0.5em] uppercase border-l-2 border-primary pl-3">Official Lot Entry</span>
+                                </div>
+                                <div className="bg-primary/10 border border-primary/40 px-4 py-1">
+                                    <span className="text-[10px] text-primary font-black tracking-widest uppercase italic">LOT NO. {currentPlayer.playerNumber}</span>
+                                </div>
+                            </div>
+
+                            <h1 className="text-5xl font-serif font-black text-white uppercase italic tracking-tighter mb-8 drop-shadow-[0_4px_15px_rgba(0,0,0,1)]">
+                                {currentPlayer.playerName}
+                            </h1>
+
+                            <div className="grid grid-cols-2 gap-x-12 gap-y-6 mb-8">
+                                {[
+                                    { label: 'Nationality', value: currentPlayer.country },
+                                    { label: 'Role', value: currentPlayer.specialism },
+                                    { label: 'Category', value: currentPlayer.cua },
+                                    { label: 'Rating', value: currentPlayer.points },
+                                ].map((stat, i) => (
+                                    <div key={i} className="flex flex-col border-b border-primary/20 pb-2 group">
+                                        <span className="text-[9px] text-primary/60 font-black tracking-[0.3em] uppercase mb-1 group-hover:text-primary transition-colors">{stat.label}</span>
+                                        <span className="font-serif text-lg text-white font-bold tracking-[0.1em]">{stat.value || 'N/A'}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Valuation HUD */}
+                            <div className="mt-auto border-4 border-primary/30 bg-black/80 p-8 relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+                                
+                                {/* Going Once/Twice Overlay Banner */}
+                                <AnimatePresence>
+                                    {finalCallStatus !== 'none' && !isSold && !isUnsold && (
+                                        <motion.div 
+                                            initial={{ x: '100%' }} 
+                                            animate={{ x: 0 }} 
+                                            exit={{ x: '-100%' }}
+                                            className="absolute inset-0 z-30 flex items-center justify-center bg-gradient-to-r from-red-900/90 via-primary to-red-900/90"
+                                        >
+                                            <span className="text-5xl font-serif font-black uppercase italic tracking-[0.3em] text-primary-foreground drop-shadow-2xl">
+                                                {finalCallStatus === 'once' ? 'GOING ONCE' : finalCallStatus === 'twice' ? 'GOING TWICE' : 'FINAL CALL'}
+                                            </span>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {isTimerActive && (
+                                    <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full bg-[#1a0202] border-4 border-primary flex items-center justify-center z-20 shadow-[0_0_30px_gold]">
+                                        <span className={cn(
+                                            "text-2xl font-mono font-black",
+                                            timer <= 5 ? "text-destructive animate-pulse" : "text-primary"
+                                        )}>
+                                            {timer}
+                                        </span>
+                                    </div>
+                                )}
+
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-3 h-3 rounded-full bg-red-600 animate-pulse shadow-[0_0_15px_red]" />
+                                    <span className="text-[11px] text-primary font-black tracking-[0.3em] uppercase">Live Floor Valuation</span>
+                                    
+                                    <div className="ml-auto flex gap-2">
+                                        {[1, 2, 3].map((idx) => (
+                                            <div key={idx} className={cn(
+                                                "w-12 h-2 transition-all duration-500 rounded-sm", 
+                                                ((idx === 1 && finalCallStatus !== 'none') || (idx === 2 && (finalCallStatus === 'twice' || finalCallStatus === 'final')) || (idx === 3 && finalCallStatus === 'final')) 
+                                                ? "bg-primary shadow-[0_0_20px_gold]" 
+                                                : "bg-white/5"
+                                            )} />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-baseline gap-6 mb-4">
+                                    <motion.span 
+                                        key={currentBid}
+                                        initial={{ scale: 0.8, opacity: 0 }} 
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        className="text-8xl font-mono font-black text-white leading-none tracking-tighter text-shadow-lg"
+                                    >
+                                        {currentBid}
+                                    </motion.span>
+                                    <span className="text-4xl font-serif text-primary italic font-black uppercase tracking-[0.2em]">Lakh</span>
+                                </div>
+
+                                <div className="flex items-center justify-between border-t border-primary/30 pt-4">
+                                    <div className="text-[11px] text-primary/60 font-bold uppercase tracking-[0.3em]">
+                                        Base Entry: <span className="text-white ml-2">{currentPlayer.reservePrice}L</span>
+                                    </div>
+                                    <div className="bg-primary/20 px-4 py-1 border border-primary/30">
+                                        <span className="text-[11px] text-primary font-black uppercase tracking-[0.3em]">
+                                            Next Slab: <span className="text-white ml-3">{nextValidBid}L</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                ) : isDrawing ? (
+                    <div className="flex flex-col items-center gap-8">
+                        <div className="w-20 h-20 border-8 border-primary border-t-transparent animate-spin rounded-full shadow-[0_0_40px_gold]" />
+                        <h1 className="text-3xl text-primary font-black font-serif tracking-[0.8em] animate-pulse uppercase">Lot Drawing...</h1>
+                    </div>
+                ) : (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+                        className="flex flex-col items-center gap-12 text-center"
+                    >
+                        <div className="space-y-4">
+                            <Trophy size={80} className="text-primary mx-auto animate-pulse mb-6" />
+                            <h1 className="text-8xl font-serif font-black text-primary tracking-[0.4em] uppercase italic drop-shadow-[0_0_30px_rgba(255,215,0,0.5)]">Saavan '26</h1>
+                            <p className="text-white/40 text-xs tracking-[1.5em] font-black uppercase ml-[1.5em]">Command Terminal V.2</p>
+                        </div>
+                        <Button 
+                            onClick={handleDrawPlayer} 
+                            className="h-20 px-24 text-2xl font-black font-serif bg-primary text-primary-foreground tracking-[0.5em] uppercase hover:scale-105 transition-all shadow-[0_0_40px_gold] rounded-none"
+                        >
+                            Open Floor
+                        </Button>
                     </motion.div>
                 )}
-              </AnimatePresence>
-            </motion.div>
-          ) : isDrawing ? (
-            <div className="flex flex-col items-center gap-6">
-              <div className="w-16 h-16 border-4 border-primary border-t-transparent animate-spin rounded-full shadow-[0_0_30px_gold]" />
-              <h1 className="text-2xl text-primary font-black font-serif tracking-[0.5em] animate-pulse uppercase">Lot Entry...</h1>
-            </div>
-          ) : (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              className={cn("flex flex-col items-center gap-10 text-center transition-all", isHistoryOpen ? "pl-72" : "")}
-            >
-              <div className="space-y-3">
-                <h1 className="text-7xl font-serif font-black text-primary tracking-[0.3em] uppercase italic drop-shadow-[0_0_20px_rgba(255,215,0,0.4)]">Saavan '26</h1>
-                <p className="text-white/40 text-[10px] tracking-[1.2em] font-black uppercase ml-[1.2em]">Official Auction Terminal</p>
-              </div>
-              <Button onClick={handleDrawPlayer} className="h-16 px-20 text-lg font-black font-serif bg-primary text-primary-foreground tracking-[0.4em] uppercase hover:scale-105 transition-transform shadow-[0_0_20px_gold] rounded-none">
-                Open Floor
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
+            </AnimatePresence>
+        </main>
+      </div>
 
-      {/* Moderator Deck */}
-      <footer className={cn(
-        "w-full flex flex-col items-center gap-3 pb-6 px-8 z-50 transition-all duration-500",
-        isHistoryOpen ? "pl-72" : ""
-      )}>
-        <div className="flex items-center gap-4 w-full max-w-[960px]">
-          {currentPlayer && !isSold && !isUnsold ? (
-            <>
-              <Button 
-                onClick={handleIncreaseBid} 
-                className="h-12 flex-1 bg-primary text-primary-foreground font-serif font-black text-base tracking-[0.1em] uppercase rounded-none"
-              >
-                + Raise Bid ({getIncrement(currentBid)}L)
-              </Button>
-              
-              <Button 
-                onClick={() => { setTimer(DEFAULT_TIMER); setIsTimerActive(true); setFinalCallStatus('none'); }} 
-                variant="outline" 
-                className="h-12 px-6 border-white/20 bg-black/40 text-white font-serif font-black text-[10px] tracking-[0.1em] uppercase rounded-none hover:bg-white/10"
-              >
-                <Clock3 className="mr-2 h-4 w-4"/> Reset Timer
-              </Button>
+      {/* Moderator Deck Footer */}
+      <footer className="w-full flex flex-col items-center gap-4 py-6 px-12 z-50 bg-black/40 backdrop-blur-md border-t border-primary/20">
+        <div className="flex items-center gap-6 w-full max-w-5xl">
+            {currentPlayer && !isSold && !isUnsold ? (
+                <>
+                    <Button 
+                        onClick={handleIncreaseBid} 
+                        className="h-14 flex-1 bg-primary text-primary-foreground font-serif font-black text-lg tracking-[0.2em] uppercase rounded-none hover:shadow-[0_0_20px_gold] transition-all"
+                    >
+                        + Raise Bid ({getIncrement(currentBid)}L)
+                    </Button>
+                    
+                    <Button 
+                        onClick={() => { setTimer(DEFAULT_TIMER); setIsTimerActive(true); setFinalCallStatus('none'); }} 
+                        variant="outline" 
+                        className="h-14 px-8 border-white/20 bg-black/40 text-white font-serif font-black text-xs tracking-[0.2em] uppercase rounded-none hover:bg-white/10"
+                    >
+                        <Clock3 className="mr-3 h-5 w-5"/> Reset Clock
+                    </Button>
 
-              <Button 
-                onClick={startHammerSequence} 
-                disabled={finalCallStatus !== 'none'} 
-                className="h-12 px-8 bg-[#e65100] hover:bg-[#ef6c00] text-white font-serif font-black text-[10px] tracking-[0.1em] uppercase rounded-none shadow-lg"
-              >
-                Start Hammer
-              </Button>
+                    <Button 
+                        onClick={startHammerSequence} 
+                        disabled={finalCallStatus !== 'none'} 
+                        className="h-14 px-10 bg-accent hover:bg-accent/90 text-white font-serif font-black text-xs tracking-[0.2em] uppercase rounded-none shadow-xl disabled:opacity-30"
+                    >
+                        Initiate Hammer
+                    </Button>
 
-              <Button 
-                onClick={handleUnsold} 
-                className="h-12 px-6 bg-[#1a0202] border border-red-900/40 text-red-500 font-serif font-black text-[10px] tracking-[0.1em] uppercase rounded-none hover:bg-red-600 hover:text-white"
-              >
-                Unsold
-              </Button>
-            </>
-          ) : (undrawnPlayers.length > 0 && !isDrawing) || (isSold || isUnsold) ? (
-            <Button onClick={handleDrawPlayer} className="h-12 w-full font-black font-serif text-sm bg-primary text-primary-foreground tracking-[0.3em] uppercase rounded-none">
-              {undrawnPlayers.length > 0 ? 'Reveal Next Lot' : 'Session Concluded'}
-            </Button>
-          ) : null}
+                    <Button 
+                        onClick={handleUnsold} 
+                        className="h-14 px-8 bg-red-950/80 border border-red-900/40 text-red-500 font-serif font-black text-xs tracking-[0.2em] uppercase rounded-none hover:bg-red-600 hover:text-white transition-all"
+                    >
+                        Unsold
+                    </Button>
+                </>
+            ) : (undrawnPlayers.length > 0 && !isDrawing) || (isSold || isUnsold) ? (
+                <Button 
+                    onClick={handleDrawPlayer} 
+                    className="h-14 w-full font-black font-serif text-base bg-primary text-primary-foreground tracking-[0.4em] uppercase rounded-none hover:shadow-[0_0_30px_gold]"
+                >
+                    {undrawnPlayers.length > 0 ? 'Reveal Next Lot' : 'All Lots Complete'}
+                </Button>
+            ) : null}
         </div>
 
-        <div className="bg-primary/5 border border-primary/20 px-6 py-1">
-            <span className="text-[9px] font-mono font-black text-primary tracking-[0.3em] uppercase">
-                {undrawnPlayers.length} Lots Remaining • {set.name}
+        <div className="flex items-center gap-8">
+            <span className="text-[10px] font-mono font-black text-primary/60 tracking-[0.4em] uppercase">
+                {undrawnPlayers.length} Lots Remaining
+            </span>
+            <div className="h-1 w-1 rounded-full bg-primary/30" />
+            <span className="text-[10px] font-mono font-black text-primary/60 tracking-[0.4em] uppercase italic">
+                {set.name}
             </span>
         </div>
       </footer>
 
-      {/* Shortcuts Overlay */}
+      {/* Keyboard Shortcuts Overlay */}
       <AnimatePresence>
         {isHelpOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-6"
-            onClick={() => setIsHelpOpen(false)}
-          >
-            <div className="max-w-md w-full bg-[#1a0202] border border-primary/40 p-8 shadow-2xl relative" onClick={e => e.stopPropagation()}>
-                <button onClick={() => setIsHelpOpen(false)} className="absolute top-4 right-4 text-primary hover:text-white">
-                    <X size={24} />
-                </button>
-                <h2 className="text-xl font-serif text-primary uppercase tracking-[0.3em] border-b border-primary/20 pb-4 mb-6">Moderator Terminal</h2>
-                <div className="space-y-2">
-                    {[
-                        { key: 'Space', action: 'Reveal / Increment Bid' },
-                        { key: 'F', action: 'Initiate Hammer Sequence' },
-                        { key: 'U', action: 'Mark Lot as Unsold' },
-                        { key: 'R', action: 'Reset 20s Countdown' },
-                        { key: 'H', action: 'Toggle Side History' },
-                        { key: 'Esc', action: 'Exit to Dashboard' },
-                    ].map((item, i) => (
-                        <div key={i} className="flex items-center justify-between bg-white/5 p-3 border border-white/5 hover:border-primary transition-all">
-                            <span className="text-[9px] font-black bg-primary text-primary-foreground px-2 py-0.5 uppercase">{item.key}</span>
-                            <span className="text-[9px] uppercase font-bold text-white/50 tracking-widest">{item.action}</span>
-                        </div>
-                    ))}
+            <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[100] bg-black/98 backdrop-blur-3xl flex items-center justify-center p-8"
+                onClick={() => setIsHelpOpen(false)}
+            >
+                <div className="max-w-xl w-full bg-[#1a0202] border-4 border-primary/40 p-10 shadow-2xl relative ornate-border" onClick={e => e.stopPropagation()}>
+                    <button onClick={() => setIsHelpOpen(false)} className="absolute top-6 right-6 text-primary hover:text-white transition-colors">
+                        <X size={28} />
+                    </button>
+                    <h2 className="text-3xl font-serif text-primary uppercase tracking-[0.4em] border-b border-primary/20 pb-6 mb-8 text-center">Moderator Terminal</h2>
+                    <div className="space-y-3">
+                        {[
+                            { key: 'Space', action: 'Reveal Lot / Raise Bid' },
+                            { key: 'F', action: 'Initiate Hammer (Once/Twice/Sold)' },
+                            { key: 'U', action: 'Mark Lot as Unsold' },
+                            { key: 'R', action: 'Reset 20s Countdown' },
+                            { key: 'H', action: 'Toggle Result History' },
+                            { key: 'Esc', action: 'Exit to Dashboard' },
+                        ].map((item, i) => (
+                            <div key={i} className="flex items-center justify-between bg-white/5 p-4 border border-white/10 hover:border-primary/50 transition-all group">
+                                <span className="text-[10px] font-black bg-primary text-primary-foreground px-3 py-1 uppercase group-hover:shadow-[0_0_10px_gold] transition-all">{item.key}</span>
+                                <span className="text-[10px] uppercase font-bold text-white/60 tracking-widest">{item.action}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-10 text-center opacity-30">
+                        <p className="text-[9px] uppercase tracking-[0.5em] font-black">Official SAAVAN Control System</p>
+                    </div>
                 </div>
-            </div>
-          </motion.div>
+            </motion.div>
         )}
       </AnimatePresence>
+      
+      <style jsx global>{`
+        .text-glow-gold {
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.3);
+        }
+        .text-glow-red {
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.6), 0 0 40px rgba(255, 0, 0, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 215, 0, 0.4);
+        }
+      `}</style>
     </div>
   );
 }
+
