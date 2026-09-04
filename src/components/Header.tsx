@@ -1,8 +1,7 @@
-
 "use client";
 
 import Link from 'next/link';
-import { Trophy, Users, PlusCircle, LogOut, LogIn, Menu, BookOpen, ShieldCheck, ChevronDown, Upload } from 'lucide-react';
+import { Trophy, Users, PlusCircle, LogOut, LogIn, Menu, BookOpen, ShieldCheck, ChevronDown, Upload, Award } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -13,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useUser } from '@/firebase';
 import { getAuth, signOut } from 'firebase/auth';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from './ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { useState } from 'react';
 
 
@@ -33,12 +32,17 @@ const Header = () => {
         <div className='flex flex-col md:flex-row items-stretch md:items-center gap-2'>
             <Button variant="ghost" asChild>
                 <Link href="/squads" onClick={() => setIsSheetOpen(false)}>
-                    <ShieldCheck className="mr-2" /> Squads
+                    <ShieldCheck className="mr-2 h-4 w-4" /> Squads
                 </Link>
             </Button>
             <Button variant="ghost" asChild>
                 <Link href="/rulebook" onClick={() => setIsSheetOpen(false)}>
-                    <BookOpen className="mr-2" /> Rulebook
+                    <BookOpen className="mr-2 h-4 w-4" /> Rulebook
+                </Link>
+            </Button>
+            <Button variant="ghost" asChild>
+                <Link href="/credits" onClick={() => setIsSheetOpen(false)}>
+                    <Award className="mr-2 h-4 w-4" /> Credits
                 </Link>
             </Button>
 
@@ -77,12 +81,12 @@ const Header = () => {
          <div className="h-10 w-24 animate-pulse rounded-md bg-muted/50" />
       ) : user ? (
         <Button variant="ghost" onClick={handleSignOut}>
-          <LogOut className="mr-2" /> Sign Out
+          <LogOut className="mr-2 h-4 w-4" /> Sign Out
         </Button>
       ) : (
         <Button asChild>
           <Link href="/login" onClick={() => setIsSheetOpen(false)}>
-            <LogIn className="mr-2" /> Login
+            <LogIn className="mr-2 h-4 w-4" /> Login
           </Link>
         </Button>
       )}
