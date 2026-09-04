@@ -37,17 +37,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '2mb',
-    },
-    // This is the correct way to configure longer execution times on Vercel
-    maxExperimentalFeatures: true, 
-  },
-  // Set the default timeout for all server-side functions
-  serverFunctions: {
-    maxDuration: 120,
-  },
 };
 
 export default nextConfig;

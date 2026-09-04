@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -460,9 +461,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                                 {currentPlayer.playerName}
                                             </h3>
                                             {isSold && (
-                                                <motion.div 
-                                                  animate={isMarquee ? { scale: [1, 1.1, 1] } : {}}
-                                                  transition={{ repeat: Infinity, duration: 2 }}
+                                                <div 
                                                   className={cn(
                                                     "flex items-baseline justify-center gap-4 px-8 sm:px-16 py-4 sm:py-6 border-2 backdrop-blur-md",
                                                     isMarquee ? "bg-primary/20 border-primary shadow-[0_0_50px_rgba(255,215,0,0.4)]" : "bg-primary/10 border-primary/40"
@@ -470,7 +469,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                                 >
                                                     <span className="text-6xl sm:text-8xl font-mono font-black text-white">{currentBid}</span>
                                                     <span className="text-2xl sm:text-4xl font-serif text-primary italic font-black uppercase tracking-widest">L</span>
-                                                </motion.div>
+                                                </div>
                                             )}
                                         </div>
 
@@ -667,7 +666,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         </Button>
                     </motion.div>
                 )}
-            </AnimatePresence>
+            </AnPresence>
         </main>
       </div>
 

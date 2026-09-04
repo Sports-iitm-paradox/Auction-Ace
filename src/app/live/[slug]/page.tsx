@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -115,12 +116,7 @@ export default function PublicLivePage() {
             <motion.div
                 key={auction.status === 'drawing' ? 'drawing' : (currentPlayer?.id || 'idle')}
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ 
-                  opacity: 1, 
-                  y: 0,
-                  scale: (isMarquee && auction.status === 'bidding') ? [1, 1.01, 1] : 1
-                }}
-                transition={isMarquee ? { repeat: Infinity, duration: 2 } : {}}
+                animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 className="w-full"
             >
