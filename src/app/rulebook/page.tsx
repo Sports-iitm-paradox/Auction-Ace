@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -193,39 +194,78 @@ const rules = [
             "2 Recognised All-Rounders",
             "3 Specialist Bowlers",
             "1 Floating Player (any role)",
-            "3 Players of the playing 11 must be from the uncapped category.",
-            "Failure to meet this requirement will result in Playing XI rejection until corrected or a points penalty as decided by the OC.",
+            "At least 3 players in the Playing XI must be from the uncapped category.",
+            "A maximum of 4 overseas players may be included in the Playing XI.",
+            "Failure to meet the required Playing XI composition shall result in rejection of the submitted XI. The house shall be given the correction window specified by the Organising Committee. If the house fails to submit a valid XI within that window, the OC may impose the predefined late-submission penalty or make an automatic assignment as specified in this rulebook.",
         ],
     },
     {
-        section: "8. Penalties & Enforcement Framework",
+        section: "8. Player Points & Captaincy System",
         subsections: [
             {
-                title: "8.1 Violation Categories",
+                title: "8.1 Scoring Mechanics",
+                content: [
+                    "Each player is assigned a performance value between 0–100 points, based on a predefined formula.",
+                    "Multipliers:",
+                    "Captain: 3×",
+                    "Vice-Captain: 2×",
+                    "Others: 1×",
+                    "Total team score = sum of all player points after multipliers.",
+                ],
+            },
+            {
+                title: "8.2 Playing XI & Captaincy Lock",
+                content: [
+                    "Playing XI, Captain, and Vice-Captain must be submitted within the deadline announced by the OC.",
+                    "Once submitted, no changes are permitted.",
+                    "Late submission may result in: Point penalties or Auto-assignment by OC.",
+                ],
+            },
+        ],
+    },
+    {
+        section: "9. Penalties & Enforcement Framework",
+        subsections: [
+            {
+                title: "9.1 Violation Categories",
                 content: [
                     "Minor Violations (e.g., speaking out of turn, delays). Penalty: Warning or point deduction (-20 points).",
-                    "Major Violations (e.g., bidding beyond purse, collusion). Penalty: Bid cancellation, player forfeiture, heavy point deduction (-100 points).",
+                    "Major Violations (e.g., bidding beyond purse, collusion, consecutive bidding, rule manipulation). Penalty: Bid cancellation, player forfeiture, heavy point deduction (-100 points).",
                     "Severe Violations (e.g., repeated breaches, external interference). Penalty: Immediate disqualification, nullification of results.",
                 ]
             },
             {
-                title: "8.2 Penalty Matrix",
+                title: "9.2 Penalty Matrix",
                 table: {
                     headers: ["Category", "Violation Type", "Penalty", "Notes"],
                     rows: [
                         ["Minor", "Speaking Out of Turn", "–20 pts", "Repeated → Major"],
-                        ["Minor", "Accidental Disruption", "Warning", "Repeated → –20 pts"],
+                        ["Minor", "Accidental Disruption", "Warning", "Repeated: –20 pts"],
                         ["Minor", "Late XI Submission", "–50 pts", "Auto-assignment"],
                         ["Major", "Unauthorized Bidding", "–50 pts", "Bid cancelled"],
                         ["Major", "Bidding Beyond Purse", "–100 pts", "Bid cancelled"],
-                        ["Major", "Collusion Attempt", "–50 pts", "Immediate Severe risk"],
-                        ["Major", "Floor Misconduct", "–100 pts", "Repeated → Severe"],
+                        ["Major", "Collusion Attempt", "–50 pts", "Immediate Severe"],
+                        ["Major", "Floor Misconduct", "–100 pts", "Repeat → Severe"],
+                        ["Major", "Consecutive Bidding", "Warning / –50 pts", "Repeat → Severe"],
                         ["Severe", "Repeated Violations", "Disqual.", "Final"],
                         ["Severe", "External Assistance", "Disqual.", "Final"],
                         ["Severe", "Refusal to Comply", "Disqual.", "Final"],
                         ["Severe", "Public Misconduct", "Disqual.", "Result Nullified"],
+                        ["Severe", "Unauthorised Access", "Disqual.", "Immediate DQ"],
+                        ["Severe", "Meet Link Sharing", "Disqual.", "Immediate DQ"],
+                        ["Severe", "Unauthorised Representation", "Disqual.", "Immediate DQ"],
                     ],
                 }
+            },
+            {
+                title: "9.3 Enforcement & Escalation",
+                content: [
+                    "All penalties are applied at the discretion of the Organising Committee.",
+                    "Penalties may be imposed immediately or cumulatively, depending on severity.",
+                    "Point deductions are applied to the final team score.",
+                    "Disqualification results in: Removal from rankings, Nullification of auction outcomes, Forfeiture of prizes and certificates.",
+                    "Escalation Principle: Any repeated violation automatically escalates to the next severity level, regardless of intent.",
+                ]
             }
         ]
     }
@@ -320,7 +360,7 @@ export default function RulebookPage() {
                                     initial="hidden"
                                     animate="visible"
                                     exit="exit"
-                                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                    transition={{ duration: 0.3, urea: 'easeInOut' }}
                                     className="space-y-6"
                                 >
                                     <h2 className="text-2xl sm:text-4xl font-serif text-primary border-b border-primary/10 pb-4">{activeRule.section}</h2>
