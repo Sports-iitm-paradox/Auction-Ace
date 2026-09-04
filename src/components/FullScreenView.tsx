@@ -1,13 +1,17 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { X, RefreshCw, Keyboard, Clock3, Shield, History, Trophy, Gavel } from 'lucide-react';
-import { Player, PlayerSet } from '@/lib/player-data';
+import { X, RefreshCw, Keyboard, Clock3, Shield, History, Trophy, Gavel, Share2 } from 'lucide-react';
+import { Player, PlayerSet, ActiveAuctionState } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { useFirestore, useUser, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { doc, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 interface FullScreenViewProps {
     players: Player[];
@@ -41,6 +45,9 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const router = useRouter();
+  const firestore = useFirestore();
+  const { user } = useUser();
+  const { toast } = useToast();
   
   const [currentBid, setCurrentBid] = useState<number>(0);
   const [timer, setTimer] = useState<number>(DEFAULT_TIMER);
@@ -59,6 +66,16 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     unsold: typeof Audio !== 'undefined' ? new Audio(SOUNDS.UNSOLD) : null,
     heartbeat: typeof Audio !== 'undefined' ? new Audio(SOUNDS.HEARTBEAT) : null,
   });
+
+  const syncToLiveFloor = useCallback((state: Partial<ActiveAuctionState>) => {
+    if (!firestore || !user || !set.id) return;
+    const auctionRef = doc(firestore, 'activeAuctions', set.id);
+    updateDocumentNonBlocking(auctionRef, {
+        ...state,
+        userId: user.uid,
+        lastUpdated: serverTimestamp()
+    });
+  }, [firestore, user, set.id]);
 
   const playSound = useCallback((key: string) => {
     const audio = audioRefs.current[key];
@@ -99,6 +116,8 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setFinalCallStatus('none');
     setTimer(DEFAULT_TIMER);
 
+    syncToLiveFloor({ status: 'drawing', isSold: false, isUnsold: false });
+
     setTimeout(() => {
       const randomIndex = Math.floor(Math.random() * undrawnPlayers.length);
       const newDrawnPlayer = undrawnPlayers[randomIndex];
@@ -109,8 +128,14 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       setIsDrawing(false);
       playSound('reveal');
       setIsTimerActive(true);
+
+      syncToLiveFloor({
+          status: 'bidding',
+          currentPlayerId: newDrawnPlayer.id,
+          currentBid: newDrawnPlayer.reservePrice || 0
+      });
     }, 1000);
-  }, [isDrawing, undrawnPlayers, playSound]);
+  }, [isDrawing, undrawnPlayers, playSound, syncToLiveFloor]);
   
   const resetAuction = () => {
     if (window.confirm("Reset auction session? All progress will be lost.")) {
@@ -122,6 +147,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         setDrawnPlayers([]);
         setTimer(DEFAULT_TIMER);
         setIsTimerActive(false);
+        syncToLiveFloor({ status: 'idle', currentPlayerId: '', currentBid: 0, isSold: false, isUnsold: false });
     }
   };
 
@@ -141,7 +167,8 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setFinalCallStatus('none');
     setDrawnPlayers(prev => [{ ...currentPlayer, status: 'sold', finalPrice: currentBid } as DrawnPlayer, ...prev]);
     playSound('sold');
-  }, [currentPlayer, isSold, isUnsold, currentBid, playSound]);
+    syncToLiveFloor({ status: 'sold', isSold: true });
+  }, [currentPlayer, isSold, isUnsold, currentBid, playSound, syncToLiveFloor]);
 
   const handleUnsold = () => {
     if (!currentPlayer || isSold || isUnsold) return;
@@ -150,6 +177,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setFinalCallStatus('none');
     setDrawnPlayers(prev => [{ ...currentPlayer, status: 'unsold' } as DrawnPlayer, ...prev]);
     playSound('unsold');
+    syncToLiveFloor({ status: 'unsold', isUnsold: true });
   };
 
   useEffect(() => {
@@ -178,6 +206,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setTimer(DEFAULT_TIMER);
     setFinalCallStatus('none');
     setIsTimerActive(true);
+    syncToLiveFloor({ currentBid: newBid, status: 'bidding' });
   };
 
   const startHammerSequence = () => {
@@ -186,6 +215,15 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     setIsTimerActive(false);
     playSound('tick');
   };
+
+  const copyLiveLink = () => {
+    const link = `${window.location.origin}/live/${set.id}`;
+    navigator.clipboard.writeText(link);
+    toast({
+        title: 'Public Link Copied',
+        description: 'Share this with participants to follow live.',
+    });
+  }
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
@@ -217,6 +255,22 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  // Initial Sync on Mount
+  useEffect(() => {
+      if (firestore && user && set.id) {
+          const auctionRef = doc(firestore, 'activeAuctions', set.id);
+          setDocumentNonBlocking(auctionRef, {
+              status: 'idle',
+              currentPlayerId: '',
+              currentBid: 0,
+              isSold: false,
+              isUnsold: false,
+              userId: user.uid,
+              lastUpdated: serverTimestamp()
+          }, { merge: true });
+      }
+  }, [firestore, user, set.id]);
+
   return (
     <div className="fixed inset-0 flex flex-col items-center bg-background sunburst-bg select-none overflow-hidden h-screen text-foreground">
       
@@ -227,6 +281,12 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
             <h2 className="font-serif text-lg text-primary tracking-[0.2em] uppercase font-bold">SAAVAN '26</h2>
         </div>
         <div className="flex gap-2">
+            <button 
+                onClick={copyLiveLink}
+                className="h-9 px-4 flex items-center gap-2 bg-primary text-primary-foreground border-primary rounded transition-all text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(255,215,0,0.3)]"
+            >
+                <Share2 size={16} /> Live Feed
+            </button>
             <button 
                 onClick={() => setIsHistoryOpen(!isHistoryOpen)} 
                 className={cn(

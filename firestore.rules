@@ -10,18 +10,22 @@ service cloud.firestore {
     }
 
     // A user can create players linked to their UID
-    // They can read, update, or delete players they own
     match /players/{playerId} {
       allow create: if request.auth.uid == request.resource.data.userId;
       allow read, update, delete: if request.auth.uid == resource.data.userId;
     }
     
     // Anyone can view the sets.
-    // Only the owner can create, update, or delete their own sets.
     match /sets/{setId} {
       allow get, list: if true;
       allow create: if request.auth.uid == request.resource.data.userId;
       allow update, delete: if request.auth.uid == resource.data.userId;
+    }
+
+    // Active auction state
+    match /activeAuctions/{auctionId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth.uid == request.resource.data.userId || (resource != null && request.auth.uid == resource.data.userId);
     }
   }
 }

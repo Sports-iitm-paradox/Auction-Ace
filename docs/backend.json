@@ -113,8 +113,8 @@
           "description": "The ID of the user who created this set."
         },
         "order": {
-            "type": "number",
-            "description": "The display order for the set on the homepage."
+          "type": "number",
+          "description": "The display order for the set on the homepage."
         }
       },
       "required": [
@@ -123,6 +123,38 @@
         "userId",
         "order"
       ]
+    },
+    "ActiveAuctionState": {
+      "title": "ActiveAuctionState",
+      "type": "object",
+      "description": "The live state of an ongoing auction session.",
+      "properties": {
+        "currentPlayerId": {
+          "type": "string"
+        },
+        "currentBid": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "idle",
+            "drawing",
+            "bidding",
+            "sold",
+            "unsold"
+          ]
+        },
+        "isSold": {
+          "type": "boolean"
+        },
+        "isUnsold": {
+          "type": "boolean"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
     }
   },
   "auth": {
@@ -160,6 +192,16 @@
             "$ref": "#/entities/Set"
           },
           "description": "Stores auction sets created by users, containing an array of players."
+        }
+      },
+      {
+        "path": "/activeAuctions/{auctionId}",
+        "definition": {
+          "entityName": "ActiveAuctionState",
+          "schema": {
+            "$ref": "#/entities/ActiveAuctionState"
+          },
+          "description": "Stores the real-time state of the active auction floor."
         }
       }
     ]
