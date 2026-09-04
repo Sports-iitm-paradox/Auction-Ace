@@ -1,8 +1,7 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ShieldCheck, Mail, ArrowLeft, Terminal, Info, Zap, Database, Gavel } from 'lucide-react';
+import { ShieldCheck, Mail, ArrowLeft, Terminal, Info, Zap, Database, Gavel, RefreshCw, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -55,55 +54,55 @@ export default function SystemNoticePage() {
             </div>
             
             <p className="max-w-3xl mx-auto text-muted-foreground leading-relaxed text-sm sm:text-base italic">
-              The IPL Auction Hub infrastructure, including its real-time synchronization architecture, proprietary bidding logic, visual identity, and performance datasets, is the exclusive Intellectual Property of the Sports Department, IIT Madras Paradox. All rights reserved &copy; 2026.
+              The IPL Auction Hub infrastructure, including its real-time synchronization architecture, proprietary bidding logic, and visual presentation systems, is the exclusive Intellectual Property of the Sports Department, IIT Madras Paradox. All rights reserved &copy; 2026.
             </p>
           </section>
 
           {/* How It Works Section */}
           <section className="space-y-8 border-t border-primary/10 pt-12">
             <div className="text-center">
-              <h2 className="text-2xl font-serif text-primary uppercase tracking-widest mb-4">System Architecture & Functionality</h2>
-              <p className="text-sm text-muted-foreground italic">A high-fidelity simulation designed for competitive live environments.</p>
+              <h2 className="text-2xl font-serif text-primary uppercase tracking-widest mb-4">Architecture & Operational Logic</h2>
+              <p className="text-sm text-muted-foreground italic">A specialized digital environment built for absolute transparency and floor integrity.</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4 p-6 bg-black/40 border border-primary/10 rounded-lg">
                 <div className="flex items-center gap-3 text-primary">
-                  <Gavel size={20} />
-                  <h3 className="font-bold uppercase tracking-wider">Dynamic Auction Engine</h3>
+                  <RefreshCw size={20} />
+                  <h3 className="font-bold uppercase tracking-wider">Integrity-First Randomization</h3>
                 </div>
                 <p className="text-xs text-muted-foreground leading-loose">
-                  The system employs a live-draw mechanism that randomizes player entry to ensure floor integrity. It utilizes a fixed-increment slab structure (5L, 10L, 20L, 50L) which automatically adjusts based on the current bid valuation, mimicking professional sporting league standards.
+                  To eliminate manual interference or bias, the platform utilizes a cryptographically-influenced shuffle algorithm to determine the entry of player lots. This ensures that the draw order is entirely neutral, providing a fair environment for every franchise.
                 </p>
               </div>
 
               <div className="space-y-4 p-6 bg-black/40 border border-primary/10 rounded-lg">
                 <div className="flex items-center gap-3 text-primary">
-                  <Database size={20} />
-                  <h3 className="font-bold uppercase tracking-wider">Real-Time Ledger Sync</h3>
+                  <Gavel size={20} />
+                  <h3 className="font-bold uppercase tracking-wider">Precision Bidding Increments</h3>
                 </div>
                 <p className="text-xs text-muted-foreground leading-loose">
-                  Powered by Firebase, the platform synchronizes budget metrics across multiple endpoints. When a moderator records a sale, the purse balance and squad points of the respective House are updated instantly across all participant and spectator feeds.
+                  The system enforces a strict slab-based increment structure (5L, 10L, 20L, 50L) directly within the logic. This eliminates negotiation delays and ensures that all bids adhere to the official rulebook standards recognized by the Sports Department.
+                </p>
+              </div>
+
+              <div className="space-y-4 p-6 bg-black/40 border border-primary/10 rounded-lg">
+                <div className="flex items-center gap-3 text-primary">
+                  <Eye size={20} />
+                  <h3 className="font-bold uppercase tracking-wider">Live Synchronization & Transparency</h3>
+                </div>
+                <p className="text-xs text-muted-foreground leading-loose">
+                  Powered by Firebase, every bid update, hammer fall, and status change is broadcasted in sub-second intervals to all spectator feeds. This 100% transparent sync ensures that participants and officials are viewing the exact same floor valuation simultaneously.
                 </p>
               </div>
 
               <div className="space-y-4 p-6 bg-black/40 border border-primary/10 rounded-lg">
                 <div className="flex items-center gap-3 text-primary">
                   <Zap size={20} />
-                  <h3 className="font-bold uppercase tracking-wider">Hype Celebration System</h3>
+                  <h3 className="font-bold uppercase tracking-wider">Standardized Auction Clock</h3>
                 </div>
                 <p className="text-xs text-muted-foreground leading-loose">
-                  The "Hype Trigger" logic monitors bid values. Once a threshold of 1000L (10 Cr) is breached, the system initiates marquee-status celebrations, including cinematic screen-shakes and high-density confetti effects, designed for large-screen presentation.
-                </p>
-              </div>
-
-              <div className="space-y-4 p-6 bg-black/40 border border-primary/10 rounded-lg">
-                <div className="flex items-center gap-3 text-primary">
-                  <Terminal size={20} />
-                  <h3 className="font-bold uppercase tracking-wider">Roster Eligibility Monitor</h3>
-                </div>
-                <p className="text-xs text-muted-foreground leading-loose">
-                  Each House squad is tracked against mandatory composition rules: a minimum of 11 players including specialist roles and uncapped player quotas. The system provides real-time warnings if a House breaches its virtual purse limit.
+                  The system integrates a 20-second countdown with auditory cues. The official three-step hammer sequence (Once/Twice/Sold) is synchronized globally, defining a clear and final boundary for every sale to prevent post-hammer disputes.
                 </p>
               </div>
             </div>
@@ -137,7 +136,7 @@ export default function SystemNoticePage() {
                 </div>
                 <div className="p-6 bg-black/40 border border-primary/10 rounded-lg">
                   <p className="text-xs text-muted-foreground/80 leading-loose">
-                    Unauthorized redistribution or commercial use of this system is strictly prohibited. Any breach of terms is subject to review by the IIT Madras Paradox Organizing Committee.
+                    Unauthorized redistribution or commercial use of this system is strictly prohibited. Any technical breach of terms is subject to review by the IIT Madras Paradox Sports Department.
                   </p>
                 </div>
               </div>
