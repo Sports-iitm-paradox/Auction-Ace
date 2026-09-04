@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Trophy, Users, PlusCircle, LogOut, LogIn, Menu, BookOpen, ShieldCheck, ChevronDown, Upload, Award } from 'lucide-react';
+import { Trophy, Users, PlusCircle, LogOut, LogIn, Menu, BookOpen, ShieldCheck, ChevronDown, Upload, Award, ShieldAlert } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -42,7 +42,7 @@ const Header = () => {
             </Button>
             <Button variant="ghost" asChild>
                 <Link href="/credits" onClick={() => setIsSheetOpen(false)}>
-                    <Award className="mr-2 h-4 w-4" /> Credits
+                    <ShieldAlert className="mr-2 h-4 w-4" /> IP Notice
                 </Link>
             </Button>
 
