@@ -253,7 +253,7 @@ export default function PublicLivePage() {
                                 <TableHeader>
                                     <TableRow className="border-b border-primary/20 hover:bg-transparent">
                                         <TableHead className="font-black text-primary uppercase tracking-widest">House</TableHead>
-                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest">Purse Left</TableHead>
+                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest">Purse Left (Cr)</TableHead>
                                         <TableHead className="text-center font-black text-primary uppercase tracking-widest">Budget</TableHead>
                                         <TableHead className="text-right font-black text-primary uppercase tracking-widest">Points</TableHead>
                                     </TableRow>
@@ -262,7 +262,7 @@ export default function PublicLivePage() {
                                     {squads.map((house) => (
                                         <TableRow key={house.id} className="border-b border-primary/5 hover:bg-primary/5 transition-colors">
                                             <TableCell className="font-serif text-xl font-bold text-white py-6">{house.name}</TableCell>
-                                            <TableCell className="text-right font-mono text-2xl text-primary font-black">{house.moneyLeft}L</TableCell>
+                                            <TableCell className="text-right font-mono text-2xl text-primary font-black">{house.moneyLeft}Cr</TableCell>
                                             <TableCell className="text-center">
                                                 <Badge variant={house.budgetStatus === 'OK' ? 'default' : 'destructive'} className="gap-2 px-4 py-1 bg-green-600 text-[10px]">
                                                     {house.budgetStatus === 'OK' ? <CheckCircle size={12} /> : <AlertTriangle size={12} />}

@@ -188,7 +188,11 @@ export default function SquadsPage() {
             for (const squad of squadData) {
                 const element = document.getElementById(`poster-${squad.id}`);
                 if (element) {
-                    const dataUrl = await toPng(element, { quality: 1, pixelRatio: 2 });
+                    const dataUrl = await toPng(element, { 
+                      quality: 1, 
+                      pixelRatio: 2,
+                      cacheBust: true,
+                    });
                     const link = document.createElement('a');
                     link.download = `Squad_Poster_${squad.name.replace(/\s+/g, '_')}.png`;
                     link.href = dataUrl;
@@ -292,8 +296,8 @@ export default function SquadsPage() {
                                 <TableHeader>
                                     <TableRow className="bg-muted/30 hover:bg-muted/50 border-b border-primary/20">
                                         <TableHead className="font-black text-primary uppercase tracking-widest min-w-[180px]">House</TableHead>
-                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest hidden sm:table-cell">Spent (L)</TableHead>
-                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest text-lg">Purse Left (L)</TableHead>
+                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest hidden sm:table-cell">Spent (Cr)</TableHead>
+                                        <TableHead className="text-right font-black text-primary uppercase tracking-widest text-lg">Purse Left (Cr)</TableHead>
                                         <TableHead className="text-center font-black text-primary uppercase tracking-widest">Budget</TableHead>
                                         <TableHead className="text-center font-black text-primary uppercase tracking-widest">Points</TableHead>
                                     </TableRow>
@@ -302,8 +306,8 @@ export default function SquadsPage() {
                                     {squadData.map((house) => (
                                         <TableRow key={house.id} className="hover:bg-primary/5 transition-colors border-b border-primary/5">
                                             <TableCell className="font-serif text-lg sm:text-xl text-white py-6">{house.name}</TableCell>
-                                            <TableCell className="text-right font-mono text-sm hidden sm:table-cell text-muted-foreground">{house.moneySpent}L</TableCell>
-                                            <TableCell className="text-right font-mono text-primary font-black text-xl sm:text-2xl">{house.moneyLeft}L</TableCell>
+                                            <TableCell className="text-right font-mono text-sm hidden sm:table-cell text-muted-foreground">{house.moneySpent}Cr</TableCell>
+                                            <TableCell className="text-right font-mono text-primary font-black text-xl sm:text-2xl">{house.moneyLeft}Cr</TableCell>
                                             <TableCell className="text-center">
                                                 <Badge variant={house.budgetStatus === 'OK' ? 'default' : 'destructive'} className="gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-xs">
                                                     {house.budgetStatus === 'OK' ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
@@ -319,7 +323,7 @@ export default function SquadsPage() {
                     ) : (
                          <div className="text-center py-20 border-2 border-dashed border-primary/20 rounded-lg bg-background/50">
                             <Info className="mx-auto h-20 w-20 text-muted-foreground opacity-10 mb-4" />
-                            <h3 className="text-2xl font-serif text-primary uppercase tracking-widest">Standings Ledger Empty</h3>
+                            <h3 className="text-2xl font-serif text-primary uppercase tracking-widest">Standings Ledger Closed</h3>
                             <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto italic">
                                 The administrator has not yet uploaded the session wrap-up data.
                             </p>
@@ -330,4 +334,3 @@ export default function SquadsPage() {
         </motion.div>
     );
 }
-
