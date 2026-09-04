@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import confetti from 'canvas-confetti';
 
-const MARQUEE_THRESHOLD = 100;
+const MARQUEE_THRESHOLD = 1000;
 
 export default function PublicLivePage() {
   const params = useParams();

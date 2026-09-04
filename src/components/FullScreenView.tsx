@@ -38,7 +38,7 @@ const SOUNDS = {
 type FinalCallStatus = 'none' | 'once' | 'twice' | 'final';
 
 const DEFAULT_TIMER = 20;
-const MARQUEE_THRESHOLD = 100;
+const MARQUEE_THRESHOLD = 1000;
 
 export default function FullScreenView({ players, set, onReset }: FullScreenViewProps) {
   const [undrawnPlayers, setUndrawnPlayers] = useState<Player[]>([...players]);
