@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef } from 'react';
@@ -35,7 +36,6 @@ export default function SquadsPage() {
 
     const playersQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        // In production, we only need to match players by name from the master list
         return query(collection(firestore, 'players'));
     }, [firestore]);
 
@@ -65,7 +65,7 @@ export default function SquadsPage() {
                     const getVal = (row: any, searchTerms: string[]) => {
                         const keys = Object.keys(row);
                         for (const term of searchTerms) {
-                            const foundKey = keys.find(k => k.toLowerCase().includes(term.toLowerCase()));
+                            const foundKey = keys.find(k => k.toLowerCase().replace(/\s/g, '').includes(term.toLowerCase().replace(/\s/g, '')));
                             if (foundKey) return row[foundKey];
                         }
                         return '';
@@ -75,19 +75,18 @@ export default function SquadsPage() {
                         const houseName = getVal(row, ['house name', 'house']) || 'N/A';
                         
                         const parseSafeFloat = (val: any) => {
-                            if (!val || val === '#NUM!' || val === '#N/A') return 0;
+                            if (val === undefined || val === null || val === '#NUM!' || val === '#N/A') return 0;
                             const str = String(val).replace(/[^0-9.]/g, '');
                             return parseFloat(str) || 0;
                         };
 
                         const parseSafeInt = (val: any) => {
-                            if (!val || val === '#NUM!' || val === '#N/A') return 0;
+                            if (val === undefined || val === null || val === '#NUM!' || val === '#N/A') return 0;
                             const str = String(val).replace(/[^0-9]/g, '');
                             return parseInt(str, 10) || 0;
                         };
 
-                        // Specific fuzzy search for "Players List"
-                        const playersList = getVal(row, ['players list', 'format', 'squad list', 'squad members']) || '';
+                        const playersList = getVal(row, ['players list', 'format', 'squad list', 'squad members', 'purchased']) || '';
 
                         const newSquadRef = doc(squadsCollectionRef);
                         batch.set(newSquadRef, {
@@ -95,9 +94,9 @@ export default function SquadsPage() {
                             moneySpent: parseSafeFloat(getVal(row, ['total money spent', 'spent'])),
                             moneyLeft: parseSafeFloat(getVal(row, ['money left', 'purse'])),
                             budgetUsed: parseSafeFloat(getVal(row, ['budget used'])),
-                            budgetStatus: String(getVal(row, ['budget status'])).includes('OK') ? 'OK' : 'OVER',
+                            budgetStatus: String(getVal(row, ['budget status'])).toLowerCase().includes('ok') ? 'OK' : 'OVER',
                             eligibilityStatus: getVal(row, ['eligibility status']) || 'N/A',
-                            totalPoints: parseSafeInt(getVal(row, ['total no. of points', 'points'])),
+                            totalPoints: parseSafeInt(getVal(row, ['total no of points', 'total points', 'points'])),
                             playersList: String(playersList).trim(), 
                             userId: user.uid,
                             order: index
