@@ -60,7 +60,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   const [finalCallStatus, setFinalCallStatus] = useState<FinalCallStatus>('none');
   const [shouldShake, setShouldShake] = useState(false);
 
-  const timerInterval = useRef<NodeJS.Timeout>();
+  const timerInterval = useRef<NodeJS.Timeout>(null);
 
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({
     reveal: typeof Audio !== 'undefined' ? new Audio(SOUNDS.REVEAL) : null,
@@ -237,7 +237,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     if (isSold || isUnsold) return;
     const newBid = nextValidBid;
 
-    // Hype Trigger: If crossing the Marquee Threshold
     if (newBid >= MARQUEE_THRESHOLD && currentBid < MARQUEE_THRESHOLD) {
       playSound('hype');
       setShouldShake(true);
@@ -325,7 +324,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   return (
     <div className="fixed inset-0 flex flex-col items-center bg-background sunburst-bg select-none overflow-hidden h-screen text-foreground">
       
-      {/* Top Controls Bar */}
       <div className="w-full flex items-center justify-between px-6 py-4 z-40 bg-black/20 backdrop-blur-sm border-b border-primary/20">
         <div className="flex items-center gap-4">
             <Trophy className="h-6 w-6 text-primary" />
@@ -361,7 +359,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
       <div className="flex flex-1 w-full relative overflow-hidden">
         
-        {/* Collapsible Left History Panel */}
         <AnimatePresence>
             {isHistoryOpen && (
                 <motion.aside
@@ -412,7 +409,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
             )}
         </AnimatePresence>
 
-        {/* Main Presentation Stage */}
         <main className="flex-1 flex flex-col items-center justify-center p-6 relative">
             <AnimatePresence mode="wait">
                 {!isDrawing && currentPlayer ? (
@@ -430,7 +426,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                           isMarquee && "border-primary shadow-[0_0_60px_rgba(255,215,0,0.2)]"
                         )}
                     >
-                        {/* Sold / Unsold Ceremony Overlay */}
                         <AnimatePresence>
                             {(isSold || isUnsold) && (
                                 <motion.div 
@@ -484,7 +479,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                             )}
                         </AnimatePresence>
 
-                        {/* Left Column: Media & Scout Insight */}
                         <div className="w-[320px] h-full flex flex-col bg-black/40 border-r border-primary/20 overflow-hidden">
                             <div className="flex-1 p-6 flex flex-col gap-6">
                                 <div className={cn(
@@ -523,7 +517,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                             </div>
                         </div>
 
-                        {/* Right Column: Profile & Valuation */}
                         <div className="flex-1 flex flex-col p-8 relative bg-[radial-gradient(circle_at_top_right,rgba(255,215,0,0.05),transparent)]">
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-3">
@@ -534,7 +527,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                         animate={{ scale: 1 }}
                                         className="bg-primary text-primary-foreground px-3 py-0.5 rounded-full flex items-center gap-1.5"
                                       >
-                                        <Sparkles size={10} className="animate-spin" />
+                                        <Sparkles size={10} />
                                         <span className="text-[8px] font-black uppercase tracking-widest">Marquee Status</span>
                                       </motion.div>
                                     )}
@@ -562,14 +555,12 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                 ))}
                             </div>
 
-                            {/* Valuation HUD */}
                             <div className={cn(
                               "mt-auto border-4 bg-black/80 p-6 relative overflow-hidden min-h-[180px] flex flex-col justify-center transition-all duration-500",
                               isMarquee ? "border-primary shadow-[0_0_40px_rgba(255,215,0,0.3)]" : "border-primary/30"
                             )}>
                                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
                                 
-                                {/* Going Once/Twice Overlay Banner */}
                                 <AnimatePresence>
                                     {finalCallStatus !== 'none' && !isSold && !isUnsold && (
                                         <motion.div 
@@ -589,7 +580,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                     <div className="absolute top-2 right-2 w-12 h-12 rounded-full bg-[#1a0202] border-4 border-primary flex items-center justify-center z-40 shadow-[0_0_20px_gold]">
                                         <span className={cn(
                                             "text-lg font-mono font-black",
-                                            timer <= 5 ? "text-destructive animate-pulse" : "text-primary"
+                                            timer <= 5 ? "text-destructive" : "text-primary"
                                         )}>
                                             {timer}
                                         </span>
@@ -597,7 +588,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                 )}
 
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_red]" />
+                                    <div className="w-2 h-2 rounded-full bg-red-600 shadow-[0_0_10px_red]" />
                                     <span className="text-[10px] text-primary font-black tracking-[0.3em] uppercase">Live Floor Valuation</span>
                                     
                                     <div className="ml-auto flex gap-1.5 pr-14">
@@ -646,7 +637,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                 ) : isDrawing ? (
                     <div className="flex flex-col items-center gap-8">
                         <div className="w-20 h-20 border-8 border-primary border-t-transparent animate-spin rounded-full shadow-[0_0_40px_gold]" />
-                        <h1 className="text-3xl text-primary font-black font-serif tracking-[0.8em] animate-pulse uppercase">Player Drawing...</h1>
+                        <h1 className="text-3xl text-primary font-black font-serif tracking-[0.8em] uppercase">Player Drawing...</h1>
                     </div>
                 ) : (
                     <motion.div 
@@ -654,7 +645,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         className="flex flex-col items-center gap-12 text-center"
                     >
                         <div className="space-y-4">
-                            <Trophy size={80} className="text-primary mx-auto animate-pulse mb-6" />
+                            <Trophy size={80} className="text-primary mx-auto mb-6" />
                             <h1 className="text-8xl font-serif font-black text-primary tracking-[0.4em] uppercase italic drop-shadow-[0_0_30px_rgba(255,215,0,0.5)]">Saavan '26</h1>
                             <p className="text-white/40 text-xs tracking-[1.5em] font-black uppercase ml-[1.5em]">Command Terminal V.2</p>
                         </div>
@@ -666,11 +657,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         </Button>
                     </motion.div>
                 )}
-            </AnPresence>
+            </AnimatePresence>
         </main>
       </div>
 
-      {/* Moderator Deck Footer */}
       <footer className="w-full flex flex-col items-center gap-4 py-6 px-12 z-50 bg-black/40 backdrop-blur-md border-t border-primary/20">
         <div className="flex items-center gap-6 w-full max-w-5xl">
             {currentPlayer && !isSold && !isUnsold ? (
@@ -729,7 +719,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         </div>
       </footer>
 
-      {/* Keyboard Shortcuts Overlay */}
       <AnimatePresence>
         {isHelpOpen && (
             <motion.div 
@@ -789,3 +778,4 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     </div>
   );
 }
+

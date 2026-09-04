@@ -64,8 +64,8 @@ export default function SquadsPage() {
                         const keys = Object.keys(row);
                         for (const term of searchTerms) {
                             const foundKey = keys.find(k => {
-                                const normalizedK = k.toLowerCase().replace(/[^a-z0-9]/g, '');
-                                const normalizedT = term.toLowerCase().replace(/[^a-z0-9]/g, '');
+                                const normalizedK = k.toLowerCase().trim();
+                                const normalizedT = term.toLowerCase().trim();
                                 return normalizedK.includes(normalizedT);
                             });
                             if (foundKey) return row[foundKey];
@@ -77,23 +77,23 @@ export default function SquadsPage() {
                         const houseName = getVal(row, ['house name', 'house', 'name']) || 'N/A';
                         
                         const parseSafeFloat = (val: any) => {
-                            if (val === undefined || val === null || val === '#NUM!' || val === '#N/A' || val === '#VALUE!') return 0;
+                            if (val === undefined || val === null || String(val).includes('#')) return 0;
                             const str = String(val).replace(/[^0-9.-]/g, '');
                             return parseFloat(str) || 0;
                         };
 
                         const parseSafeInt = (val: any) => {
-                            if (val === undefined || val === null || val === '#NUM!' || val === '#N/A' || val === '#VALUE!') return 0;
+                            if (val === undefined || val === null || String(val).includes('#')) return 0;
                             const str = String(val).replace(/[^0-9]/g, '');
                             return parseInt(str, 10) || 0;
                         };
 
-                        const playersList = getVal(row, ['players list', 'squad list', 'purchased', 'members']) || '';
+                        const playersList = getVal(row, ['players list', 'purchased', 'members', 'squad list']) || '';
 
                         const newSquadRef = doc(squadsCollectionRef);
                         batch.set(newSquadRef, {
                             name: String(houseName).trim(),
-                            moneySpent: parseSafeFloat(getVal(row, ['spent', 'money spent', 'total money'])),
+                            moneySpent: parseSafeFloat(getVal(row, ['spent', 'total money', 'money spent'])),
                             moneyLeft: parseSafeFloat(getVal(row, ['money left', 'purse', 'remaining'])),
                             budgetUsed: parseSafeFloat(getVal(row, ['budget used', 'used %'])),
                             budgetStatus: String(getVal(row, ['status', 'budget status'])).toLowerCase().includes('ok') ? 'OK' : 'OVER',
@@ -330,3 +330,4 @@ export default function SquadsPage() {
         </motion.div>
     );
 }
+
