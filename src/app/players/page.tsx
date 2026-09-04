@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm, SubmitHandler } from 'react-hook-form';
@@ -37,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 const playerSchema = z.object({
   firstName: z.string().min(1, 'First name is required.'),
@@ -177,24 +177,24 @@ export default function PlayersPage() {
   }
 
   if (isUserLoading || !user) {
-    return <div className="w-full text-center">Loading...</div>;
+    return <div className="w-full text-center py-20">Loading Dashboard...</div>;
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8">
-      <Card>
+    <div className="w-full max-w-6xl mx-auto space-y-6 sm:space-y-8 px-2 sm:px-4">
+      <Card className="bg-card/90 backdrop-blur-md">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <UserPlus className="mr-2" /> {editingPlayer ? `Editing ${editingPlayer.playerName}` : 'Add New Player'}
+              <CardTitle className="flex items-center text-xl sm:text-2xl">
+                <UserPlus className="mr-2 h-5 w-5 sm:h-6 sm:w-6" /> {editingPlayer ? `Editing ${editingPlayer.playerName}` : 'Add New Player'}
               </CardTitle>
               <CardDescription>
-                {editingPlayer ? 'Update the player details below.' : 'Add a new player to your master list. They will be available to add to auction sets.'}
+                {editingPlayer ? 'Update the player details below.' : 'Add a new player to your master list.'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -314,14 +314,14 @@ export default function PlayersPage() {
                 )}
               />
             </CardContent>
-            <CardFooter className="flex justify-end gap-2">
+            <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
               {editingPlayer && (
-                 <Button type="button" variant="outline" onClick={cancelEdit}>
-                    <X className="mr-2" />
+                 <Button type="button" variant="outline" onClick={cancelEdit} className="w-full sm:w-auto">
+                    <X className="mr-2 h-4 w-4" />
                     Cancel
                  </Button>
               )}
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
                 {editingPlayer ? 'Update Player' : 'Add Player'}
               </Button>
             </CardFooter>
@@ -329,75 +329,80 @@ export default function PlayersPage() {
         </Form>
       </Card>
 
-      <Card>
+      <Card className="bg-card/90 backdrop-blur-md overflow-hidden">
         <CardHeader>
-          <CardTitle>Player List</CardTitle>
+          <CardTitle className="text-xl sm:text-2xl">Player List</CardTitle>
           <CardDescription>
-            Here are all the players you've added.
+            Master roster of all registered players.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6">
           {isLoadingPlayers && (
-            <div className="space-y-3">
+            <div className="space-y-3 p-4">
                 {[...Array(3)].map((_, i) => (
                     <div key={i} className="flex items-center justify-between p-4 rounded-md bg-muted/50 animate-pulse h-12"/>
                 ))}
             </div>
           )}
           {!isLoadingPlayers && players && players.length > 0 ? (
-            <div className="border rounded-md">
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Country</TableHead>
-                    <TableHead>Specialism</TableHead>
-                    <TableHead>Price (Lakh)</TableHead>
-                    <TableHead>Points</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                {players.map((player) => (
-                    <TableRow key={player.id}>
-                        <TableCell className="font-mono text-muted-foreground w-8 text-center">{player.playerNumber}</TableCell>
-                        <TableCell className="font-medium">{player.playerName}</TableCell>
-                        <TableCell>{player.country}</TableCell>
-                        <TableCell>{player.specialism}</TableCell>
-                        <TableCell>{player.reservePrice}</TableCell>
-                        <TableCell>{player.points}</TableCell>
-                        <TableCell className="text-right">
-                             <div className="flex items-center justify-end gap-1">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleEditClick(player)}
-                                    className="text-muted-foreground hover:text-primary"
-                                >
-                                    <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => deletePlayer(player.id)}
-                                    className="text-muted-foreground hover:text-destructive"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
+            <div className="w-full overflow-x-auto">
+              <Table>
+                  <TableHeader>
+                      <TableRow className="bg-muted/50">
+                      <TableHead className="w-[60px] text-center">#</TableHead>
+                      <TableHead className="min-w-[150px]">Name</TableHead>
+                      <TableHead className="hidden sm:table-cell">Country</TableHead>
+                      <TableHead className="hidden md:table-cell">Specialism</TableHead>
+                      <TableHead className="text-right">Price</TableHead>
+                      <TableHead className="text-right hidden sm:table-cell">Points</TableHead>
+                      <TableHead className="text-right w-[100px]">Actions</TableHead>
+                      </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                  {players.map((player) => (
+                      <TableRow key={player.id}>
+                          <TableCell className="font-mono text-muted-foreground text-center">{player.playerNumber}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-bold">{player.playerName}</span>
+                              <span className="text-[10px] sm:hidden text-muted-foreground uppercase">{player.specialism} • {player.country}</span>
                             </div>
-                        </TableCell>
-                    </TableRow>
-                ))}
-                </TableBody>
-            </Table>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">{player.country}</TableCell>
+                          <TableCell className="hidden md:table-cell">{player.specialism}</TableCell>
+                          <TableCell className="text-right font-mono">{player.reservePrice}L</TableCell>
+                          <TableCell className="text-right hidden sm:table-cell font-mono">{player.points}</TableCell>
+                          <TableCell className="text-right">
+                               <div className="flex items-center justify-end gap-1">
+                                  <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleEditClick(player)}
+                                      className="text-muted-foreground hover:text-primary h-8 w-8"
+                                  >
+                                      <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => deletePlayer(player.id)}
+                                      className="text-muted-foreground hover:text-destructive h-8 w-8"
+                                  >
+                                      <Trash2 className="h-4 w-4" />
+                                  </Button>
+                              </div>
+                          </TableCell>
+                      </TableRow>
+                  ))}
+                  </TableBody>
+              </Table>
             </div>
           ) : (
             !isLoadingPlayers && (
-              <div className="text-center py-10 border-2 border-dashed rounded-lg">
-                  <Users className="mx-auto h-12 w-12 text-muted-foreground" />
+              <div className="text-center py-20 border-2 border-dashed border-muted m-6 rounded-lg">
+                  <Users className="mx-auto h-12 w-12 text-muted-foreground opacity-20" />
                   <h3 className="mt-4 text-lg font-medium">No Players Yet</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">Add players using the form above to get started.</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Add players to begin building sets.</p>
               </div>
             )
           )}

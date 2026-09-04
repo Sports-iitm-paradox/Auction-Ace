@@ -1,13 +1,14 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BookOpen, ChevronRight } from 'lucide-react';
+import { BookOpen, ChevronRight, Menu } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const rules = [
     {
@@ -210,19 +211,19 @@ const rules = [
             {
                 title: "8.2 Penalty Matrix",
                 table: {
-                    headers: ["Category", "Violation Type", "Description / Examples", "Penalty", "Escalation Rule"],
+                    headers: ["Category", "Violation Type", "Penalty", "Notes"],
                     rows: [
-                        ["Minor", "Speaking Out of Turn", "Strategic members speaking during live bidding", "Warning OR –20 points", "Repeated offence → Major"],
-                        ["Minor", "Accidental Disruption", "Background noise, camera issues after warning", "Warning", "Repeated: –20 points"],
-                        ["Minor", "Late Playing XI Submission", "Missing deadline for Playing XI / Captaincy submission", "–50 points AND auto-assignment", "No escalation"],
-                        ["Major", "Unauthorized Bidding", "Bid raised by non-authorised participant", "Bid cancelled + –50 points", "Repeat → Severe"],
-                        ["Major", "Bidding Beyond Purse", "Any bid exceeding available purse", "Bid cancelled + –100 points", "Repeat → Severe"],
-                        ["Major", "Collusion Attempt", "Coordinated bidding, price manipulation, signalling", "–50 points OR player forfeiture", "Immediate Severe"],
-                        ["Major", "Auction Floor Misconduct", "Shouting, misleading rivals, intentional distractions", "–100 points", "Repeat → Severe"],
-                        ["Severe", "Repeated Violations", "Multiple Major violations by same house", "Immediate Disqualification", "Final"],
-                        ["Severe", "External Assistance", "Using external inputs, live help, or tools", "Immediate Disqualification", "Final"],
-                        ["Severe", "Refusal to Comply", "Ignoring OC instructions or rulings", "Immediate Disqualification", "Final"],
-                        ["Severe", "Public Misconduct", "Defamation, public disputes harming event integrity", "Disqualification / Result Nullification", "Final"],
+                        ["Minor", "Speaking Out of Turn", "–20 pts", "Repeated → Major"],
+                        ["Minor", "Accidental Disruption", "Warning", "Repeated → –20 pts"],
+                        ["Minor", "Late XI Submission", "–50 pts", "Auto-assignment"],
+                        ["Major", "Unauthorized Bidding", "–50 pts", "Bid cancelled"],
+                        ["Major", "Bidding Beyond Purse", "–100 pts", "Bid cancelled"],
+                        ["Major", "Collusion Attempt", "–50 pts", "Immediate Severe risk"],
+                        ["Major", "Floor Misconduct", "–100 pts", "Repeated → Severe"],
+                        ["Severe", "Repeated Violations", "Disqual.", "Final"],
+                        ["Severe", "External Assistance", "Disqual.", "Final"],
+                        ["Severe", "Refusal to Comply", "Disqual.", "Final"],
+                        ["Severe", "Public Misconduct", "Disqual.", "Result Nullified"],
                     ],
                 }
             }
@@ -232,58 +233,86 @@ const rules = [
 
 export default function RulebookPage() {
     const [activeRuleIndex, setActiveRuleIndex] = useState(0);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const activeRule = rules[activeRuleIndex];
 
     const contentVariants = {
-        hidden: { opacity: 0, x: 50 },
+        hidden: { opacity: 0, x: 20 },
         visible: { opacity: 1, x: 0 },
-        exit: { opacity: 0, x: -50 },
+        exit: { opacity: 0, x: -20 },
     };
+
+    const RuleNav = () => (
+        <nav className="flex flex-col gap-1 p-2">
+            {rules.map((rule, index) => (
+                <button
+                    key={index}
+                    onClick={() => {
+                        setActiveRuleIndex(index);
+                        setIsMenuOpen(false);
+                    }}
+                    className={cn(
+                        "flex items-center justify-between text-left p-3 rounded-md text-sm font-medium transition-colors w-full",
+                        activeRuleIndex === index 
+                            ? "bg-primary text-primary-foreground shadow-lg" 
+                            : "hover:bg-primary/10 text-muted-foreground hover:text-primary"
+                    )}
+                >
+                    <span className="truncate">{rule.section}</span>
+                    {activeRuleIndex === index && <ChevronRight className="h-4 w-4 shrink-0 ml-2" />}
+                </button>
+            ))}
+        </nav>
+    );
 
     return (
         <motion.div
-            className="w-full max-w-6xl mx-auto"
+            className="w-full max-w-6xl mx-auto px-2 sm:px-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
         >
-            <Card className="bg-card/90 backdrop-blur-sm overflow-hidden h-[80vh] flex flex-col">
-                <CardHeader>
-                    <CardTitle className="flex items-center text-3xl">
-                        <BookOpen className="mr-3 h-8 w-8 text-primary" />
-                        IPL Auction Showdown
-                    </CardTitle>
-                    <CardDescription>
-                        The official rules and regulations for the auction process.
-                    </CardDescription>
+            <Card className="bg-card/90 backdrop-blur-sm overflow-hidden h-[85vh] sm:h-[80vh] flex flex-col ornate-border">
+                <CardHeader className="border-b border-primary/20 pb-4 flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle className="flex items-center text-xl sm:text-3xl font-serif text-primary">
+                            <BookOpen className="mr-3 h-6 w-6 sm:h-8 sm:w-8" />
+                            Official Statutes
+                        </CardTitle>
+                        <CardDescription className="hidden sm:block">SAAVAN '26 - IIT Madras Paradox</CardDescription>
+                    </div>
+                    
+                    {/* Mobile Navigation Trigger */}
+                    <div className="md:hidden">
+                        <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="outline" size="icon" className="border-primary text-primary">
+                                    <Menu />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="w-[300px] bg-card p-0 border-r border-primary/30">
+                                <div className="p-6 border-b border-primary/20">
+                                    <h2 className="text-xl font-serif text-primary">Sections</h2>
+                                </div>
+                                <ScrollArea className="h-[calc(100vh-80px)]">
+                                    <RuleNav />
+                                </ScrollArea>
+                            </SheetContent>
+                        </Sheet>
+                    </div>
                 </CardHeader>
-                <CardContent className="grid md:grid-cols-[250px_1fr] gap-8 flex-1 min-h-0">
-                    {/* Navigation Sidebar */}
-                    <aside>
-                        <ScrollArea className="h-full pr-4">
-                            <nav className="flex flex-col gap-1">
-                                {rules.map((rule, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => setActiveRuleIndex(index)}
-                                        className={cn(
-                                            "flex items-center justify-between text-left p-2 rounded-md text-sm font-medium transition-colors w-full",
-                                            activeRuleIndex === index 
-                                                ? "bg-primary text-primary-foreground" 
-                                                : "hover:bg-muted text-muted-foreground hover:text-foreground"
-                                        )}
-                                    >
-                                        <span className="truncate">{rule.section}</span>
-                                        {activeRuleIndex === index && <ChevronRight className="h-4 w-4 shrink-0 ml-2" />}
-                                    </button>
-                                ))}
-                            </nav>
+
+                <CardContent className="grid md:grid-cols-[280px_1fr] gap-0 sm:gap-8 flex-1 min-h-0 p-0">
+                    {/* Desktop Navigation Sidebar */}
+                    <aside className="hidden md:block border-r border-primary/10 h-full bg-secondary/5">
+                        <ScrollArea className="h-full">
+                            <RuleNav />
                         </ScrollArea>
                     </aside>
 
                     {/* Content Display */}
-                    <main className="relative min-h-0">
-                        <ScrollArea className="h-full pr-4">
+                    <main className="relative min-h-0 flex-1 p-4 sm:p-8 overflow-hidden">
+                        <ScrollArea className="h-full pr-2 sm:pr-4">
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={activeRuleIndex}
@@ -294,33 +323,33 @@ export default function RulebookPage() {
                                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                                     className="space-y-6"
                                 >
-                                    <h2 className="text-3xl font-headline text-primary">{activeRule.section}</h2>
+                                    <h2 className="text-2xl sm:text-4xl font-serif text-primary border-b border-primary/10 pb-4">{activeRule.section}</h2>
                                     
                                     <div className="space-y-4 text-muted-foreground prose prose-invert prose-p:my-2 prose-li:my-1 max-w-none">
                                         {activeRule.content && activeRule.content.map((text, i) => (
-                                            <p key={i} className="ml-4 list-item list-disc list-inside">{text.includes(':') ? <><span className="font-bold text-foreground/80">{text.split(':')[0]}:</span>{text.substring(text.indexOf(':') + 1)}</> : text}</p>
+                                            <p key={i} className="ml-4 list-item list-disc list-inside text-sm sm:text-base">{text.includes(':') ? <><span className="font-bold text-foreground/90">{text.split(':')[0]}:</span>{text.substring(text.indexOf(':') + 1)}</> : text}</p>
                                         ))}
                                         
                                         {activeRule.subsections && activeRule.subsections.map((sub, subIndex) => (
-                                            <div key={subIndex} className="ml-4 space-y-3 pt-3">
-                                                <h4 className="font-bold text-xl text-foreground/90 font-headline">{sub.title}</h4>
-                                                <div className="ml-4 space-y-2 border-l-2 border-primary/20 pl-4">
+                                            <div key={subIndex} className="ml-2 sm:ml-4 space-y-3 pt-3">
+                                                <h4 className="font-bold text-lg sm:text-xl text-foreground/90 font-serif">{sub.title}</h4>
+                                                <div className="ml-2 sm:ml-4 space-y-2 border-l-2 border-primary/20 pl-4">
                                                     {sub.content && sub.content.map((text, i) => (
-                                                        <p key={i} className="list-item list-disc list-inside">{text.includes(':') ? <><span className="font-semibold text-foreground/80">{text.split(':')[0]}:</span>{text.substring(text.indexOf(':') + 1)}</> : text}</p>
+                                                        <p key={i} className="list-item list-disc list-inside text-sm sm:text-base">{text.includes(':') ? <><span className="font-semibold text-foreground/90">{text.split(':')[0]}:</span>{text.substring(text.indexOf(':') + 1)}</> : text}</p>
                                                     ))}
                                                 </div>
                                                 {sub.table && (
-                                                        <div className="my-4 border border-border rounded-lg overflow-hidden">
+                                                    <div className="my-4 border border-primary/20 rounded-lg overflow-x-auto bg-black/20">
                                                         <Table>
                                                             <TableHeader>
-                                                                <TableRow className="bg-primary/10">
-                                                                    {sub.table.headers.map(header => <TableHead key={header} className="text-primary">{header}</TableHead>)}
+                                                                <TableRow className="bg-primary/10 border-b border-primary/20">
+                                                                    {sub.table.headers.map(header => <TableHead key={header} className="text-primary font-bold text-xs uppercase">{header}</TableHead>)}
                                                                 </TableRow>
                                                             </TableHeader>
                                                             <TableBody>
                                                                 {sub.table.rows.map((row, rIndex) => (
-                                                                    <TableRow key={rIndex} className="bg-card/50">
-                                                                        {row.map((cell, cIndex) => <TableCell key={cIndex} className={cn(cIndex === 2 && 'text-xs')}>{cell}</TableCell>)}
+                                                                    <TableRow key={rIndex} className="hover:bg-primary/5 transition-colors border-b border-primary/5">
+                                                                        {row.map((cell, cIndex) => <TableCell key={cIndex} className="text-xs sm:text-sm font-medium">{cell}</TableCell>)}
                                                                     </TableRow>
                                                                 ))}
                                                             </TableBody>

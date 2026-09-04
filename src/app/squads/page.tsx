@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -68,85 +67,85 @@ export default function SquadsPage() {
 
     return (
         <motion.div
-            className="w-full max-w-7xl mx-auto"
+            className="w-full max-w-7xl mx-auto px-2 sm:px-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
         >
             <Card className="bg-card/90 backdrop-blur-sm">
-                <CardHeader>
-                    <CardTitle className="flex items-center text-3xl">
-                        <ShieldCheck className="mr-3 h-8 w-8 text-primary" />
+                <CardHeader className="text-center sm:text-left">
+                    <CardTitle className="flex flex-col sm:flex-row items-center text-2xl sm:text-3xl gap-3">
+                        <ShieldCheck className="h-8 w-8 text-primary shrink-0" />
                         Live Squad Status
                     </CardTitle>
                     <CardDescription>
-                        This dashboard shows the live status of each house's squad, purse, and points. Upload a CSV to update the data.
+                        Dashboard for house purse, points, and squad eligibility.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                             <CardTitle className="text-xl flex items-center"><Upload className="mr-2"/>Upload Squad Data</CardTitle>
+                    <Card className="bg-secondary/10 border-primary/20">
+                        <CardHeader className="p-4 sm:p-6">
+                             <CardTitle className="text-lg sm:text-xl flex items-center"><Upload className="mr-2 h-5 w-5"/>Update Master Data</CardTitle>
                              <CardDescription>
-                                Select a CSV file with the required columns to populate or update the table below.
+                                Upload the tracking CSV to refresh the standings.
                              </CardDescription>
                         </CardHeader>
-                        <CardContent className="flex flex-col sm:flex-row gap-4 items-center">
+                        <CardContent className="p-4 sm:p-6 pt-0 flex flex-col sm:flex-row gap-4 items-center">
                             <Input
                                 type="file"
                                 accept=".csv"
                                 onChange={handleFileChange}
                                 disabled={isProcessing}
-                                className="file:text-primary-foreground file:bg-primary file:hover:bg-primary/90 file:font-bold file:rounded-md file:px-3 file:py-1"
+                                className="file:text-primary-foreground file:bg-primary file:hover:bg-primary/90 file:font-bold file:rounded-md file:px-3 file:py-1 cursor-pointer w-full"
                             />
-                            {isProcessing && <Loader2 className="h-5 w-5 animate-spin" />}
+                            {isProcessing && <Loader2 className="h-6 w-6 animate-spin text-primary" />}
                         </CardContent>
                     </Card>
 
                     {squadData.length > 0 ? (
-                        <div className="border rounded-lg overflow-hidden">
+                        <div className="border border-primary/20 rounded-lg overflow-hidden w-full overflow-x-auto">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="bg-muted hover:bg-muted/80">
-                                        <TableHead className="font-bold">House Name</TableHead>
-                                        <TableHead className="text-right font-bold">Money Spent</TableHead>
-                                        <TableHead className="text-right font-bold">Money Left</TableHead>
-                                        <TableHead className="text-center font-bold">Budget Used</TableHead>
-                                        <TableHead className="text-center font-bold">Budget Status</TableHead>
-                                        <TableHead className="text-center font-bold">Eligibility Status</TableHead>
-                                        <TableHead className="text-center font-bold">Total Points</TableHead>
+                                    <TableRow className="bg-muted/50 hover:bg-muted/80">
+                                        <TableHead className="font-bold min-w-[150px]">House Name</TableHead>
+                                        <TableHead className="text-right font-bold hidden sm:table-cell">Spent</TableHead>
+                                        <TableHead className="text-right font-bold">Purse Left</TableHead>
+                                        <TableHead className="text-center font-bold hidden md:table-cell">Used %</TableHead>
+                                        <TableHead className="text-center font-bold">Budget</TableHead>
+                                        <TableHead className="text-center font-bold hidden sm:table-cell">Status</TableHead>
+                                        <TableHead className="text-center font-bold">Points</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {squadData.map((house) => (
-                                        <TableRow key={house.name}>
-                                            <TableCell className="font-medium text-lg">{house.name}</TableCell>
-                                            <TableCell className="text-right font-mono">{house.moneySpent} Cr</TableCell>
-                                            <TableCell className="text-right font-mono text-primary font-bold">{house.moneyLeft} Cr</TableCell>
-                                            <TableCell className="text-center font-mono">{house.budgetUsed}%</TableCell>
+                                        <TableRow key={house.name} className="hover:bg-primary/5 transition-colors">
+                                            <TableCell className="font-serif text-base sm:text-lg">{house.name}</TableCell>
+                                            <TableCell className="text-right font-mono text-xs hidden sm:table-cell">{house.moneySpent} Cr</TableCell>
+                                            <TableCell className="text-right font-mono text-primary font-black text-sm sm:text-lg">{house.moneyLeft} Cr</TableCell>
+                                            <TableCell className="text-center font-mono text-xs hidden md:table-cell">{house.budgetUsed}%</TableCell>
                                             <TableCell className="text-center">
-                                                <Badge variant={house.budgetStatus === 'OK' ? 'default' : 'destructive'} className="gap-1 items-center bg-green-500 hover:bg-green-600 text-white">
+                                                <Badge variant={house.budgetStatus === 'OK' ? 'default' : 'destructive'} className="gap-1 items-center bg-green-500 hover:bg-green-600 text-white text-[10px] sm:text-xs">
                                                     {house.budgetStatus === 'OK' ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
                                                     {house.budgetStatus}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="text-center">
-                                                <Badge variant="outline" className="gap-1 items-center">
+                                            <TableCell className="text-center hidden sm:table-cell">
+                                                <Badge variant="outline" className="gap-1 items-center text-[10px]">
                                                     <Clock className="h-3 w-3" />
                                                     {house.eligibilityStatus}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="text-center font-mono font-bold text-lg">{house.totalPoints}</TableCell>
+                                            <TableCell className="text-center font-mono font-black text-sm sm:text-lg text-foreground">{house.totalPoints}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
                         </div>
                     ) : (
-                         <div className="text-center py-16 border-2 border-dashed border-border rounded-lg">
-                            <Info className="mx-auto h-12 w-12 text-muted-foreground" />
-                            <h3 className="mt-4 text-lg font-medium font-headline">No Squad Data Uploaded</h3>
-                            <p className="mt-1 text-sm text-muted-foreground">Upload a CSV file using the control above to see the live squad status.</p>
+                         <div className="text-center py-20 border-2 border-dashed border-primary/20 rounded-lg bg-background/50">
+                            <Info className="mx-auto h-16 w-16 text-muted-foreground opacity-20" />
+                            <h3 className="mt-4 text-xl font-serif text-primary">No Data Loaded</h3>
+                            <p className="mt-2 text-sm text-muted-foreground max-w-xs mx-auto">Upload the competition tracking CSV to see live squad standings and budget metrics.</p>
                         </div>
                     )}
                 </CardContent>
