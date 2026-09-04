@@ -412,18 +412,18 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         {(auction.isSold || auction.isUnsold) && (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl p-8 text-center pointer-events-auto">
                                 <Gavel size={100} className={cn("mb-8", auction.isSold ? "text-primary animate-bounce" : "text-destructive")} />
-                                <h2 className={cn("text-8xl font-serif font-black uppercase italic tracking-tighter drop-shadow-2xl", auction.isSold ? "text-primary text-glow-gold" : "text-destructive")}>{auction.isSold ? 'SOLD' : 'UNSOLD'}</h2>
-                                <h3 className="text-4xl font-serif text-white uppercase mt-6 tracking-[0.2em]">{currentPlayer.playerName}</h3>
-                                {auction.isSold && <p className="text-7xl font-mono font-black text-primary mt-6">{auction.currentBid}L</p>}
+                                <h2 className={cn("text-5xl lg:text-8xl font-serif font-black uppercase italic tracking-tighter drop-shadow-2xl", auction.isSold ? "text-primary text-glow-gold" : "text-destructive")}>{auction.isSold ? 'SOLD' : 'UNSOLD'}</h2>
+                                <h3 className="text-2xl lg:text-4xl font-serif text-white uppercase mt-6 tracking-[0.2em]">{currentPlayer.playerName}</h3>
+                                {auction.isSold && <p className="text-5xl lg:text-7xl font-mono font-black text-primary mt-6">{auction.currentBid}L</p>}
                                 
                                 {auction.isSold && (
                                   <div className="mt-12 w-full max-w-sm space-y-4">
                                       <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Assign Winning Franchise</p>
                                       <Select value={selectedHouseId} onValueChange={setSelectedHouseId}>
-                                          <SelectTrigger className="bg-black/60 border-primary/40 h-14 text-sm font-bold text-white relative z-[70]">
+                                          <SelectTrigger className="bg-black/80 border-primary/40 h-14 text-sm font-bold text-white relative z-[70]">
                                               <SelectValue placeholder="Select Winning House..." />
                                           </SelectTrigger>
-                                          <SelectContent className="bg-[#1a0202] border-primary/20 z-[80]">
+                                          <SelectContent className="bg-[#1a0202] border-primary/20 z-[100]">
                                               {squads?.map(h => (
                                                   <SelectItem key={h.id} value={h.id} className="text-xs hover:bg-primary/20 text-white py-3 border-b border-primary/5 cursor-pointer">
                                                       <div className="flex justify-between w-64 items-center gap-4">
@@ -447,7 +447,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         {/* Going Once/Twice Ticker */}
                         {auction.hammerStep > 0 && auction.hammerStep < 3 && !auction.isSold && (
                             <motion.div initial={{ y: -100 }} animate={{ y: 0 }} className="absolute top-0 left-0 w-full bg-primary/90 py-4 flex items-center justify-center z-40 border-b-2 border-primary-foreground shadow-2xl">
-                                <h2 className="text-4xl font-serif font-black uppercase italic tracking-[0.4em] text-primary-foreground">
+                                <h2 className="text-2xl lg:text-4xl font-serif font-black uppercase italic tracking-[0.4em] text-primary-foreground">
                                     GOING {auction.hammerStep === 1 ? 'ONCE' : 'TWICE'}
                                 </h2>
                             </motion.div>
@@ -471,7 +471,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                     <span className="text-[10px] text-primary font-black uppercase tracking-widest px-2 py-0.5 border border-primary/20">LOT {currentPlayer.playerNumber}</span>
                                     {auction.currentBid >= MARQUEE_THRESHOLD && <Badge className="bg-primary text-primary-foreground animate-bounce">MARQUEE</Badge>}
                                 </div>
-                                <h1 className="text-7xl font-serif font-black text-white uppercase italic tracking-tighter leading-[0.9] drop-shadow-2xl">{currentPlayer.playerName}</h1>
+                                <h1 className="text-4xl lg:text-7xl font-serif font-black text-white uppercase italic tracking-tighter leading-[0.9] drop-shadow-2xl">{currentPlayer.playerName}</h1>
                                 <div className="grid grid-cols-2 gap-x-8 gap-y-4 mt-8">
                                     {[
                                         { label: 'Role', value: currentPlayer.specialism },
@@ -481,7 +481,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                     ].map((s, i) => (
                                         <div key={i} className="border-l-2 border-primary/30 pl-4">
                                             <span className="text-[9px] text-primary/40 font-black uppercase tracking-widest block mb-1">{s.label}</span>
-                                            <span className="text-2xl font-serif font-bold text-white/90">{s.value}</span>
+                                            <span className="text-xl lg:text-2xl font-serif font-bold text-white/90">{s.value}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -489,29 +489,29 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
                             <div className="bg-black/60 border border-primary/30 p-8 relative flex items-center justify-between shadow-2xl mt-4">
                                 {isTimerActive && (
-                                    <div className="absolute -top-8 -right-8 w-20 h-20 rounded-full bg-[#1a0202] border-4 border-primary flex items-center justify-center z-40 shadow-2xl">
-                                        <span className={cn("text-3xl font-mono font-black", timer <= 5 ? "text-destructive animate-pulse" : "text-primary")}>{timer}</span>
+                                    <div className="absolute -top-8 -right-8 w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-[#1a0202] border-4 border-primary flex items-center justify-center z-40 shadow-2xl">
+                                        <span className={cn("text-2xl lg:text-3xl font-mono font-black", timer <= 5 ? "text-destructive animate-pulse" : "text-primary")}>{timer}</span>
                                     </div>
                                 )}
                                 <div>
                                     <span className="text-[12px] text-primary font-black uppercase tracking-[0.5em] block mb-2">Floor Valuation</span>
                                     <div className="flex items-baseline gap-2">
-                                        <span className="text-9xl font-mono font-black text-white tracking-tighter">{auction.currentBid}</span>
-                                        <span className="text-4xl font-serif text-primary italic font-black">L</span>
+                                        <span className="text-6xl lg:text-8xl font-mono font-black text-white tracking-tighter">{auction.currentBid}</span>
+                                        <span className="text-2xl lg:text-4xl font-serif text-primary italic font-black">L</span>
                                     </div>
                                 </div>
                                 <div className="text-right flex flex-col gap-1">
                                     <span className="text-[10px] text-primary/40 font-black uppercase block">Base Price</span>
-                                    <span className="text-2xl font-mono text-white/30 font-black">{currentPlayer.reservePrice}L</span>
+                                    <span className="text-xl lg:text-2xl font-mono text-white/30 font-black">{currentPlayer.reservePrice}L</span>
                                 </div>
                             </div>
                         </div>
                     </motion.div>
                 ) : (
                     <div className="flex flex-col items-center gap-8">
-                        <Trophy size={120} className="text-primary animate-pulse" />
-                        <h1 className="text-5xl font-serif font-black text-primary uppercase tracking-[0.6em] text-center italic">Auction Floor Waiting</h1>
-                        <Button onClick={handleDrawPlayer} className="h-20 px-24 text-2xl font-serif font-black uppercase tracking-widest shadow-2xl hover:scale-105 transition-transform">Begin Next Drawing</Button>
+                        <Trophy size={100} className="text-primary animate-pulse" />
+                        <h1 className="text-3xl lg:text-5xl font-serif font-black text-primary uppercase tracking-[0.4em] text-center italic">Auction Floor Waiting</h1>
+                        <Button onClick={handleDrawPlayer} className="h-16 lg:h-20 px-16 lg:px-24 text-xl lg:text-2xl font-serif font-black uppercase tracking-widest shadow-2xl hover:scale-105 transition-transform">Begin Next Drawing</Button>
                     </div>
                 )}
             </AnimatePresence>
@@ -557,23 +557,25 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
       {/* Persistent Moderator Controls */}
       <footer className="w-full bg-black/95 border-t border-primary/30 p-6 z-50">
-        <div className="max-w-6xl mx-auto flex items-center gap-4">
+        <div className="max-w-6xl mx-auto flex items-center gap-4 h-full">
             {currentPlayer && !auction.isSold && !auction.isUnsold ? (
                 <>
-                    <Button onClick={handleIncreaseBid} className="h-20 flex-1 text-2xl font-serif font-black tracking-widest uppercase shadow-[0_0_30px_rgba(255,215,0,0.1)]">+ RAISE FLOOR BID</Button>
+                    <Button onClick={handleIncreaseBid} className="h-20 flex-1 text-xl lg:text-2xl font-serif font-black tracking-widest uppercase shadow-[0_0_30px_rgba(255,215,0,0.1)]">+ RAISE FLOOR BID</Button>
                     <Button 
                         onClick={handleHammerCall} 
                         disabled={auction.hammerStep > 0}
-                        className="h-20 px-16 bg-primary text-primary-foreground font-black tracking-widest uppercase hover:bg-primary/90 text-lg disabled:opacity-70"
+                        className="h-20 px-8 lg:px-16 bg-primary text-primary-foreground font-black tracking-widest uppercase hover:bg-primary/90 text-sm lg:text-lg disabled:opacity-70"
                     >
                         <Gavel className="mr-3 h-6 w-6"/> 
                         {auction.hammerStep === 0 ? 'START HAMMER CALL' : auction.hammerStep === 1 ? 'GOING ONCE...' : 'GOING TWICE...'}
                     </Button>
-                    <Button onClick={handleUnsold} variant="destructive" className="h-20 px-16 font-black tracking-widest uppercase text-lg">Record Unsold</Button>
+                    <Button onClick={handleUnsold} variant="destructive" className="h-20 px-8 lg:px-16 font-black tracking-widest uppercase text-sm lg:text-lg">Record Unsold</Button>
                 </>
             ) : (
-                <Button onClick={handleDrawPlayer} disabled={auction.status === 'drawing'} className="h-20 w-full text-3xl font-serif font-black tracking-[0.5em] uppercase shadow-[0_0_50px_rgba(255,215,0,0.2)]">
-                    {auction.status === 'drawing' ? 'Accessing Next Lot...' : `Reveal Next Player Lot (${auction.undrawnIds.length} REMAINING)`}
+                <Button onClick={handleDrawPlayer} disabled={auction.status === 'drawing'} className="h-20 w-full text-lg lg:text-2xl font-serif font-black tracking-widest uppercase shadow-[0_0_50px_rgba(255,215,0,0.2)] overflow-hidden">
+                    <span className="truncate">
+                        {auction.status === 'drawing' ? 'Accessing Next Lot...' : `Reveal Next Player Lot (${auction.undrawnIds.length} REMAINING)`}
+                    </span>
                 </Button>
             )}
         </div>
