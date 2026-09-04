@@ -13,6 +13,7 @@ export interface Player extends DocumentData {
   cua?: string; // Capped/Uncapped/Associate
   reservePrice?: number;
   points?: number;
+  auctionInsight?: string;
   setNumber?: number;
   imageUrl?: string;
 }

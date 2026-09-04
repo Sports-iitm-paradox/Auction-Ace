@@ -56,13 +56,11 @@ export default function ImportPage() {
           existingPlayersSnap.forEach(doc => batch.delete(doc.ref));
 
           // 2. Delete all existing sets for the user
-          const setsQuery = query(setsCollectionRef, where('userId', '==', user.uid));
-          const existingSetsSnap = await getDocs(setsQuery);
+          const existingSetsSnap = await getDocs(query(setsCollectionRef, where('userId', '==', user.uid)));
           existingSetsSnap.forEach(doc => batch.delete(doc.ref));
 
           const importedData = results.data as any[];
           
-          // Group players by set
           const setsMap: { [key: string]: { name: string, order: number, players: Player[] } } = {};
 
           for (const item of importedData) {
@@ -84,21 +82,19 @@ export default function ImportPage() {
               cua: item['C/U/A'] || '',
               reservePrice: parseFloat(item['Reserve Price Rs Lakh']) || 0,
               points: parseInt(item['Points'], 10) || 0,
+              auctionInsight: item['Auction Insight'] || '',
               playerNumber: parseInt(item['List Sr.No.'], 10) || 0,
               setNumber: parseInt(setNumber, 10) || 0,
               userId: user.uid,
             };
             
-            // Conditionally add imageUrl only if it exists and is a non-empty string
             const imageUrl = item['Image URL'];
             if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim()) {
               newPlayerData.imageUrl = imageUrl.trim();
             }
             
-            // Add player creation to the batch
             batch.set(playerRef, newPlayerData);
 
-            // Group players for set creation
             if (!setsMap[setNumber]) {
               setsMap[setNumber] = { 
                 name: item['Set'] || `Set ${setNumber}`,
@@ -109,7 +105,6 @@ export default function ImportPage() {
             setsMap[setNumber].players.push(newPlayerData as Player);
           }
 
-          // Create new sets from the grouped players
           let setCount = 0;
           for (const setNumber in setsMap) {
             const setData = setsMap[setNumber];
@@ -135,23 +130,16 @@ export default function ImportPage() {
           toast({
             title: 'Import Successful',
             description: `All existing data cleared. Created ${setCount} new sets.`,
-            action: (
-               <CheckCircle className="text-green-500" />
-            )
           });
 
           router.push('/');
 
         } catch (error: any) {
-          // General errors already handled or rethrown for batch commit above
           if (!(error instanceof FirestorePermissionError)) {
              toast({
               title: 'Import Failed',
               description: error.message || 'An unknown error occurred.',
               variant: 'destructive',
-               action: (
-                 <AlertTriangle className="text-red-500" />
-              )
             });
           }
         } finally {
@@ -159,7 +147,6 @@ export default function ImportPage() {
         }
       },
       error: (error: any) => {
-        console.error('CSV parsing error:', error);
         toast({
           title: 'CSV Parsing Failed',
           description: error.message,
@@ -176,25 +163,27 @@ export default function ImportPage() {
         <CardHeader>
           <CardTitle className="flex items-center"><Upload className="mr-2" /> Import Players from CSV</CardTitle>
           <CardDescription>
-            <span className="font-bold text-destructive">Warning:</span> This will permanently delete all your existing players and sets and replace them with the content from the CSV file.
+            <span className="font-bold text-destructive">Warning:</span> This will permanently delete all your existing players and sets.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
             <div className="space-y-2">
-                 <p className="text-sm font-medium">The CSV should have the following columns:</p>
-                 <code className="text-xs p-2 bg-muted rounded-sm block whitespace-pre-wrap">List Sr.No., Set No., Set, First Name, Surname, Country, Specialism, C/U/A, Reserve Price Rs Lakh, Points, Image URL</code>
+                 <p className="text-sm font-medium text-primary">Required CSV Column Headers:</p>
+                 <code className="text-[10px] p-3 bg-secondary/20 border border-primary/20 rounded-sm block whitespace-pre-wrap leading-relaxed text-foreground/80">
+                    List Sr.No., Set No., Set, First Name, Surname, Country, Specialism, C/U/A, Reserve Price Rs Lakh, Points, Auction Insight, Image URL
+                 </code>
             </div>
           <Input
             type="file"
             accept=".csv"
             onChange={handleFileChange}
             disabled={isProcessing}
-            className="file:text-primary file:font-bold"
+            className="file:text-primary file:font-bold border-primary/20"
           />
            <Button
             onClick={handleImport}
             disabled={!file || isProcessing}
-            className="w-full"
+            className="w-full h-12 text-lg"
           >
             {isProcessing ? (
               <>

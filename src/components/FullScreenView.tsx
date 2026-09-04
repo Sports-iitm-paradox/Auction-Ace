@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -224,7 +225,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-between bg-[#2b0303] sunburst-bg transition-colors duration-1000 select-none overflow-hidden h-screen text-foreground">
       
-      {/* Session Progress Bar */}
       <div className="absolute top-0 left-0 w-full h-1 bg-white/5 z-50">
           <motion.div 
             initial={{ width: 0 }}
@@ -233,7 +233,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
           />
       </div>
 
-      {/* Shortcuts Legend Overlay */}
       <AnimatePresence>
         {isHelpOpen && (
           <motion.div 
@@ -267,7 +266,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         )}
       </AnimatePresence>
 
-      {/* Sidebar Roster */}
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
@@ -319,7 +317,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         )}
       </AnimatePresence>
 
-      {/* Navigation & Controls */}
       <div className={cn('absolute top-1/2 -translate-y-1/2 z-40 transition-all', isSidebarOpen ? 'left-80 hidden sm:block' : 'left-0')}>
         <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
@@ -342,7 +339,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         </button>
       </div>
 
-      {/* Main UI Container */}
       <div className="flex-1 flex items-center justify-center w-full max-w-7xl px-4 mt-12 sm:mt-8 overflow-y-auto custom-scrollbar">
         <AnimatePresence mode="wait">
           {!isDrawing && currentPlayer ? (
@@ -351,9 +347,8 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
               initial={{ opacity: 0, scale: 0.98 }} 
               animate={{ opacity: 1, scale: 1 }} 
               exit={{ opacity: 0, scale: 1.02 }}
-              className="relative w-full max-w-[900px] bg-[#1a0202]/80 backdrop-blur-md p-0.5 sm:p-1 shadow-2xl border border-primary/40"
+              className="relative w-full max-w-[950px] bg-[#1a0202]/80 backdrop-blur-md p-0.5 sm:p-1 shadow-2xl border border-primary/40"
             >
-              {/* Sold/Unsold Overlay */}
               <AnimatePresence>
                 {(isSold || isUnsold) && (
                     <motion.div 
@@ -361,18 +356,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         animate={{ opacity: 1, scale: 1 }} 
                         className="absolute inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl p-4"
                     >
-                        <div className="absolute inset-0 pointer-events-none overflow-hidden hidden sm:block">
-                            {[...Array(20)].map((_, i) => (
-                                <motion.div 
-                                    key={i}
-                                    initial={{ y: -100, x: Math.random() * 800 - 400, rotate: 0 }}
-                                    animate={{ y: 800, rotate: 360 }}
-                                    transition={{ duration: 2 + Math.random() * 2, repeat: Infinity, ease: 'linear' }}
-                                    className="absolute w-2 h-2 bg-primary rounded-full opacity-40"
-                                />
-                            ))}
-                        </div>
-
                         <div className={cn(
                             "relative p-6 sm:p-12 border-4 rotate-[-4deg] bg-[#1a0202] shadow-[0_0_100px_rgba(0,0,0,1)] flex flex-col items-center w-full sm:min-w-[450px] ornate-border",
                             isSold ? "border-primary" : "border-red-600"
@@ -404,12 +387,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                 )}
               </AnimatePresence>
 
-              {/* Inner Frame */}
               <div className="border border-primary/20 p-4 sm:p-6 flex flex-col lg:flex-row gap-6 sm:gap-8 items-stretch">
                 
-                {/* Left Column: Photo Area */}
-                <div className="flex flex-col items-center shrink-0 w-full lg:w-[280px]">
-                  <div className="p-1 border border-primary/60 bg-black/40 shadow-2xl w-full max-w-[200px] sm:max-w-full">
+                <div className="flex flex-col items-center shrink-0 w-full lg:w-[320px]">
+                  <div className="p-1 border border-primary/60 bg-black/40 shadow-2xl w-full max-w-[240px] sm:max-w-full">
                       <div className="border border-primary/20 p-1.5 sm:p-2">
                            <div className="relative aspect-[3/4] overflow-hidden bg-[#2a0303]">
                               {currentPlayer.imageUrl ? (
@@ -420,15 +401,27 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                            </div>
                       </div>
                   </div>
-                  <div className="mt-3 sm:mt-4 bg-primary px-4 sm:px-6 py-1.5 sm:py-2 w-full max-w-[200px] sm:max-w-full text-center shadow-lg">
+                  <div className="mt-3 sm:mt-4 bg-primary px-4 sm:px-6 py-1.5 sm:py-2 w-full max-w-[240px] sm:max-w-full text-center shadow-lg">
                       <span className="text-[8px] sm:text-[10px] font-black tracking-[0.2em] text-primary-foreground uppercase">LIST SR.NO {currentPlayer.playerNumber}</span>
                   </div>
+
+                  {/* Auction Insight Placement */}
+                  {currentPlayer.auctionInsight && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-6 p-4 bg-secondary/20 border-l-4 border-primary/60 w-full"
+                    >
+                        <p className="text-[7px] text-primary font-black tracking-widest uppercase mb-2">Auction Insight</p>
+                        <p className="text-[11px] leading-relaxed text-white/80 italic font-medium">
+                            "{currentPlayer.auctionInsight}"
+                        </p>
+                    </motion.div>
+                  )}
                 </div>
 
-                {/* Right Column: Profile & Bidding */}
                 <div className="flex-1 flex flex-col justify-between w-full">
                   
-                  {/* Header */}
                   <div className="text-center lg:text-left mb-4 sm:mb-6">
                     <div className="flex items-center gap-2 sm:gap-3 mb-2 justify-center lg:justify-start">
                         <span className="h-px w-6 sm:w-8 bg-primary/40" />
@@ -438,7 +431,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                     <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold text-white uppercase tracking-tight leading-none text-center lg:text-left">{currentPlayer.playerName}</h1>
                   </div>
 
-                  {/* Stats Grid */}
                   <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-4 sm:mb-6">
                       {[
                           { label: 'ORIGIN', value: currentPlayer.country },
@@ -457,7 +449,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                       ))}
                   </div>
 
-                  {/* Live Bidding Box */}
                   <div className="relative border border-primary/40 bg-black/60 p-4 sm:p-6 shadow-2xl">
                       <div className="flex flex-col sm:flex-row items-center justify-between relative z-10 gap-4 sm:gap-0">
                           <div className="flex-1 text-center sm:text-left">
@@ -479,9 +470,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                               )}
                           </div>
 
-                          {/* Auctioneer HUD */}
                           <div className="flex flex-col items-center gap-4 sm:gap-6 border-t sm:border-t-0 sm:border-l border-white/10 pt-4 sm:pt-0 sm:pl-8 sm:ml-6 min-w-full sm:min-w-[200px]">
-                             {/* Timer Circle */}
                              {isTimerActive && !isSold && !isUnsold && finalCallStatus === 'none' && (
                                 <div className={cn(
                                     "relative flex items-center justify-center transition-transform scale-100 sm:scale-125",
@@ -503,7 +492,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                 </div>
                              )}
 
-                             {/* Final Call Status Indicator */}
                              <div className="flex flex-col items-center gap-3 sm:gap-4 w-full">
                                 <div className="flex gap-2 sm:gap-3 justify-center">
                                     <div className={cn(
@@ -572,7 +560,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         </AnimatePresence>
       </div>
 
-      {/* Control Actions Hub */}
       <div className="w-full max-w-6xl mx-auto flex flex-col items-center gap-4 sm:gap-6 pb-6 sm:pb-10 px-4 sm:px-6">
         
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full">
@@ -609,7 +596,6 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
           )}
         </div>
 
-        {/* Global HUD Badge */}
         <div className="flex flex-col items-center gap-1 sm:gap-2">
           <div className="bg-primary px-4 sm:px-8 py-1 text-primary-foreground text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] sm:tracking-[0.5em] shadow-2xl flex items-center gap-2 sm:gap-3 text-center">
             {undrawnPlayers.length} LOTS REMAINING • {set.name}

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm, SubmitHandler } from 'react-hook-form';
@@ -36,7 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Textarea } from "@/components/ui/textarea"
 
 const playerSchema = z.object({
   firstName: z.string().min(1, 'First name is required.'),
@@ -47,6 +48,7 @@ const playerSchema = z.object({
   cua: z.string().optional(),
   reservePrice: z.coerce.number().min(0).optional(),
   points: z.coerce.number().min(0).optional(),
+  auctionInsight: z.string().optional(),
   imageUrl: z.string().url({ message: "Please provide a valid URL." }).optional().or(z.literal('')),
 });
 
@@ -83,6 +85,7 @@ export default function PlayersPage() {
       cua: '',
       reservePrice: 0,
       points: 0,
+      auctionInsight: '',
       imageUrl: '',
     },
   });
@@ -104,6 +107,7 @@ export default function PlayersPage() {
         cua: editingPlayer.cua,
         reservePrice: editingPlayer.reservePrice,
         points: editingPlayer.points,
+        auctionInsight: editingPlayer.auctionInsight || '',
         imageUrl: editingPlayer.imageUrl,
       });
     } else {
@@ -116,6 +120,7 @@ export default function PlayersPage() {
             cua: '',
             reservePrice: 0,
             points: 0,
+            auctionInsight: '',
             imageUrl: '',
         });
     }
@@ -134,7 +139,6 @@ export default function PlayersPage() {
     }
 
     if (editingPlayer) {
-        // Update existing player
         const playerRef = doc(firestore, 'players', editingPlayer.id);
         updateDocumentNonBlocking(playerRef, playerData);
         toast({
@@ -144,7 +148,6 @@ export default function PlayersPage() {
         setEditingPlayer(null);
 
     } else {
-        // Add new player
         addDocumentNonBlocking(playersCollection, playerData);
         toast({
             title: 'Player Added',
@@ -186,7 +189,7 @@ export default function PlayersPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardHeader>
-              <CardTitle className="flex items-center text-xl sm:text-2xl">
+              <CardTitle className="flex items-center text-xl sm:text-2xl font-serif">
                 <UserPlus className="mr-2 h-5 w-5 sm:h-6 sm:w-6" /> {editingPlayer ? `Editing ${editingPlayer.playerName}` : 'Add New Player'}
               </CardTitle>
               <CardDescription>
@@ -302,6 +305,19 @@ export default function PlayersPage() {
               </div>
               <FormField
                 control={form.control}
+                name="auctionInsight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Auction Insight</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Key scouting details or AI insights..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="imageUrl"
                 render={({ field }) => (
                   <FormItem>
@@ -331,7 +347,7 @@ export default function PlayersPage() {
 
       <Card className="bg-card/90 backdrop-blur-md overflow-hidden">
         <CardHeader>
-          <CardTitle className="text-xl sm:text-2xl">Player List</CardTitle>
+          <CardTitle className="text-xl sm:text-2xl font-serif">Player List</CardTitle>
           <CardDescription>
             Master roster of all registered players.
           </CardDescription>

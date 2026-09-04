@@ -76,6 +76,10 @@
           "type": "number",
           "description": "Points associated with the player for team composition."
         },
+        "auctionInsight": {
+          "type": "string",
+          "description": "Short AI-generated or scout insight about the player."
+        },
         "imageUrl": {
           "type": "string",
           "description": "URL to the player's photo."
