@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -8,7 +7,7 @@ import { doc, DocumentReference, collection, query, orderBy } from 'firebase/fir
 import { Player, PlayerSet, ActiveAuctionState, Squad } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
-import { Trophy, Gavel, Users, Info, ShieldCheck, CheckCircle, AlertTriangle, Sparkles } from 'lucide-react';
+import { Trophy, Gavel, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -75,10 +74,10 @@ export default function PublicLivePage() {
 
   if (!auction || (auction.status === 'idle' && !auction.currentPlayerId)) {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center bg-background p-4 text-center">
-        <Trophy className="h-20 w-20 text-primary mb-4" />
-        <h1 className="text-4xl font-serif text-primary mb-2">Floor Waiting</h1>
-        <p className="text-muted-foreground uppercase tracking-widest text-xs">The session will commence shortly.</p>
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#1a0202] p-4 text-center">
+        <Trophy className="h-20 w-20 text-primary mb-4 animate-pulse" />
+        <h1 className="text-4xl font-serif text-primary mb-2">Live Floor Waiting</h1>
+        <p className="text-muted-foreground uppercase tracking-widest text-[10px]">The session will commence shortly.</p>
       </div>
     );
   }
@@ -88,10 +87,10 @@ export default function PublicLivePage() {
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center p-4 bg-background overflow-hidden sunburst-bg">
       {/* Broadcast Header */}
-      <div className="absolute top-0 left-0 w-full p-6 flex items-center justify-between z-50 bg-gradient-to-b from-black/80 to-transparent">
+      <div className="absolute top-0 left-0 w-full p-6 flex items-center justify-between z-50 bg-gradient-to-b from-black/90 to-transparent">
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse shadow-[0_0_10px_red]" />
-          <span className="text-red-600 font-bold uppercase tracking-[0.2em] text-[10px]">Broadcast Live</span>
+          <span className="text-red-600 font-bold uppercase tracking-[0.2em] text-[10px]">Live Broadcast</span>
           <div className="h-4 w-px bg-primary/20 mx-2" />
           <span className="text-primary font-serif font-bold text-lg">{set?.name}</span>
         </div>
@@ -107,14 +106,24 @@ export default function PublicLivePage() {
           {activeView === 'auction' ? (
             <motion.div key={currentPlayer?.id || 'idle'} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="w-full">
                 <Card className={cn("ornate-border bg-card/90 backdrop-blur-md shadow-2xl relative transition-all duration-700", isMarquee && "border-primary shadow-[0_0_80px_rgba(255,215,0,0.2)]")}>
-                    <CardContent className="p-8 min-h-[450px] flex items-center justify-center">
+                    <CardContent className="p-8 min-h-[480px] flex items-center justify-center relative">
+                        {/* Sold/Unsold Overlays for Public */}
+                        {(auction.isSold || auction.isUnsold) && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/95 p-10 text-center">
+                                <Gavel size={80} className={cn("mb-6", auction.isSold ? "text-primary animate-bounce" : "text-destructive")} />
+                                <h2 className={cn("text-8xl font-serif font-black uppercase italic tracking-tighter", auction.isSold ? "text-primary text-glow-gold" : "text-destructive")}>{auction.isSold ? 'SOLD' : 'UNSOLD'}</h2>
+                                <h3 className="text-3xl font-serif text-white uppercase mt-4 tracking-widest">{currentPlayer?.playerName}</h3>
+                                {auction.isSold && <p className="text-6xl font-mono font-black text-primary mt-6">{auction.currentBid}L</p>}
+                            </motion.div>
+                        )}
+
                         {auction.status === 'drawing' ? (
                             <div className="text-center flex flex-col items-center">
                                 <div className="w-16 h-16 border-4 border-primary border-t-transparent animate-spin rounded-full mb-6" />
-                                <h1 className="text-3xl text-primary font-serif tracking-widest animate-pulse uppercase">Next Lot Incoming</h1>
+                                <h1 className="text-3xl text-primary font-serif tracking-widest uppercase">Next Lot Incoming</h1>
                             </div>
                         ) : currentPlayer ? (
-                            <div className="flex flex-col lg:flex-row items-center gap-12 w-full">
+                            <div className="flex flex-col lg:row items-center gap-12 w-full lg:flex-row">
                                 <div className="w-full lg:w-2/5 relative aspect-[3/4] max-w-[320px] mx-auto ornate-border overflow-hidden">
                                     {currentPlayer.imageUrl ? <Image src={currentPlayer.imageUrl} alt="" fill className="object-cover" /> : <ShieldCheck className="h-40 w-40 opacity-10 mx-auto mt-20" />}
                                 </div>
@@ -122,14 +131,14 @@ export default function PublicLivePage() {
                                     <div>
                                         <div className="flex items-center gap-3 mb-2">
                                           <p className="font-serif text-[10px] text-primary font-black uppercase tracking-[0.4em]">Active Floor Lot</p>
-                                          {isMarquee && <Badge className="bg-primary text-primary-foreground animate-bounce">MARQUEE</Badge>}
+                                          {isMarquee && <Badge className="bg-primary text-primary-foreground">MARQUEE</Badge>}
                                         </div>
                                         <h1 className="text-5xl lg:text-7xl font-bold font-serif text-white italic tracking-tighter drop-shadow-lg">{currentPlayer.playerName}</h1>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         {[
                                             { label: 'Role', value: currentPlayer.specialism },
-                                            { label: 'Points', value: currentPlayer.points },
+                                            { label: 'Rating', value: currentPlayer.points },
                                         ].map((s, i) => (
                                             <div key={i} className="bg-secondary/30 border-l-4 border-primary p-4">
                                                 <span className="text-[8px] text-primary font-black uppercase block">{s.label}</span>
@@ -157,7 +166,7 @@ export default function PublicLivePage() {
                 <Card className="ornate-border bg-card/90 backdrop-blur-md shadow-2xl overflow-hidden max-h-[65vh]">
                     <div className="p-6 border-b border-primary/20 flex justify-between items-center">
                         <h2 className="text-2xl font-serif text-primary uppercase tracking-widest font-black">House Standings</h2>
-                        <span className="text-[8px] text-primary font-black uppercase tracking-[0.4em]">Official Real-time Ledger</span>
+                        <span className="text-[8px] text-primary font-black uppercase tracking-[0.4em]">Official Broadcast Standings</span>
                     </div>
                     <div className="p-6 overflow-y-auto custom-scrollbar h-[50vh]">
                         <Table>
