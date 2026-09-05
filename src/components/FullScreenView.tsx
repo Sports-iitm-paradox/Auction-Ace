@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -59,12 +60,12 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
   const { data: squads } = useCollection<Squad>(squadsQuery);
 
-  // Persistence Engine: Initialize only if no session exists or if explicitly reset
+  // Global Session Engine: History is persistent across all sets.
   useEffect(() => {
     if (isLoadingAuction || !auctionRef || !user || players.length === 0) return;
 
-    // If session doesn't exist at all or it's a completely different set
-    if (!auction || auction.setId !== set.id) {
+    if (!auction) {
+        // Initial setup for the entire auction session
         setDocumentNonBlocking(auctionRef, {
             currentPlayerId: "",
             setId: set.id,
@@ -78,23 +79,44 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
             history: [],
             undrawnIds: shuffleArray(players.map(p => p.id))
         }, { merge: true });
+    } else if (auction.setId !== set.id) {
+        // Transitioning between sets within the same global session
+        // We filter out any players from the new set that have already been handled in history.
+        const handledIds = new Set(auction.history.map(h => h.playerId));
+        const newUndrawn = shuffleArray(players.filter(p => !handledIds.has(p.id)).map(p => p.id));
+        
+        updateDocumentNonBlocking(auctionRef, {
+            setId: set.id,
+            undrawnIds: newUndrawn,
+            status: 'idle',
+            currentPlayerId: "",
+            currentBid: 0,
+            hammerStep: 0,
+            isSold: false,
+            isUnsold: false,
+            lastUpdated: serverTimestamp()
+        });
     }
   }, [auction, isLoadingAuction, auctionRef, user, set, players]);
 
   const currentPlayer = useMemo(() => {
     if (!auction?.currentPlayerId) return null;
-    return set.players.find(p => p.id === auction.currentPlayerId) || null;
-  }, [auction?.currentPlayerId, set.players]);
+    // We search across all players passed to this view (which should represent the current set)
+    return players.find(p => p.id === auction.currentPlayerId) || null;
+  }, [auction?.currentPlayerId, players]);
 
+  // Drawn players logic now uses global history
   const drawnPlayers = useMemo(() => {
     if (!auction?.history) return [];
     return auction.history
       .map(event => {
-        const p = set.players.find(player => player.id === event.playerId);
+        // We look for player info in the current set, but if they came from another set, we might not have their metadata here.
+        // For the Ledger, we'll try to find them, but the Squads table is the definitive source for cross-set rosters.
+        const p = players.find(player => player.id === event.playerId);
         return p ? { ...p, status: event.type, finalPrice: event.bid, houseName: event.houseName } : null;
       })
       .filter((p): p is any => p !== null);
-  }, [auction?.history, set.players]);
+  }, [auction?.history, players]);
 
   const playSound = useCallback((key: string) => {
     if (typeof Audio === 'undefined') return;
@@ -131,7 +153,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
     clearHammerSequence();
     const undrawn = [...auction.undrawnIds];
     const nextId = undrawn.shift();
-    const nextPlayer = set.players.find(p => p.id === nextId);
+    const nextPlayer = players.find(p => p.id === nextId);
     if (!nextPlayer) return;
 
     setTimer(DEFAULT_TIMER);
@@ -302,10 +324,10 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
   };
 
   const handleHardReset = async () => {
-    if (!auctionRef || !confirm("Are you sure? This will wipe session progress.")) return;
+    if (!auctionRef || !confirm("CRITICAL: This will wipe all global session progress and ledger. Continue?")) return;
     
     clearHammerSequence();
-    const allIds = set.players.map(p => p.id);
+    const allIds = players.map(p => p.id);
     const shuffled = shuffleArray(allIds);
 
     updateDocumentNonBlocking(auctionRef, {
@@ -368,7 +390,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
       return (
           <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#1a0202] text-primary font-serif">
               <Loader2 className="w-16 h-16 animate-spin mb-6" />
-              <h1 className="text-xl uppercase tracking-[0.5em] animate-pulse">Establishing Session Connection...</h1>
+              <h1 className="text-xl uppercase tracking-[0.5em] animate-pulse">Establishing Global Session...</h1>
           </div>
       );
   }
@@ -392,7 +414,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                 <History size={12} /> Ledger
             </button>
             <button onClick={handleUndo} className="h-8 px-3 flex items-center justify-center bg-black/40 border border-primary/20 text-primary rounded hover:bg-primary/20 transition-colors"><Undo2 size={14} /></button>
-            <button onClick={handleHardReset} title="Hard Reset Session" className="h-8 px-3 flex items-center justify-center bg-black/40 border border-primary/20 text-destructive rounded hover:bg-destructive/20 transition-colors"><RotateCcw size={14} /></button>
+            <button onClick={handleHardReset} title="Hard Reset Global Session" className="h-8 px-3 flex items-center justify-center bg-black/40 border border-primary/20 text-destructive rounded hover:bg-destructive/20 transition-colors"><RotateCcw size={14} /></button>
             <button onClick={() => router.push('/')} className="h-8 w-8 flex items-center justify-center bg-black/40 border border-primary/20 text-primary rounded"><X size={18} /></button>
         </div>
       </div>
@@ -402,7 +424,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
         <AnimatePresence>
             {isHistoryOpen && (
                 <motion.aside initial={{ x: -320 }} animate={{ x: 0 }} exit={{ x: -320 }} className="w-80 bg-black/80 backdrop-blur-3xl border-r border-primary/20 h-full p-4 overflow-hidden z-[90] flex flex-col">
-                    <h3 className="text-primary font-serif uppercase tracking-[0.3em] text-[10px] font-black mb-4 flex items-center gap-2"><History size={14}/> Official Ledger</h3>
+                    <h3 className="text-primary font-serif uppercase tracking-[0.3em] text-[10px] font-black mb-4 flex items-center gap-2"><History size={14}/> Official Global Ledger</h3>
                     <ScrollArea className="flex-1">
                         <div className="space-y-2 pr-2">
                             {drawnPlayers.slice().reverse().map((p: any, i) => (
@@ -456,7 +478,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                                               ))}
                                           </SelectContent>
                                       </Select>
-                                      <Button onClick={handleConfirmAssignment} disabled={!selectedHouseId} className="w-full h-12 text-sm font-serif font-black uppercase tracking-widest shadow-2xl">Record Sale & Next Lot</Button>
+                                      <Button onClick={handleConfirmAssignment} disabled={!selectedHouseId} className="w-full h-12 text-sm font-serif font-black uppercase tracking-widest shadow-2xl">Record Global Transaction</Button>
                                   </div>
                                 )}
 

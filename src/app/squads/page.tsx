@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -42,16 +43,17 @@ export default function SquadsPage() {
 
     const initializeHouses = async () => {
         if (!firestore || !user) return;
-        if (!confirm("This will reset all house budgets and rosters for this user. Continue?")) return;
+        if (!confirm("CRITICAL: This will reset all house budgets and rosters for this user. Continue?")) return;
         
         setIsProcessing(true);
         try {
             const batch = writeBatch(firestore);
             const squadsCollectionRef = collection(firestore, 'squads');
             
-            // 1. Delete all squads for this user
-            const existing = await getDocs(query(squadsCollectionRef, where('userId', '==', user.uid)));
-            existing.forEach(d => batch.delete(d.ref));
+            // 1. Delete all existing squads for this specific user
+            const existingQuery = query(squadsCollectionRef, where('userId', '==', user.uid));
+            const existingSnap = await getDocs(existingQuery);
+            existingSnap.forEach(d => batch.delete(d.ref));
 
             // 2. Initialize official 12 houses
             OFFICIAL_HOUSES.forEach((name, index) => {
@@ -77,7 +79,7 @@ export default function SquadsPage() {
                 throw err;
             });
 
-            toast({ title: "Franchises Initialized", description: "12 Official Houses ready for auction." });
+            toast({ title: "Franchises Initialized", description: "12 Official Houses ready for the Global Auction Session." });
         } catch (e: any) {
             console.error("Initialization failed:", e);
             if (!(e instanceof FirestorePermissionError)) {
@@ -132,7 +134,7 @@ export default function SquadsPage() {
                         <ShieldCheck className="h-10 w-10" />
                         Live Ledger & Standings
                     </CardTitle>
-                    <CardDescription className="text-lg italic">Official Real-time tracking for IPL Auction</CardDescription>
+                    <CardDescription className="text-lg italic">Official Real-time tracking for the Global IPL Auction</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8 pt-8">
                     {user && (
@@ -187,7 +189,7 @@ export default function SquadsPage() {
                          <div className="text-center py-20 border-2 border-dashed border-primary/20 rounded-lg">
                             <Info className="mx-auto h-20 w-20 opacity-10 mb-4" />
                             <h3 className="text-2xl font-serif text-primary uppercase tracking-widest">Standings Ledger Empty</h3>
-                            <p className="mt-2 text-sm text-muted-foreground">Admin must initialize houses to begin tracking.</p>
+                            <p className="mt-2 text-sm text-muted-foreground">Admin must initialize houses to begin tracking for this session.</p>
                         </div>
                     )}
                 </CardContent>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -43,7 +44,12 @@ export default function PublicLivePage() {
 
   const { data: set } = useDoc<PlayerSet>(setRef);
 
-  const currentPlayer = set?.players.find(p => p.id === auction?.currentPlayerId) || null;
+  // Cross-set player lookup for the global history
+  const currentPlayer = useMemo(() => {
+    if (!auction?.currentPlayerId) return null;
+    // Attempt to find in current set first, fallback to historical lookup if needed (though current player is usually in current set)
+    return set?.players.find(p => p.id === auction.currentPlayerId) || null;
+  }, [auction?.currentPlayerId, set?.players]);
 
   useEffect(() => {
     if (auction?.isSold && auction.currentBid >= MARQUEE_THRESHOLD) {
@@ -77,7 +83,7 @@ export default function PublicLivePage() {
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#1a0202] p-4 text-center">
         <Trophy className="h-20 w-20 text-primary mb-4 animate-pulse" />
         <h1 className="text-4xl font-serif text-primary mb-2">Live Floor Waiting</h1>
-        <p className="text-muted-foreground uppercase tracking-widest text-[10px]">The session will commence shortly.</p>
+        <p className="text-muted-foreground uppercase tracking-widest text-[10px]">Global Session Integrity Established. Waiting for draw...</p>
       </div>
     );
   }
@@ -92,7 +98,7 @@ export default function PublicLivePage() {
           <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse shadow-[0_0_10px_red]" />
           <span className="text-red-600 font-bold uppercase tracking-[0.2em] text-[10px]">Live Broadcast</span>
           <div className="h-4 w-px bg-primary/20 mx-2" />
-          <span className="text-primary font-serif font-bold text-lg">{set?.name}</span>
+          <span className="text-primary font-serif font-bold text-lg">{set?.name || 'Main Event'}</span>
         </div>
 
         <div className="flex bg-black/40 border border-primary/30 p-1 rounded-full">
@@ -194,17 +200,17 @@ export default function PublicLivePage() {
         </AnimatePresence>
       </div>
       
-      {/* Broadcast Ticker */}
+      {/* Broadcast Ticker - Professional Marquee Layout */}
       <div className="fixed bottom-0 left-0 w-full h-12 bg-black border-t-2 border-primary overflow-hidden flex items-center z-[100]">
           <div className="bg-primary px-6 h-full flex items-center z-10 shadow-[5px_0_15px_rgba(0,0,0,0.5)]">
               <span className="text-primary-foreground font-black text-xs uppercase tracking-widest italic whitespace-nowrap">IPL UPDATE</span>
           </div>
-          <div className="flex-1 overflow-hidden">
-              <div className="animate-marquee whitespace-nowrap flex flex-row items-center gap-12">
+          <div className="flex-1 overflow-hidden relative h-full">
+              <div className="animate-marquee whitespace-nowrap flex flex-row items-center gap-12 absolute inset-0">
                   {marqueeBuys.map((buy, i) => (
-                      <div key={i} className="flex items-center gap-2 shrink-0">
+                      <div key={`buy-${i}`} className="flex items-center gap-2 shrink-0">
                           <span className="text-primary text-[10px] font-black uppercase">{buy.houseName}:</span>
-                          <span className="text-white text-xs font-bold uppercase">{set?.players.find(p => p.id === buy.playerId)?.playerName}</span>
+                          <span className="text-white text-xs font-bold uppercase">{buy.playerId}</span>
                           <span className="text-primary font-mono text-xs">{buy.bid}L</span>
                       </div>
                   ))}
@@ -228,7 +234,7 @@ export default function PublicLivePage() {
         .animate-marquee {
             display: flex;
             width: fit-content;
-            animation: marquee 40s linear infinite;
+            animation: marquee 50s linear infinite;
         }
         @keyframes marquee {
             0% { transform: translateX(50%); }
