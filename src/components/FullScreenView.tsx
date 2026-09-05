@@ -5,15 +5,14 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 import { X, Trophy, Gavel, Undo2, RotateCcw, Shield, Loader2 } from 'lucide-react';
-import { Player, PlayerSet, ActiveAuctionState, Squad, SQUAD_RULES, ActionEvent } from '@/lib/player-data';
+import { Player, PlayerSet, ActiveAuctionState, ActionEvent } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { useFirestore, useUser, useDoc, useMemoFirebase, updateDocumentNonBlocking, useCollection, setDocumentNonBlocking } from '@/firebase';
-import { doc, serverTimestamp, DocumentReference, collection, query, orderBy } from 'firebase/firestore';
+import { useFirestore, useUser, useDoc, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { doc, serverTimestamp, DocumentReference } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import confetti from 'canvas-confetti';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const SOUNDS = {
@@ -36,8 +35,6 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
   const { toast } = useToast();
   
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [isTrackerOpen, setIsTrackerOpen] = useState(false);
-  const [selectedHouseId, setSelectedHouseId] = useState<string>("");
   const [timer, setTimer] = useState<number>(DEFAULT_TIMER);
   const [isTimerActive, setIsTimerActive] = useState(false);
 
@@ -51,17 +48,8 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
 
   const { data: auction, isLoading: isLoadingAuction } = useDoc<ActiveAuctionState>(auctionRef);
 
-  const squadsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'squads'), orderBy('order'));
-  }, [firestore]);
-
-  const { data: squads } = useCollection<Squad>(squadsQuery);
-
-  // Persistence logic: Initialize only if no session exists
   useEffect(() => {
     if (isLoadingAuction || !auctionRef || !user) return;
-
     if (!auction) {
         setDocumentNonBlocking(auctionRef, {
             currentPlayerId: "",
@@ -173,7 +161,21 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
             setIsTimerActive(false);
             playSound('sold');
             if (auction.currentBid >= MARQUEE_THRESHOLD) confetti({ particleCount: 200, spread: 90 });
-            updateDocumentNonBlocking(auctionRef, { status: 'sold', hammerStep: 4, isSold: true, lastUpdated: serverTimestamp() });
+            
+            const newHistory: ActionEvent[] = [...(auction.history || []), { 
+                type: 'sold', 
+                playerId: auction.currentPlayerId, 
+                bid: auction.currentBid, 
+                timestamp: new Date().toISOString() 
+            }];
+
+            updateDocumentNonBlocking(auctionRef, { 
+                status: 'sold', 
+                hammerStep: 4, 
+                isSold: true, 
+                history: newHistory,
+                lastUpdated: serverTimestamp() 
+            });
             return;
         }
         playSound('reveal');
@@ -182,46 +184,6 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
     };
 
     runStep(1);
-  };
-
-  const handleConfirmAssignment = async () => {
-    if (!auction || !auctionRef || !currentPlayer || !selectedHouseId || !firestore) return;
-
-    const house = squads?.find(s => s.id === selectedHouseId);
-    if (!house) return;
-
-    const bidCr = auction.currentBid / 100;
-    const houseRef = doc(firestore, 'squads', house.id);
-    
-    const playerEntry = `${currentPlayer.playerName}:${bidCr}:${currentPlayer.specialism}:${currentPlayer.cua}`;
-    const newPlayersList = house.playersList ? `${house.playersList};${playerEntry}` : playerEntry;
-    
-    updateDocumentNonBlocking(houseRef, {
-        moneyLeft: parseFloat((house.moneyLeft - bidCr).toFixed(2)),
-        moneySpent: parseFloat((house.moneySpent + bidCr).toFixed(2)),
-        totalPoints: house.totalPoints + (currentPlayer.points || 0),
-        playersList: newPlayersList,
-        budgetStatus: (house.moneyLeft - bidCr) < 0 ? 'OVER' : 'OK'
-    });
-
-    const newHistory: ActionEvent[] = [...(auction.history || []), { 
-        type: 'sold', 
-        playerId: currentPlayer.id, 
-        bid: auction.currentBid, 
-        houseId: house.id,
-        houseName: house.name,
-        timestamp: new Date().toISOString() 
-    }];
-
-    updateDocumentNonBlocking(auctionRef, {
-        history: newHistory,
-        lastUpdated: serverTimestamp(),
-        currentPlayerId: "",
-        status: 'idle',
-        isSold: false,
-        hammerStep: 0
-    });
-    setSelectedHouseId("");
   };
 
   const handleUnsold = () => {
@@ -241,6 +203,19 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
     });
   };
 
+  const handleNextLot = () => {
+    if (!auctionRef) return;
+    updateDocumentNonBlocking(auctionRef, {
+        currentPlayerId: "",
+        status: 'idle',
+        isSold: false,
+        isUnsold: false,
+        hammerStep: 0,
+        lastUpdated: serverTimestamp()
+    });
+    handleDrawPlayer();
+  };
+
   const handleUndo = () => {
     if (!auction || !auctionRef || auction.history.length === 0) return;
     const history = [...auction.history];
@@ -252,7 +227,8 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
         isUnsold: false,
         history,
         currentPlayerId: last?.playerId,
-        currentBid: last?.bid || 0
+        currentBid: last?.bid || 0,
+        lastUpdated: serverTimestamp()
     });
   };
 
@@ -270,7 +246,6 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
     });
   };
 
-  // Robust loading guard to prevent status property read errors
   if (isLoadingAuction || !auction) {
     return (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#1a0202] z-[200]">
@@ -290,8 +265,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
             <h2 className="font-serif text-[10px] text-primary tracking-[0.3em] uppercase font-bold">Session Moderator</h2>
         </div>
         <div className="flex gap-2">
-            <button onClick={() => setIsTrackerOpen(!isTrackerOpen)} className={cn("h-8 px-4 text-[9px] font-black uppercase tracking-widest rounded border transition-all", isTrackerOpen ? "bg-primary text-primary-foreground border-primary" : "bg-black/40 border-primary/20 text-primary")}>Tracker</button>
-            <button onClick={() => setIsHistoryOpen(!isHistoryOpen)} className={cn("h-8 px-4 text-[9px] font-black uppercase tracking-widest rounded border transition-all", isHistoryOpen ? "bg-primary text-primary-foreground border-primary" : "bg-black/40 border-primary/20 text-primary")}>Ledger</button>
+            <button onClick={() => setIsHistoryOpen(!isHistoryOpen)} className={cn("h-8 px-4 text-[9px] font-black uppercase tracking-widest rounded border transition-all", isHistoryOpen ? "bg-primary text-primary-foreground border-primary" : "bg-black/40 border-primary/20 text-primary")}>Official Ledger</button>
             <button onClick={handleUndo} className="h-8 px-3 bg-black/40 border border-primary/20 text-primary rounded"><Undo2 size={14} /></button>
             <button onClick={handleHardReset} className="h-8 px-3 bg-black/40 border border-primary/20 text-destructive rounded"><RotateCcw size={14} /></button>
             <button onClick={() => router.push('/')} className="h-8 w-8 bg-black/40 border border-primary/20 text-primary rounded flex items-center justify-center"><X size={18} /></button>
@@ -301,7 +275,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
       <div className="flex flex-1 w-full relative overflow-hidden">
         {isHistoryOpen && (
             <aside className="w-80 bg-black/95 border-r border-primary/20 h-full p-6 z-[90] flex flex-col">
-                <h3 className="text-primary font-serif uppercase tracking-[0.3em] text-[12px] font-black mb-6">Global Ledger</h3>
+                <h3 className="text-primary font-serif uppercase tracking-[0.3em] text-[12px] font-black mb-6">Auction Ledger</h3>
                 <ScrollArea className="flex-1">
                     <div className="space-y-3 pr-4">
                         {auction.history.slice().reverse().map((p, i) => (
@@ -309,7 +283,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                                 <div className={cn("absolute left-0 top-0 bottom-0 w-1", p.type === 'sold' ? "bg-primary" : "bg-destructive")} />
                                 <p className="text-[11px] font-black text-white uppercase truncate">{players.find(pl => pl.id === p.playerId)?.playerName}</p>
                                 <div className="flex justify-between mt-2">
-                                    <span className="text-[9px] text-primary/60 font-black">{p.houseName || 'UNSOLD'}</span>
+                                    <span className="text-[9px] text-primary/60 font-black uppercase">{p.type === 'sold' ? 'SOLD' : 'UNSOLD'}</span>
                                     {p.bid && <span className="text-[11px] font-mono font-black text-primary">{p.bid}L</span>}
                                 </div>
                             </div>
@@ -330,25 +304,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                                 <h2 className={cn("text-6xl lg:text-9xl font-serif font-black uppercase italic tracking-tighter", auction.isSold ? "text-primary text-glow-gold" : "text-destructive")}>{auction.isSold ? 'SOLD' : 'UNSOLD'}</h2>
                                 <h3 className="text-2xl lg:text-4xl font-serif text-white uppercase mt-6 tracking-[0.2em]">{currentPlayer.playerName}</h3>
                                 {auction.isSold && <p className="text-5xl lg:text-8xl font-mono font-black text-primary mt-6">{auction.currentBid}L</p>}
-                                
-                                {auction.isSold && (
-                                  <div className="mt-12 w-full max-w-md space-y-4">
-                                      <Select value={selectedHouseId} onValueChange={setSelectedHouseId}>
-                                          <SelectTrigger className="bg-black/90 border-primary/40 h-16 text-lg font-bold text-white relative z-[120]">
-                                              <SelectValue placeholder="Assign Winning House..." />
-                                          </SelectTrigger>
-                                          <SelectContent className="bg-[#1a0202] border-primary/30 text-white z-[130]">
-                                              {squads?.map(h => (
-                                                  <SelectItem key={h.id} value={h.id} className="text-sm py-4 border-b border-primary/10">
-                                                      {h.name} <span className="text-primary opacity-60 ml-2">({h.moneyLeft}Cr LEFT)</span>
-                                                  </SelectItem>
-                                              ))}
-                                          </SelectContent>
-                                      </Select>
-                                      <Button onClick={handleConfirmAssignment} disabled={!selectedHouseId} className="w-full h-16 text-xl font-serif font-black uppercase tracking-widest">Global Allocation</Button>
-                                  </div>
-                                )}
-                                {auction.isUnsold && <Button onClick={handleDrawPlayer} className="mt-12 h-16 px-16 text-xl font-serif font-black uppercase tracking-widest">Next Drawing</Button>}
+                                <Button onClick={handleNextLot} className="mt-12 h-20 px-20 text-2xl font-serif font-black uppercase tracking-widest shadow-2xl">Reveal Next Lot</Button>
                             </motion.div>
                         )}
 
@@ -365,7 +321,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                                 {currentPlayer.imageUrl ? <Image src={currentPlayer.imageUrl} alt="" fill className="object-cover" /> : <Shield className="w-full h-full p-24 opacity-10 text-primary" />}
                             </div>
                             <div className="flex-1 bg-black/40 p-6 border border-primary/10">
-                                <span className="text-[10px] text-primary font-black uppercase tracking-widest block mb-4">Scouting profile</span>
+                                <span className="text-[10px] text-primary font-black uppercase tracking-widest block mb-4">Official scouting insight</span>
                                 <p className="text-[12px] italic text-white/70 leading-relaxed max-h-[120px] overflow-y-auto custom-scrollbar">{currentPlayer.auctionInsight || 'Official Paradox verified data.'}</p>
                             </div>
                         </div>
@@ -394,7 +350,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                                     </div>
                                 )}
                                 <div>
-                                    <span className="text-[12px] text-primary font-black uppercase tracking-[0.8em] block mb-2">Floor Valuation</span>
+                                    <span className="text-[12px] text-primary font-black uppercase tracking-[0.8em] block mb-2">Live Floor Bid</span>
                                     <div className="flex items-baseline gap-4">
                                         <span className="text-6xl lg:text-[8rem] font-mono font-black text-white tracking-tighter leading-none">{auction.currentBid}</span>
                                         <span className="text-3xl lg:text-5xl font-serif text-primary italic font-black">L</span>
@@ -406,48 +362,27 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                 ) : (
                     <div className="flex flex-col items-center gap-12">
                         <Trophy size={120} className="text-primary animate-pulse" />
-                        <h1 className="text-4xl lg:text-7xl font-serif font-black text-primary uppercase tracking-[0.6em] text-center italic">Session active</h1>
-                        <Button onClick={handleDrawPlayer} className="h-24 px-24 text-2xl font-serif font-black uppercase tracking-widest shadow-2xl">Draw next lot</Button>
+                        <h1 className="text-4xl lg:text-7xl font-serif font-black text-primary uppercase tracking-[0.6em] text-center italic">Auction floor active</h1>
+                        <Button onClick={handleDrawPlayer} className="h-24 px-24 text-2xl font-serif font-black uppercase tracking-widest shadow-2xl">Reveal First Lot</Button>
                     </div>
                 )}
             </AnimatePresence>
         </main>
-
-        {isTrackerOpen && (
-            <aside className="w-80 bg-black/95 border-l border-primary/20 h-full p-6 z-[90] flex flex-col">
-                <h3 className="text-primary font-serif uppercase tracking-[0.3em] text-[12px] font-black mb-6">Franchise Tracker</h3>
-                <ScrollArea className="flex-1">
-                    <div className="space-y-4 pr-4">
-                        {squads?.map(sq => (
-                            <div key={sq.id} className="bg-white/5 border border-primary/10 p-4 rounded-xl space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="font-serif text-[12px] text-white font-black uppercase tracking-wider">{sq.name}</span>
-                                    <span className="text-[12px] font-mono text-primary font-black">{sq.moneyLeft}Cr</span>
-                                </div>
-                                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                                    <div className="h-full bg-primary" style={{ width: `${(sq.moneySpent / 80) * 100}%` }} />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </ScrollArea>
-            </aside>
-        )}
       </div>
 
       <footer className="w-full bg-black border-t-2 border-primary/40 p-6 z-50">
         <div className="max-w-7xl mx-auto flex gap-6">
             {currentPlayer && !auction.isSold && !auction.isUnsold ? (
                 <>
-                    <Button onClick={handleIncreaseBid} className="h-16 flex-1 text-2xl font-serif font-black tracking-widest uppercase">+ Floor Raise</Button>
-                    <Button onClick={handleHammerCall} disabled={auction.hammerStep > 0} className="h-16 px-12 bg-primary text-primary-foreground font-black tracking-widest uppercase hover:bg-primary/90 text-lg">
-                        {auction.hammerStep === 0 ? 'Hammer Sequence' : steps[auction.hammerStep-1]}
+                    <Button onClick={handleIncreaseBid} className="h-20 flex-1 text-2xl font-serif font-black tracking-widest uppercase shadow-2xl shadow-primary/20">+ Raise Bid</Button>
+                    <Button onClick={handleHammerCall} disabled={auction.hammerStep > 0} className="h-20 px-12 bg-primary text-primary-foreground font-black tracking-widest uppercase hover:bg-primary/90 text-xl">
+                        {auction.hammerStep === 0 ? 'Start Hammer' : steps[auction.hammerStep-1]}
                     </Button>
-                    <Button onClick={handleUnsold} variant="destructive" className="h-16 px-12 font-black tracking-widest uppercase text-lg">Unsold</Button>
+                    <Button onClick={handleUnsold} variant="destructive" className="h-20 px-12 font-black tracking-widest uppercase text-xl">Unsold</Button>
                 </>
             ) : (
-                <Button onClick={handleDrawPlayer} disabled={auction.status === 'drawing'} className="h-20 w-full text-xl lg:text-2xl font-serif font-black uppercase tracking-[0.3em] shadow-[0_0_60px_rgba(255,215,0,0.1)] truncate">
-                    {auction.status === 'drawing' ? 'Accessing Next Lot...' : `Reveal Next Player Lot (${undrawnIds.length} Remaining)`}
+                <Button onClick={handleDrawPlayer} disabled={auction.status === 'drawing'} className="h-24 w-full text-xl lg:text-3xl font-serif font-black uppercase tracking-[0.3em] shadow-[0_0_60px_rgba(255,215,0,0.1)] truncate">
+                    {auction.status === 'drawing' ? 'Accessing Official Lot...' : `Reveal Next Player Lot (${undrawnIds.length} Remaining)`}
                 </Button>
             )}
         </div>

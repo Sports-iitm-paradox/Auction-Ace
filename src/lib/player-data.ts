@@ -30,8 +30,6 @@ export interface ActionEvent {
   type: 'sold' | 'unsold';
   playerId: string;
   bid?: number;
-  houseId?: string;
-  houseName?: string;
   timestamp: string;
 }
 
@@ -45,6 +43,7 @@ export interface ActiveAuctionState extends DocumentData {
   userId: string;
   lastUpdated: any;
   history: ActionEvent[];
+  setId?: string;
 }
 
 export interface Squad extends DocumentData {
@@ -58,21 +57,3 @@ export interface Squad extends DocumentData {
     userId: string;
     order: number;
 }
-
-export const OFFICIAL_HOUSES = [
-  "Sundarbans", "Kanha", "Wayanad", "Kaziranga", "Corbett", "Bandipur",
-  "Nilgiri", "Gir", "Nallamala", "Saranda", "Pichavaram", "Namdapha"
-];
-
-export const SQUAD_RULES = {
-  MIN_PLAYERS: 11,
-  MAX_PLAYERS: 15,
-  BATTERS: 4,
-  WK: 1,
-  AR: 2,
-  BOWLERS: 3,
-  FLOATER: 1,
-  MIN_UNCAPPED: 3,
-  MAX_OVERSEAS: 4,
-  TOTAL_PURSE: 80 // Crore
-};
