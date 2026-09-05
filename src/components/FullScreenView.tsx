@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { X, Trophy, Gavel, Undo2, RotateCcw, Shield, Loader2 } from 'lucide-react';
+import { X, Trophy, Gavel, Undo2, RotateCcw, Shield, Loader2, Sparkles, Award } from 'lucide-react';
 import { Player, PlayerSet, ActiveAuctionState, ActionEvent } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -160,7 +159,9 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
         if (step > 3) {
             setIsTimerActive(false);
             playSound('sold');
-            if (auction.currentBid >= MARQUEE_THRESHOLD) confetti({ particleCount: 200, spread: 90 });
+            if (auction.currentBid >= MARQUEE_THRESHOLD) {
+              confetti({ particleCount: 250, spread: 100, origin: { y: 0.5 } });
+            }
             
             const newHistory: ActionEvent[] = [...(auction.history || []), { 
                 type: 'sold', 
@@ -296,97 +297,248 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
         <main className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
             <AnimatePresence mode="wait">
                 {auction.status !== 'drawing' && currentPlayer ? (
-                    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className={cn("w-full max-w-6xl aspect-[16/9] ornate-border bg-[#1a0202]/98 shadow-2xl flex overflow-hidden relative", auction.currentBid >= MARQUEE_THRESHOLD && "border-primary shadow-[0_0_100px_rgba(255,215,0,0.25)]")}>
+                    <motion.div 
+                      key={currentPlayer.id}
+                      initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+                      animate={{ opacity: 1, scale: 1, y: 0 }} 
+                      className={cn(
+                        "w-full max-w-6xl aspect-[16/9] ornate-border bg-[#1a0202]/98 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex overflow-hidden relative", 
+                        auction.currentBid >= MARQUEE_THRESHOLD && "border-primary shadow-[0_0_100px_rgba(255,215,0,0.2)]"
+                      )}
+                    >
                         
                         {(auction.isSold || auction.isUnsold) && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 z-[110] flex flex-col items-center justify-center bg-black/98 p-12 text-center">
-                                <Gavel size={100} className={cn("mb-8", auction.isSold ? "text-primary animate-bounce" : "text-destructive")} />
-                                <h2 className={cn("text-6xl lg:text-9xl font-serif font-black uppercase italic tracking-tighter", auction.isSold ? "text-primary text-glow-gold" : "text-destructive")}>{auction.isSold ? 'SOLD' : 'UNSOLD'}</h2>
-                                <h3 className="text-2xl lg:text-4xl font-serif text-white uppercase mt-6 tracking-[0.2em]">{currentPlayer.playerName}</h3>
-                                {auction.isSold && <p className="text-5xl lg:text-8xl font-mono font-black text-primary mt-6">{auction.currentBid}L</p>}
-                                <Button onClick={handleNextLot} className="mt-12 h-20 px-20 text-2xl font-serif font-black uppercase tracking-widest shadow-2xl">Reveal Next Lot</Button>
+                            <motion.div 
+                              initial={{ opacity: 0, backdropFilter: "blur(0px)" }} 
+                              animate={{ opacity: 1, backdropFilter: "blur(10px)" }} 
+                              className="absolute inset-0 z-[110] flex flex-col items-center justify-center bg-black/90 p-12 text-center"
+                            >
+                                <motion.div 
+                                  initial={{ scale: 0.5, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
+                                  transition={{ type: "spring", damping: 12 }}
+                                  className={cn(
+                                    "p-12 border-8 ornate-border bg-card/50 max-w-3xl w-full relative",
+                                    auction.isSold ? "border-primary shadow-[0_0_80px_rgba(255,215,0,0.4)]" : "border-destructive shadow-[0_0_80px_rgba(255,0,0,0.3)]"
+                                  )}
+                                >
+                                  <div className="absolute top-4 right-4 opacity-30">
+                                    {auction.isSold ? <Award size={100} className="text-primary" /> : <Shield size={100} className="text-destructive" />}
+                                  </div>
+                                  
+                                  <motion.div
+                                    animate={auction.isSold ? { rotate: [0, -5, 5, -5, 0] } : {}}
+                                    transition={{ repeat: Infinity, duration: 2 }}
+                                  >
+                                    <Gavel size={120} className={cn("mx-auto mb-8", auction.isSold ? "text-primary drop-shadow-[0_0_15px_rgba(255,215,0,0.6)]" : "text-destructive")} />
+                                  </motion.div>
+                                  
+                                  <h2 className={cn(
+                                    "text-7xl lg:text-9xl font-serif font-black uppercase italic tracking-tighter leading-none mb-4", 
+                                    auction.isSold ? "text-primary text-glow-gold" : "text-destructive"
+                                  )}>
+                                    {auction.isSold ? 'SOLD' : 'UNSOLD'}
+                                  </h2>
+                                  
+                                  <h3 className="text-3xl lg:text-5xl font-serif text-white uppercase tracking-[0.2em] border-y border-primary/20 py-4 my-6">
+                                    {currentPlayer.playerName}
+                                  </h3>
+                                  
+                                  {auction.isSold && (
+                                    <motion.div 
+                                      initial={{ y: 20, opacity: 0 }}
+                                      animate={{ y: 0, opacity: 1 }}
+                                      className="flex items-center justify-center gap-4"
+                                    >
+                                      <Sparkles className="text-primary animate-pulse" />
+                                      <span className="text-6xl lg:text-9xl font-mono font-black text-primary drop-shadow-lg">{auction.currentBid}L</span>
+                                      <Sparkles className="text-primary animate-pulse" />
+                                    </motion.div>
+                                  )}
+                                </motion.div>
+
+                                <Button 
+                                  onClick={handleNextLot} 
+                                  className="mt-12 h-20 px-24 text-2xl font-serif font-black uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(255,215,0,0.3)] hover:scale-105 transition-transform"
+                                >
+                                  Reveal Next Lot
+                                </Button>
                             </motion.div>
                         )}
 
                         {auction.hammerStep > 0 && auction.hammerStep < 4 && !auction.isSold && (
-                            <motion.div initial={{ y: -100 }} animate={{ y: 0 }} className="absolute top-0 left-0 w-full bg-primary py-6 flex justify-center z-[105] shadow-2xl">
-                                <h2 className="text-3xl lg:text-5xl font-serif font-black uppercase italic tracking-[0.5em] text-primary-foreground">
+                            <motion.div 
+                              initial={{ y: -150 }} 
+                              animate={{ y: 0 }} 
+                              exit={{ y: -150 }}
+                              className="absolute top-0 left-0 w-full bg-primary/95 backdrop-blur-md py-8 flex justify-center z-[105] shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-b-4 border-white/20"
+                            >
+                                <h2 className="text-4xl lg:text-6xl font-serif font-black uppercase italic tracking-[0.6em] text-primary-foreground drop-shadow-lg">
                                     {steps[auction.hammerStep - 1].toUpperCase()}
                                 </h2>
                             </motion.div>
                         )}
 
-                        <div className="w-[40%] h-full border-r border-primary/20 p-8 flex flex-col gap-6">
-                            <div className="w-full aspect-[3/4] relative ornate-border bg-black shadow-2xl overflow-hidden">
-                                {currentPlayer.imageUrl ? <Image src={currentPlayer.imageUrl} alt="" fill className="object-cover" /> : <Shield className="w-full h-full p-24 opacity-10 text-primary" />}
+                        {/* Player Image Section - Fixed Cropping */}
+                        <div className="w-[42%] h-full border-r border-primary/20 p-8 flex flex-col gap-6 bg-black/20">
+                            <div className="w-full aspect-[3/4] relative ornate-border bg-[#0f0202] shadow-inner overflow-hidden flex items-center justify-center">
+                                {currentPlayer.imageUrl ? (
+                                  <Image 
+                                    src={currentPlayer.imageUrl} 
+                                    alt={currentPlayer.playerName} 
+                                    fill 
+                                    className="object-contain p-2" 
+                                    priority
+                                  />
+                                ) : (
+                                  <Shield className="w-full h-full p-24 opacity-5 text-primary" />
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                                <div className="absolute bottom-4 left-4">
+                                  <Badge className="bg-primary text-primary-foreground font-black text-lg">#{currentPlayer.playerNumber}</Badge>
+                                </div>
                             </div>
-                            <div className="flex-1 bg-black/40 p-6 border border-primary/10">
-                                <span className="text-[10px] text-primary font-black uppercase tracking-widest block mb-4">Official scouting insight</span>
-                                <p className="text-[12px] italic text-white/70 leading-relaxed max-h-[120px] overflow-y-auto custom-scrollbar">{currentPlayer.auctionInsight || 'Official Paradox verified data.'}</p>
+                            <div className="flex-1 bg-black/60 p-6 border border-primary/10 shadow-inner rounded-sm">
+                                <span className="text-[11px] text-primary font-black uppercase tracking-[0.3em] block mb-4 border-b border-primary/20 pb-2">Scouting Insight</span>
+                                <p className="text-[13px] italic text-white/80 leading-relaxed max-h-[140px] overflow-y-auto custom-scrollbar font-sans pr-2">
+                                  {currentPlayer.auctionInsight || 'Official Paradox analytics pending. High-potential talent identified for this lot.'}
+                                </p>
                             </div>
                         </div>
 
-                        <div className="flex-1 p-10 flex flex-col justify-between overflow-hidden">
+                        {/* Player Details Section */}
+                        <div className="flex-1 p-10 flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#1a0202] to-black">
                             <div>
-                                <h1 className="text-4xl lg:text-7xl font-serif font-black text-white italic tracking-tighter mb-8 drop-shadow-2xl truncate">{currentPlayer.playerName}</h1>
-                                <div className="grid grid-cols-2 gap-8">
+                                <motion.h1 
+                                  layoutId="playerName"
+                                  className="text-5xl lg:text-7xl font-serif font-black text-white italic tracking-tighter mb-10 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] truncate"
+                                >
+                                  {currentPlayer.playerName}
+                                </motion.h1>
+                                <div className="grid grid-cols-2 gap-x-12 gap-y-10">
                                     {[
                                         { label: 'Specialism', value: currentPlayer.specialism },
-                                        { label: 'Status', value: currentPlayer.cua },
-                                        { label: 'Rating', value: currentPlayer.points },
-                                        { label: 'Origin', value: currentPlayer.country },
+                                        { label: 'Category', value: currentPlayer.cua },
+                                        { label: 'Rating', value: `${currentPlayer.points} PTS` },
+                                        { label: 'Country', value: currentPlayer.country },
                                     ].map((s, i) => (
-                                        <div key={i} className="border-l-4 border-primary/40 pl-6">
-                                            <span className="text-[10px] text-primary font-black uppercase tracking-widest block mb-2">{s.label}</span>
-                                            <span className="text-xl lg:text-3xl font-serif font-bold text-white">{s.value}</span>
+                                        <div key={i} className="group relative">
+                                            <div className="absolute -left-4 top-0 bottom-0 w-1 bg-primary/20 group-hover:bg-primary transition-colors" />
+                                            <span className="text-[11px] text-primary font-black uppercase tracking-[0.4em] block mb-3">{s.label}</span>
+                                            <span className="text-2xl lg:text-4xl font-serif font-bold text-white tracking-wide">{s.value}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            <div className="bg-black/60 border border-primary/20 p-8 flex items-center justify-between shadow-2xl relative">
+                            
+                            <div className="bg-black/80 border-2 border-primary/30 p-10 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-16 translate-x-16 blur-3xl group-hover:bg-primary/10 transition-colors" />
+                                
                                 {isTimerActive && (
-                                    <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full bg-[#1a0202] border-4 border-primary flex items-center justify-center z-[101]">
-                                        <span className={cn("text-2xl font-mono font-black", timer <= 5 ? "text-destructive animate-pulse" : "text-primary")}>{timer}</span>
-                                    </div>
+                                    <motion.div 
+                                      initial={{ scale: 0.8, opacity: 0 }}
+                                      animate={{ scale: 1, opacity: 1 }}
+                                      className="absolute -top-8 -right-8 w-20 h-20 rounded-full bg-background border-4 border-primary shadow-2xl flex items-center justify-center z-[101]"
+                                    >
+                                        <span className={cn(
+                                          "text-3xl font-mono font-black", 
+                                          timer <= 5 ? "text-destructive animate-pulse scale-110" : "text-primary"
+                                        )}>
+                                          {timer}
+                                        </span>
+                                    </motion.div>
                                 )}
-                                <div>
-                                    <span className="text-[12px] text-primary font-black uppercase tracking-[0.8em] block mb-2">Live Floor Bid</span>
-                                    <div className="flex items-baseline gap-4">
-                                        <span className="text-6xl lg:text-[8rem] font-mono font-black text-white tracking-tighter leading-none">{auction.currentBid}</span>
-                                        <span className="text-3xl lg:text-5xl font-serif text-primary italic font-black">L</span>
+                                
+                                <div className="z-10">
+                                    <span className="text-[13px] text-primary font-black uppercase tracking-[1em] block mb-4">Live Floor Valuation</span>
+                                    <div className="flex items-baseline gap-6">
+                                        <motion.span 
+                                          key={auction.currentBid}
+                                          initial={{ scale: 1.1, y: -10 }}
+                                          animate={{ scale: 1, y: 0 }}
+                                          className="text-7xl lg:text-[10rem] font-mono font-black text-white tracking-tighter leading-none"
+                                        >
+                                          {auction.currentBid}
+                                        </motion.span>
+                                        <span className="text-4xl lg:text-6xl font-serif text-primary italic font-black">LAKH</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </motion.div>
                 ) : (
-                    <div className="flex flex-col items-center gap-12">
-                        <Trophy size={120} className="text-primary animate-pulse" />
-                        <h1 className="text-4xl lg:text-7xl font-serif font-black text-primary uppercase tracking-[0.6em] text-center italic">Auction floor active</h1>
-                        <Button onClick={handleDrawPlayer} className="h-24 px-24 text-2xl font-serif font-black uppercase tracking-widest shadow-2xl">Reveal First Lot</Button>
-                    </div>
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.9 }} 
+                      animate={{ opacity: 1, scale: 1 }} 
+                      className="flex flex-col items-center gap-16"
+                    >
+                        <div className="relative">
+                          <Trophy size={160} className="text-primary animate-pulse" />
+                          <div className="absolute inset-0 bg-primary/20 blur-[100px] -z-10" />
+                        </div>
+                        <div className="space-y-4 text-center">
+                          <h1 className="text-5xl lg:text-[6rem] font-serif font-black text-primary uppercase tracking-[0.5em] italic leading-none drop-shadow-2xl">
+                            Paradox Floor
+                          </h1>
+                          <p className="text-2xl font-serif text-white/40 tracking-[0.8em] uppercase">Bidding Operations Standby</p>
+                        </div>
+                        <Button 
+                          onClick={handleDrawPlayer} 
+                          className="h-28 px-28 text-3xl font-serif font-black uppercase tracking-[0.3em] shadow-[0_0_50px_rgba(255,215,0,0.2)] hover:scale-105 transition-transform"
+                        >
+                          Begin Next Lot
+                        </Button>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </main>
       </div>
 
-      <footer className="w-full bg-black border-t-2 border-primary/40 p-6 z-50">
-        <div className="max-w-7xl mx-auto flex gap-6">
+      <footer className="w-full bg-black border-t-2 border-primary/40 p-8 z-50 shadow-[0_-10px_50px_rgba(0,0,0,0.8)]">
+        <div className="max-w-7xl mx-auto flex gap-8">
             {currentPlayer && !auction.isSold && !auction.isUnsold ? (
                 <>
-                    <Button onClick={handleIncreaseBid} className="h-20 flex-1 text-2xl font-serif font-black tracking-widest uppercase shadow-2xl shadow-primary/20">+ Raise Bid</Button>
-                    <Button onClick={handleHammerCall} disabled={auction.hammerStep > 0} className="h-20 px-12 bg-primary text-primary-foreground font-black tracking-widest uppercase hover:bg-primary/90 text-xl">
-                        {auction.hammerStep === 0 ? 'Start Hammer' : steps[auction.hammerStep-1]}
+                    <Button 
+                      onClick={handleIncreaseBid} 
+                      className="h-24 flex-1 text-3xl font-serif font-black tracking-[0.2em] uppercase shadow-2xl shadow-primary/20 hover:bg-primary/90"
+                    >
+                      + Raise Valuation
                     </Button>
-                    <Button onClick={handleUnsold} variant="destructive" className="h-20 px-12 font-black tracking-widest uppercase text-xl">Unsold</Button>
+                    <Button 
+                      onClick={handleHammerCall} 
+                      disabled={auction.hammerStep > 0} 
+                      className={cn(
+                        "h-24 px-16 font-serif font-black tracking-[0.2em] uppercase text-2xl transition-all",
+                        auction.hammerStep > 0 ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90"
+                      )}
+                    >
+                        {auction.hammerStep === 0 ? 'START HAMMER' : steps[auction.hammerStep-1].toUpperCase()}
+                    </Button>
+                    <Button 
+                      onClick={handleUnsold} 
+                      variant="destructive" 
+                      className="h-24 px-16 font-serif font-black tracking-[0.2em] uppercase text-2xl"
+                    >
+                      UNSOLD
+                    </Button>
                 </>
             ) : (
-                <Button onClick={handleDrawPlayer} disabled={auction.status === 'drawing'} className="h-24 w-full text-xl lg:text-3xl font-serif font-black uppercase tracking-[0.3em] shadow-[0_0_60px_rgba(255,215,0,0.1)] truncate">
-                    {auction.status === 'drawing' ? 'Accessing Official Lot...' : `Reveal Next Player Lot (${undrawnIds.length} Remaining)`}
+                <Button 
+                  onClick={handleDrawPlayer} 
+                  disabled={auction.status === 'drawing'} 
+                  className="h-28 w-full text-2xl lg:text-4xl font-serif font-black uppercase tracking-[0.5em] shadow-[0_0_60px_rgba(255,215,0,0.15)] truncate"
+                >
+                    {auction.status === 'drawing' ? 'Accessing Official Lot...' : `REVEAL NEXT PLAYER LOT (${undrawnIds.length} REMAINING)`}
                 </Button>
             )}
         </div>
       </footer>
+      
+      <style jsx global>{`
+        .text-glow-gold { 
+          text-shadow: 0 0 20px rgba(255, 215, 0, 0.7), 0 0 60px rgba(255, 215, 0, 0.4), 0 0 100px rgba(255, 215, 0, 0.2); 
+        }
+      `}</style>
     </div>
   );
 }

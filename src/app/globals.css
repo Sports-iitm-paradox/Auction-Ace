@@ -1,5 +1,4 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Kurale&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Kurale&family=JetBrains+Mono:wght@400;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -54,11 +53,14 @@
     font-family: 'Cinzel', serif;
     letter-spacing: 0.05em;
   }
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
 }
 
 @layer components {
   .ornate-border {
-    @apply border-4 border-primary relative p-2;
+    @apply border-4 border-primary relative p-2 transition-all duration-300;
     box-shadow: inset 0 0 0 2px hsl(var(--background)), 0 0 20px rgba(255, 204, 0, 0.2);
   }
   
@@ -69,11 +71,11 @@
 
   .sunburst-bg {
     background: 
-      radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%),
+      radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 100%),
       repeating-conic-gradient(
         from 0deg at 50% 50%,
-        hsl(0, 80% , 18%) 0deg 15deg,
-        hsl(0, 80%, 14%) 15deg 30deg
+        hsl(0, 80% , 15%) 0deg 15deg,
+        hsl(0, 80%, 12%) 15deg 30deg
       );
   }
 
@@ -81,9 +83,27 @@
     width: 6px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-background/50;
+    @apply bg-black/20;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-primary/50 hover:bg-primary rounded-full;
+    @apply bg-primary/40 hover:bg-primary rounded-full transition-colors;
+  }
+
+  .text-glow-gold {
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.3);
+  }
+
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-primary/20 shadow-2xl;
+  }
+}
+
+@layer utilities {
+  .animate-slow-spin {
+    animation: spin 8s linear infinite;
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
 }
