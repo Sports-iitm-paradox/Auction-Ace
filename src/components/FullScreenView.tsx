@@ -273,6 +273,17 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
     });
   };
 
+  if (isLoadingAuction || !auction) {
+    return (
+        <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#1a0202] z-[200]">
+            <Loader2 className="h-16 w-16 animate-spin text-primary mb-4" />
+            <h2 className="text-primary font-serif uppercase tracking-[0.4em] italic text-xl">Connecting Floor...</h2>
+        </div>
+    );
+  }
+
+  const steps = ['Going Once', 'Going Twice', 'Final Call'];
+
   return (
     <div className="fixed inset-0 flex flex-col items-center bg-background sunburst-bg select-none overflow-hidden h-screen text-foreground">
       <div className="w-full flex items-center justify-between px-6 py-4 z-[100] bg-black/60 backdrop-blur-md border-b border-primary/20">
@@ -325,10 +336,10 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                                 {auction.isSold && (
                                   <div className="mt-12 w-full max-w-md space-y-4">
                                       <Select value={selectedHouseId} onValueChange={setSelectedHouseId}>
-                                          <SelectTrigger className="bg-black/90 border-primary/40 h-16 text-lg font-bold text-white">
+                                          <SelectTrigger className="bg-black/90 border-primary/40 h-16 text-lg font-bold text-white relative z-[120]">
                                               <SelectValue placeholder="Assign Winning House..." />
                                           </SelectTrigger>
-                                          <SelectContent className="bg-[#1a0202] border-primary/30 text-white">
+                                          <SelectContent className="bg-[#1a0202] border-primary/30 text-white z-[130]">
                                               {squads?.map(h => (
                                                   <SelectItem key={h.id} value={h.id} className="text-sm py-4 border-b border-primary/10">
                                                       {h.name} <span className="text-primary opacity-60 ml-2">({h.moneyLeft}Cr LEFT)</span>
@@ -353,19 +364,19 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                         )}
 
                         <div className="w-[40%] h-full border-r border-primary/20 p-8 flex flex-col gap-6">
-                            <div className="w-full aspect-[3/4] relative ornate-border bg-black shadow-2xl">
+                            <div className="w-full aspect-[3/4] relative ornate-border bg-black shadow-2xl overflow-hidden">
                                 {currentPlayer.imageUrl ? <Image src={currentPlayer.imageUrl} alt="" fill className="object-cover" /> : <Shield className="w-full h-full p-24 opacity-10 text-primary" />}
                             </div>
                             <div className="flex-1 bg-black/40 p-6 border border-primary/10">
-                                <span className="text-[10px] text-primary font-black uppercase tracking-widest block mb-4">Auction insight</span>
-                                <p className="text-[12px] italic text-white/70 leading-relaxed">{currentPlayer.auctionInsight || 'Official Paradox verified data.'}</p>
+                                <span className="text-[10px] text-primary font-black uppercase tracking-widest block mb-4">Scouting profile</span>
+                                <p className="text-[12px] italic text-white/70 leading-relaxed max-h-[120px] overflow-y-auto custom-scrollbar">{currentPlayer.auctionInsight || 'Official Paradox verified data.'}</p>
                             </div>
                         </div>
 
-                        <div className="flex-1 p-10 flex flex-col justify-between">
+                        <div className="flex-1 p-10 flex flex-col justify-between overflow-hidden">
                             <div>
-                                <h1 className="text-5xl lg:text-8xl font-serif font-black text-white italic tracking-tighter mb-8 drop-shadow-2xl">{currentPlayer.playerName}</h1>
-                                <div className="grid grid-cols-2 gap-10">
+                                <h1 className="text-4xl lg:text-7xl font-serif font-black text-white italic tracking-tighter mb-8 drop-shadow-2xl truncate">{currentPlayer.playerName}</h1>
+                                <div className="grid grid-cols-2 gap-8">
                                     {[
                                         { label: 'Specialism', value: currentPlayer.specialism },
                                         { label: 'Status', value: currentPlayer.cua },
@@ -374,22 +385,22 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                                     ].map((s, i) => (
                                         <div key={i} className="border-l-4 border-primary/40 pl-6">
                                             <span className="text-[10px] text-primary font-black uppercase tracking-widest block mb-2">{s.label}</span>
-                                            <span className="text-2xl lg:text-4xl font-serif font-bold text-white">{s.value}</span>
+                                            <span className="text-xl lg:text-3xl font-serif font-bold text-white">{s.value}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            <div className="bg-black/60 border border-primary/20 p-10 flex items-center justify-between shadow-2xl relative">
+                            <div className="bg-black/60 border border-primary/20 p-8 flex items-center justify-between shadow-2xl relative">
                                 {isTimerActive && (
-                                    <div className="absolute -top-8 -right-8 w-20 h-20 rounded-full bg-[#1a0202] border-4 border-primary flex items-center justify-center z-[101]">
-                                        <span className={cn("text-4xl font-mono font-black", timer <= 5 ? "text-destructive animate-pulse" : "text-primary")}>{timer}</span>
+                                    <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full bg-[#1a0202] border-4 border-primary flex items-center justify-center z-[101]">
+                                        <span className={cn("text-2xl font-mono font-black", timer <= 5 ? "text-destructive animate-pulse" : "text-primary")}>{timer}</span>
                                     </div>
                                 )}
                                 <div>
-                                    <span className="text-[14px] text-primary font-black uppercase tracking-[0.8em] block mb-4">Floor Valuation</span>
-                                    <div className="flex items-baseline gap-6">
-                                        <span className="text-8xl lg:text-[10rem] font-mono font-black text-white tracking-tighter">{auction.currentBid}</span>
-                                        <span className="text-4xl lg:text-6xl font-serif text-primary italic font-black">L</span>
+                                    <span className="text-[12px] text-primary font-black uppercase tracking-[0.8em] block mb-2">Floor Valuation</span>
+                                    <div className="flex items-baseline gap-4">
+                                        <span className="text-6xl lg:text-[8rem] font-mono font-black text-white tracking-tighter leading-none">{auction.currentBid}</span>
+                                        <span className="text-3xl lg:text-5xl font-serif text-primary italic font-black">L</span>
                                     </div>
                                 </div>
                             </div>
@@ -407,7 +418,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
 
         {isTrackerOpen && (
             <aside className="w-80 bg-black/95 border-l border-primary/20 h-full p-6 z-[90] flex flex-col">
-                <h3 className="text-primary font-serif uppercase tracking-[0.3em] text-[12px] font-black mb-6">Franchise Ledger</h3>
+                <h3 className="text-primary font-serif uppercase tracking-[0.3em] text-[12px] font-black mb-6">Franchise Tracker</h3>
                 <ScrollArea className="flex-1">
                     <div className="space-y-4 pr-4">
                         {squads?.map(sq => (
@@ -427,19 +438,19 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
         )}
       </div>
 
-      <footer className="w-full bg-black border-t-2 border-primary/40 p-8 z-50">
-        <div className="max-w-7xl mx-auto flex gap-8">
+      <footer className="w-full bg-black border-t-2 border-primary/40 p-6 z-50">
+        <div className="max-w-7xl mx-auto flex gap-6">
             {currentPlayer && !auction.isSold && !auction.isUnsold ? (
                 <>
-                    <Button onClick={handleIncreaseBid} className="h-20 flex-1 text-3xl font-serif font-black tracking-widest uppercase">+ Floor Raise</Button>
-                    <Button onClick={handleHammerCall} disabled={auction.hammerStep > 0} className="h-20 px-16 bg-primary text-primary-foreground font-black tracking-widest uppercase hover:bg-primary/90 text-xl">
+                    <Button onClick={handleIncreaseBid} className="h-16 flex-1 text-2xl font-serif font-black tracking-widest uppercase">+ Floor Raise</Button>
+                    <Button onClick={handleHammerCall} disabled={auction.hammerStep > 0} className="h-16 px-12 bg-primary text-primary-foreground font-black tracking-widest uppercase hover:bg-primary/90 text-lg">
                         {auction.hammerStep === 0 ? 'Hammer Sequence' : steps[auction.hammerStep-1]}
                     </Button>
-                    <Button onClick={handleUnsold} variant="destructive" className="h-20 px-16 font-black tracking-widest uppercase text-xl">Unsold</Button>
+                    <Button onClick={handleUnsold} variant="destructive" className="h-16 px-12 font-black tracking-widest uppercase text-lg">Unsold</Button>
                 </>
             ) : (
-                <Button onClick={handleDrawPlayer} disabled={auction.status === 'drawing'} className="h-20 w-full text-2xl lg:text-4xl font-serif font-black uppercase tracking-[0.4em] shadow-[0_0_60px_rgba(255,215,0,0.1)]">
-                    {auction.status === 'drawing' ? 'Accessing Next Lot...' : `Reveal Next Player (${undrawnIds.length} Remaining)`}
+                <Button onClick={handleDrawPlayer} disabled={auction.status === 'drawing'} className="h-20 w-full text-xl lg:text-2xl font-serif font-black uppercase tracking-[0.3em] shadow-[0_0_60px_rgba(255,215,0,0.1)] truncate">
+                    {auction.status === 'drawing' ? 'Accessing Next Lot...' : `Reveal Next Player Lot (${undrawnIds.length} Remaining)`}
                 </Button>
             )}
         </div>
@@ -447,3 +458,4 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
     </div>
   );
 }
+
