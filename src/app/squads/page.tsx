@@ -3,12 +3,12 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ShieldCheck, Loader2, FileText, ImageIcon, Download, RotateCcw, Info } from 'lucide-react';
+import { ShieldCheck, Loader2, FileText, ImageIcon, Download, RotateCcw, Info, Upload } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Squad, Player, OFFICIAL_HOUSES, SQUAD_RULES } from '@/lib/player-data';
+import { Squad, Player, SQUAD_RULES } from '@/lib/player-data';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, writeBatch, doc, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { jsPDF } from 'jspdf';
@@ -16,8 +16,8 @@ import 'jspdf-autotable';
 import { toPng } from 'html-to-image';
 import { SquadPoster } from '@/components/SquadPoster';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { Input } from '@/components/ui/input';
+import Papa from 'papaparse';
 
 export default function SquadsPage() {
     const { user } = useUser();
@@ -41,48 +41,51 @@ export default function SquadsPage() {
 
     const { data: allPlayers } = useCollection<Player>(playersQuery);
 
-    const initializeHouses = async () => {
-        if (!firestore || !user) {
-            toast({ title: "System Readying", description: "Waiting for user authentication..." });
-            return;
-        }
-        
-        if (!confirm("CRITICAL: This will reset all 12 franchises to default purse and rosters. Continue?")) return;
-        
+    const handleSquadImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || !user || !firestore) return;
+
         setIsProcessing(true);
-        try {
-            const batch = writeBatch(firestore);
-            const squadsCollectionRef = collection(firestore, 'squads');
-            
-            // 1. Delete all existing squads for the current admin
-            const existingQuery = query(squadsCollectionRef, where('userId', '==', user.uid));
-            const existingSnap = await getDocs(existingQuery);
-            existingSnap.forEach(d => batch.delete(d.ref));
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: async (results) => {
+                try {
+                    const batch = writeBatch(firestore);
+                    const squadsCollectionRef = collection(firestore, 'squads');
+                    
+                    // Clear existing
+                    const existingQuery = query(squadsCollectionRef, where('userId', '==', user.uid));
+                    const existingSnap = await getDocs(existingQuery);
+                    existingSnap.forEach(d => batch.delete(d.ref));
 
-            // 2. Initialize official 12 houses
-            OFFICIAL_HOUSES.forEach((name, index) => {
-                const newRef = doc(squadsCollectionRef);
-                batch.set(newRef, {
-                    name,
-                    moneySpent: 0,
-                    moneyLeft: SQUAD_RULES.TOTAL_PURSE,
-                    budgetStatus: 'OK',
-                    totalPoints: 0,
-                    playersList: '',
-                    userId: user.uid,
-                    order: index
-                });
-            });
+                    results.data.forEach((row: any, index: number) => {
+                        const name = row['House Name'] || row['Name'];
+                        const purse = parseFloat(row['Purse']) || SQUAD_RULES.TOTAL_PURSE;
+                        if (!name) return;
 
-            await batch.commit();
+                        const newRef = doc(squadsCollectionRef);
+                        batch.set(newRef, {
+                            name,
+                            moneySpent: 0,
+                            moneyLeft: purse,
+                            budgetStatus: 'OK',
+                            totalPoints: 0,
+                            playersList: '',
+                            userId: user.uid,
+                            order: parseInt(row['Order']) || index
+                        });
+                    });
 
-            toast({ title: "Franchises Initialized", description: "12 Official Houses are now ready for the session." });
-        } catch (e: any) {
-            console.error("Initialization failed:", e);
-            toast({ title: "Initialization Failed", description: e.message || "Failed to reset franchises.", variant: "destructive" });
-        } finally {
-            setIsProcessing(false);
-        }
+                    await batch.commit();
+                    toast({ title: "Franchises Updated", description: "Squad list successfully imported from CSV." });
+                } catch (e: any) {
+                    toast({ title: "Import Failed", description: e.message, variant: "destructive" });
+                } finally {
+                    setIsProcessing(false);
+                }
+            }
+        });
     };
 
     const downloadPoster = async (squadId: string) => {
@@ -96,7 +99,7 @@ export default function SquadsPage() {
             link.download = `Squad_Poster_${squadId}.png`;
             link.href = dataUrl;
             link.click();
-            toast({ title: "Poster Ready", description: "High-resolution png has been downloaded." });
+            toast({ title: "Poster Exported" });
         } catch (err) {
             toast({ title: "Export Failed", variant: "destructive" });
         } finally {
@@ -118,7 +121,7 @@ export default function SquadsPage() {
             headStyles: { fillColor: [184, 134, 11] }
         });
 
-        doc.save(`IPL_Auction_Official_Standings.pdf`);
+        doc.save(`Standings.pdf`);
     };
 
     return (
@@ -126,18 +129,20 @@ export default function SquadsPage() {
             <Card className="bg-card/90 backdrop-blur-sm ornate-border shadow-2xl">
                 <CardHeader className="border-b border-primary/20 pb-8">
                     <CardTitle className="flex items-center text-4xl gap-4 font-serif text-primary">
-                        <ShieldCheck className="h-10 w-10 shadow-2xl" />
+                        <ShieldCheck className="h-10 w-10" />
                         Live Standings Ledger
                     </CardTitle>
                     <CardDescription className="text-lg italic tracking-wider">Official real-time tracking for the Paradox Auction Session</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8 pt-8">
                     {user && (
-                      <div className="flex flex-wrap gap-4">
-                        <Button onClick={initializeHouses} disabled={isProcessing} className="bg-primary font-black uppercase tracking-widest px-8">
-                            {isProcessing ? <Loader2 className="animate-spin mr-2"/> : <RotateCcw className="mr-2"/>}
-                            Initialize/Reset Houses
-                        </Button>
+                      <div className="flex flex-wrap items-center gap-4">
+                        <div className="relative group">
+                            <Button variant="outline" className="border-primary text-primary font-black uppercase tracking-widest relative">
+                                <Upload className="mr-2 h-4 w-4"/> Import Franchises CSV
+                                <Input type="file" accept=".csv" onChange={handleSquadImport} className="absolute inset-0 opacity-0 cursor-pointer" />
+                            </Button>
+                        </div>
                         <Button variant="outline" onClick={generatePDF} className="border-primary text-primary font-black uppercase tracking-widest">
                             <FileText className="mr-2"/> Export Standings PDF
                         </Button>
@@ -147,20 +152,20 @@ export default function SquadsPage() {
                     {isLoadingSquads ? (
                         <div className="py-20 text-center"><Loader2 className="h-12 w-12 animate-spin mx-auto text-primary"/></div>
                     ) : squadData && squadData.length > 0 ? (
-                        <div className="border border-primary/20 rounded-xl overflow-x-auto shadow-2xl bg-black/40">
+                        <div className="border border-primary/20 rounded-xl overflow-x-auto bg-black/40">
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-muted/30 border-b border-primary/20">
-                                        <TableHead className="font-black text-primary uppercase tracking-[0.2em] p-8">Franchise Name</TableHead>
+                                        <TableHead className="font-black text-primary uppercase tracking-[0.2em] p-8">Franchise</TableHead>
                                         <TableHead className="text-right font-black text-primary uppercase tracking-[0.2em]">Spent (Cr)</TableHead>
-                                        <TableHead className="text-right font-black text-primary uppercase tracking-[0.2em] text-lg">Purse Left (Cr)</TableHead>
-                                        <TableHead className="text-center font-black text-primary uppercase tracking-[0.2em]">Rating</TableHead>
-                                        <TableHead className="text-right font-black text-primary uppercase tracking-[0.2em] w-[100px]">Asset</TableHead>
+                                        <TableHead className="text-right font-black text-primary uppercase tracking-[0.2em]">Purse Left (Cr)</TableHead>
+                                        <TableHead className="text-center font-black text-primary uppercase tracking-[0.2em]">Points</TableHead>
+                                        <TableHead className="text-right font-black text-primary uppercase tracking-[0.2em] w-[80px]">Asset</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {squadData.map((house) => (
-                                        <TableRow key={house.id} className="hover:bg-primary/5 border-b border-primary/5 transition-colors">
+                                        <TableRow key={house.id} className="hover:bg-primary/5 border-b border-primary/5">
                                             <TableCell className="font-serif text-2xl text-white py-10 px-8 font-black italic">{house.name}</TableCell>
                                             <TableCell className="text-right font-mono text-muted-foreground">{house.moneySpent}Cr</TableCell>
                                             <TableCell className="text-right font-mono text-primary font-black text-4xl">{house.moneyLeft}Cr</TableCell>
@@ -183,14 +188,13 @@ export default function SquadsPage() {
                     ) : (
                          <div className="text-center py-20 border-2 border-dashed border-primary/20 rounded-xl bg-black/20">
                             <Info className="mx-auto h-24 w-24 opacity-10 mb-6 text-primary" />
-                            <h3 className="text-3xl font-serif text-primary uppercase tracking-[0.4em] italic">Ledger Empty</h3>
-                            <p className="mt-4 text-sm text-muted-foreground uppercase tracking-widest">Admin action required to initialize official franchises.</p>
+                            <h3 className="text-3xl font-serif text-primary uppercase tracking-[0.4em] italic">Franchises Not Initialized</h3>
+                            <p className="mt-4 text-sm text-muted-foreground uppercase tracking-widest">Upload a CSV with headers: 'House Name', 'Purse', 'Order'</p>
                         </div>
                     )}
                 </CardContent>
             </Card>
 
-            {/* High-Resolution Squad Poster Generation */}
             <Dialog open={!!previewSquad} onOpenChange={() => setPreviewSquad(null)}>
                 <DialogContent className="max-w-[850px] h-[95vh] bg-black border-primary/40 flex flex-col p-0 overflow-hidden shadow-2xl">
                     <DialogHeader className="p-8 border-b border-primary/20 flex-shrink-0 bg-black/60 backdrop-blur-md">
@@ -204,14 +208,14 @@ export default function SquadsPage() {
                         )}
                     </div>
                     <div className="p-8 border-t border-primary/20 flex justify-end gap-4 flex-shrink-0 bg-black/60 backdrop-blur-md">
-                        <Button variant="ghost" onClick={() => setPreviewSquad(null)} className="font-bold uppercase tracking-widest">Dismiss</Button>
+                        <Button variant="ghost" onClick={() => setPreviewSquad(null)} className="font-bold uppercase tracking-widest text-white">Dismiss</Button>
                         <Button 
-                            className="bg-primary font-black uppercase tracking-widest px-10 h-12 shadow-2xl" 
+                            className="bg-primary font-black uppercase tracking-widest px-10 h-12" 
                             disabled={isDownloading}
                             onClick={() => previewSquad && downloadPoster(previewSquad.id)}
                         >
                             {isDownloading ? <Loader2 className="animate-spin mr-2"/> : <Download className="mr-2"/>}
-                            Export Poster PNG
+                            Download PNG
                         </Button>
                     </div>
                 </DialogContent>

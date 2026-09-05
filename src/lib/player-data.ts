@@ -37,7 +37,6 @@ export interface ActionEvent {
 
 export interface ActiveAuctionState extends DocumentData {
   currentPlayerId: string;
-  setId: string;
   currentBid: number;
   status: 'idle' | 'drawing' | 'bidding' | 'sold' | 'unsold';
   hammerStep: number; // 0: None, 1: Once, 2: Twice, 3: Final Call, 4: Sold
@@ -46,7 +45,6 @@ export interface ActiveAuctionState extends DocumentData {
   userId: string;
   lastUpdated: any;
   history: ActionEvent[];
-  undrawnIds: string[];
 }
 
 export interface Squad extends DocumentData {
