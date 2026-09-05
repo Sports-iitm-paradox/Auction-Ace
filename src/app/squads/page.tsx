@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Squad, Player, OFFICIAL_HOUSES, SQUAD_RULES } from '@/lib/player-data';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, writeBatch, doc, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, writeBatch, doc, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { toPng } from 'html-to-image';
@@ -50,8 +50,8 @@ export default function SquadsPage() {
             const batch = writeBatch(firestore);
             const squadsCollectionRef = collection(firestore, 'squads');
             
-            // 1. Clear existing squads
-            const existing = await getDocs(squadsCollectionRef);
+            // 1. Only clear squads belonging to THIS session/user or all if admin
+            const existing = await getDocs(query(squadsCollectionRef, where('userId', '==', user.uid)));
             existing.forEach(d => batch.delete(d.ref));
 
             // 2. Initialize official 12 houses

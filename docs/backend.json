@@ -149,6 +149,10 @@
             "unsold"
           ]
         },
+        "hammerStep": {
+          "type": "number",
+          "description": "0: None, 1: Once, 2: Twice, 3: Final Call, 4: Sold"
+        },
         "isSold": {
           "type": "boolean"
         },
@@ -157,6 +161,24 @@
         },
         "userId": {
           "type": "string"
+        },
+        "history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string" },
+              "playerId": { "type": "string" },
+              "bid": { "type": "number" },
+              "houseId": { "type": "string" },
+              "houseName": { "type": "string" },
+              "timestamp": { "type": "string" }
+            }
+          }
+        },
+        "undrawnIds": {
+          "type": "array",
+          "items": { "type": "string" }
         }
       }
     },
@@ -176,7 +198,7 @@
         "order": { "type": "number" },
         "playersList": {
            "type": "string",
-           "description": "Serialized list of players and their prices (e.g., 'Player A:40;Player B:20')"
+           "description": "Serialized list of players and their prices (e.g., 'Player A:4.0:Batter:Uncapped;...')"
         }
       }
     }
