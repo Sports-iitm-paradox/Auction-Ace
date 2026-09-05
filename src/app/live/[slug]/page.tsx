@@ -199,23 +199,23 @@ export default function PublicLivePage() {
           <div className="bg-primary px-6 h-full flex items-center z-10 shadow-[5px_0_15px_rgba(0,0,0,0.5)]">
               <span className="text-primary-foreground font-black text-xs uppercase tracking-widest italic whitespace-nowrap">IPL UPDATE</span>
           </div>
-          <div className="flex-1 overflow-hidden relative">
-              <div className="animate-marquee whitespace-nowrap flex items-center gap-12">
+          <div className="flex-1 overflow-hidden">
+              <div className="animate-marquee whitespace-nowrap flex flex-row items-center gap-12">
                   {marqueeBuys.map((buy, i) => (
-                      <div key={i} className="flex items-center gap-2">
+                      <div key={i} className="flex items-center gap-2 shrink-0">
                           <span className="text-primary text-[10px] font-black uppercase">{buy.houseName}:</span>
                           <span className="text-white text-xs font-bold uppercase">{set?.players.find(p => p.id === buy.playerId)?.playerName}</span>
                           <span className="text-primary font-mono text-xs">{buy.bid}L</span>
                       </div>
                   ))}
                   {squads?.map((s, i) => (
-                      <div key={`purse-${i}`} className="flex items-center gap-2 border-l border-white/20 pl-6">
+                      <div key={`purse-${i}`} className="flex items-center gap-2 border-l border-white/20 pl-6 shrink-0">
                           <span className="text-white/40 text-[10px] font-black uppercase">{s.name} PURSE:</span>
                           <span className="text-white text-xs font-bold font-mono">{s.moneyLeft}Cr</span>
                       </div>
                   ))}
                   {upcomingLots.length > 0 && (
-                      <div className="flex items-center gap-2 border-l border-white/20 pl-6">
+                      <div className="flex items-center gap-2 border-l border-white/20 pl-6 shrink-0">
                           <span className="text-primary text-[10px] font-black uppercase">UPCOMING:</span>
                           <span className="text-white/60 text-xs italic">{upcomingLots.join(" • ")}</span>
                       </div>
@@ -226,11 +226,12 @@ export default function PublicLivePage() {
 
       <style jsx global>{`
         .animate-marquee {
-            display: inline-block;
-            animation: marquee 30s linear infinite;
+            display: flex;
+            width: fit-content;
+            animation: marquee 40s linear infinite;
         }
         @keyframes marquee {
-            0% { transform: translateX(100%); }
+            0% { transform: translateX(50%); }
             100% { transform: translateX(-100%); }
         }
         .text-glow-gold { text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }

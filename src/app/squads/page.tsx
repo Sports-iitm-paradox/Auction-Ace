@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -43,14 +42,14 @@ export default function SquadsPage() {
 
     const initializeHouses = async () => {
         if (!firestore || !user) return;
-        if (!confirm("This will reset all house budgets and rosters. Continue?")) return;
+        if (!confirm("This will reset all house budgets and rosters for this user. Continue?")) return;
         
         setIsProcessing(true);
         try {
             const batch = writeBatch(firestore);
             const squadsCollectionRef = collection(firestore, 'squads');
             
-            // 1. Only clear squads belonging to THIS session/user or all if admin
+            // 1. Delete all squads for this user
             const existing = await getDocs(query(squadsCollectionRef, where('userId', '==', user.uid)));
             existing.forEach(d => batch.delete(d.ref));
 

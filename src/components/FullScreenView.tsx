@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -60,12 +59,11 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
   const { data: squads } = useCollection<Squad>(squadsQuery);
 
-  // Persistence Engine: Resume or Initialize Session
+  // Persistence Engine: Initialize only if no session exists or if explicitly reset
   useEffect(() => {
     if (isLoadingAuction || !auctionRef || !user || players.length === 0) return;
 
-    // Logic: If session doesn't exist OR it belongs to a different set, initialize it.
-    // Otherwise, resume existing session (history and undrawnIds are preserved).
+    // If session doesn't exist at all or it's a completely different set
     if (!auction || auction.setId !== set.id) {
         setDocumentNonBlocking(auctionRef, {
             currentPlayerId: "",
@@ -599,7 +597,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                     <Button onClick={handleUnsold} variant="destructive" className="h-20 px-12 font-black tracking-widest uppercase text-lg">Record Unsold</Button>
                 </>
             ) : (
-                <Button onClick={handleDrawPlayer} disabled={auction.status === 'drawing'} className="h-20 w-full text-xl font-serif font-black uppercase tracking-widest shadow-[0_0_60px_rgba(255,215,0,0.2)] truncate">
+                <Button onClick={handleDrawPlayer} disabled={auction.status === 'drawing'} className="h-20 w-full text-xl lg:text-2xl font-serif font-black uppercase tracking-widest shadow-[0_0_60px_rgba(255,215,0,0.2)] truncate">
                     {auction.status === 'drawing' ? 'Accessing Next Lot...' : `Reveal Next Player Lot (${auction.undrawnIds?.length || 0} REMAINING)`}
                 </Button>
             )}
