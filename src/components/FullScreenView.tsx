@@ -60,9 +60,13 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
 
   const { data: squads } = useCollection<Squad>(squadsQuery);
 
-  // Initialize Auction Session if it doesn't exist
+  // Persistence Engine: Resume or Initialize Session
   useEffect(() => {
-    if (!isLoadingAuction && !auction && auctionRef && user && players.length > 0) {
+    if (isLoadingAuction || !auctionRef || !user || players.length === 0) return;
+
+    // Logic: If session doesn't exist OR it belongs to a different set, initialize it.
+    // Otherwise, resume existing session (history and undrawnIds are preserved).
+    if (!auction || auction.setId !== set.id) {
         setDocumentNonBlocking(auctionRef, {
             currentPlayerId: "",
             setId: set.id,
@@ -468,7 +472,7 @@ export default function FullScreenView({ players, set, onReset }: FullScreenView
                         {auction.hammerStep > 0 && auction.hammerStep < 4 && !auction.isSold && (
                             <motion.div initial={{ y: -100 }} animate={{ y: 0 }} className="absolute top-0 left-0 w-full bg-primary/90 py-3 flex items-center justify-center z-[105] border-b-2 border-primary-foreground shadow-2xl">
                                 <h2 className="text-xl lg:text-3xl font-serif font-black uppercase italic tracking-[0.4em] text-primary-foreground">
-                                    {auction.hammerStep === 1 ? 'GOING ONCE...' : auction.hammerStep === 2 ? 'GOING TWICE...' : 'FINAL CALL...'}
+                                    {auction.hammerStep === 1 ? 'GOING ONCE...' : auction.hammerStep === 2 ? 'GOING TWICE...' : auction.hammerStep === 3 ? 'FINAL CALL...' : 'SOLD'}
                                 </h2>
                             </motion.div>
                         )}
