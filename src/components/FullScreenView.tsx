@@ -4,17 +4,16 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { X, History, Trophy, Gavel, Undo2, RotateCcw, Shield, LayoutDashboard, Share2, Loader2 } from 'lucide-react';
+import { X, Trophy, Gavel, Undo2, RotateCcw, Shield, Loader2 } from 'lucide-react';
 import { Player, PlayerSet, ActiveAuctionState, Squad, SQUAD_RULES, ActionEvent } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
-import { cn, shuffleArray } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useFirestore, useUser, useDoc, useMemoFirebase, updateDocumentNonBlocking, useCollection, setDocumentNonBlocking } from '@/firebase';
 import { doc, serverTimestamp, DocumentReference, collection, query, orderBy } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import confetti from 'canvas-confetti';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const SOUNDS = {
@@ -59,7 +58,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
 
   const { data: squads } = useCollection<Squad>(squadsQuery);
 
-  // Global Session Integrity: Absolute Persistence
+  // Persistence logic: Initialize only if no session exists
   useEffect(() => {
     if (isLoadingAuction || !auctionRef || !user) return;
 
@@ -169,8 +168,6 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
   const handleHammerCall = () => {
     if (!auction || !auctionRef || auction.status !== 'bidding' || auction.hammerStep > 0) return;
     
-    const steps = ['Going Once', 'Going Twice', 'Final Call'];
-    
     const runStep = (step: number) => {
         if (step > 3) {
             setIsTimerActive(false);
@@ -273,6 +270,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
     });
   };
 
+  // Robust loading guard to prevent status property read errors
   if (isLoadingAuction || !auction) {
     return (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#1a0202] z-[200]">
@@ -357,8 +355,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                         {auction.hammerStep > 0 && auction.hammerStep < 4 && !auction.isSold && (
                             <motion.div initial={{ y: -100 }} animate={{ y: 0 }} className="absolute top-0 left-0 w-full bg-primary py-6 flex justify-center z-[105] shadow-2xl">
                                 <h2 className="text-3xl lg:text-5xl font-serif font-black uppercase italic tracking-[0.5em] text-primary-foreground">
-                                    {auction.hammerStep === 1 ? 'GOING ONCE' : 
-                                     auction.hammerStep === 2 ? 'GOING TWICE' : 'FINAL CALL'}
+                                    {steps[auction.hammerStep - 1].toUpperCase()}
                                 </h2>
                             </motion.div>
                         )}
@@ -428,7 +425,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                                     <span className="text-[12px] font-mono text-primary font-black">{sq.moneyLeft}Cr</span>
                                 </div>
                                 <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                                    <div className="h-full bg-primary" style={{ width: `${(sq.moneySpent / SQUAD_RULES.TOTAL_PURSE) * 100}%` }} />
+                                    <div className="h-full bg-primary" style={{ width: `${(sq.moneySpent / 80) * 100}%` }} />
                                 </div>
                             </div>
                         ))}
@@ -458,4 +455,3 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
     </div>
   );
 }
-

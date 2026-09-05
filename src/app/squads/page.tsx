@@ -3,12 +3,12 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ShieldCheck, Loader2, FileText, ImageIcon, Download, RotateCcw, Info, Upload } from 'lucide-react';
+import { ShieldCheck, Loader2, FileText, ImageIcon, Download, Info, Upload } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Squad, Player, SQUAD_RULES } from '@/lib/player-data';
+import { Squad, Player } from '@/lib/player-data';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, writeBatch, doc, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { jsPDF } from 'jspdf';
@@ -54,31 +54,40 @@ export default function SquadsPage() {
                     const batch = writeBatch(firestore);
                     const squadsCollectionRef = collection(firestore, 'squads');
                     
-                    // Clear existing
+                    // Clear existing squads for this user
                     const existingQuery = query(squadsCollectionRef, where('userId', '==', user.uid));
                     const existingSnap = await getDocs(existingQuery);
                     existingSnap.forEach(d => batch.delete(d.ref));
 
                     results.data.forEach((row: any, index: number) => {
-                        const name = row['House Name'] || row['Name'];
-                        const purse = parseFloat(row['Purse']) || SQUAD_RULES.TOTAL_PURSE;
+                        const name = row['House Name'];
                         if (!name) return;
+
+                        // Parse values based on user's spreadsheet headers
+                        const moneySpent = parseFloat(row['Total Money Spent']) || 0;
+                        const moneyLeft = parseFloat(row['Money Left']) || 0;
+                        const totalPoints = parseInt(row['Total No. of Points'], 10) || 0;
+                        const playersList = row['Players List'] || '';
+                        
+                        // Extract status safely
+                        const rawStatus = row['Budget Status'] || '';
+                        const budgetStatus = rawStatus.includes('OK') ? 'OK' : 'OVER';
 
                         const newRef = doc(squadsCollectionRef);
                         batch.set(newRef, {
                             name,
-                            moneySpent: 0,
-                            moneyLeft: purse,
-                            budgetStatus: 'OK',
-                            totalPoints: 0,
-                            playersList: '',
+                            moneySpent,
+                            moneyLeft,
+                            budgetStatus,
+                            totalPoints,
+                            playersList,
                             userId: user.uid,
-                            order: parseInt(row['Order']) || index
+                            order: index
                         });
                     });
 
                     await batch.commit();
-                    toast({ title: "Franchises Updated", description: "Squad list successfully imported from CSV." });
+                    toast({ title: "Franchises Updated", description: "Official squad list imported successfully." });
                 } catch (e: any) {
                     toast({ title: "Import Failed", description: e.message, variant: "destructive" });
                 } finally {
@@ -94,7 +103,11 @@ export default function SquadsPage() {
         
         setIsDownloading(true);
         try {
-            const dataUrl = await toPng(node, { quality: 0.95, pixelRatio: 2 });
+            const dataUrl = await toPng(node, { 
+                quality: 0.95, 
+                pixelRatio: 2,
+                cacheBust: true,
+            });
             const link = document.createElement('a');
             link.download = `Squad_Poster_${squadId}.png`;
             link.href = dataUrl;
@@ -139,7 +152,7 @@ export default function SquadsPage() {
                       <div className="flex flex-wrap items-center gap-4">
                         <div className="relative group">
                             <Button variant="outline" className="border-primary text-primary font-black uppercase tracking-widest relative">
-                                <Upload className="mr-2 h-4 w-4"/> Import Franchises CSV
+                                <Upload className="mr-2 h-4 w-4"/> Import Official CSV
                                 <Input type="file" accept=".csv" onChange={handleSquadImport} className="absolute inset-0 opacity-0 cursor-pointer" />
                             </Button>
                         </div>
@@ -189,7 +202,7 @@ export default function SquadsPage() {
                          <div className="text-center py-20 border-2 border-dashed border-primary/20 rounded-xl bg-black/20">
                             <Info className="mx-auto h-24 w-24 opacity-10 mb-6 text-primary" />
                             <h3 className="text-3xl font-serif text-primary uppercase tracking-[0.4em] italic">Franchises Not Initialized</h3>
-                            <p className="mt-4 text-sm text-muted-foreground uppercase tracking-widest">Upload a CSV with headers: 'House Name', 'Purse', 'Order'</p>
+                            <p className="mt-4 text-sm text-muted-foreground uppercase tracking-widest">Upload your Paradox CSV to populate the floor</p>
                         </div>
                     )}
                 </CardContent>
