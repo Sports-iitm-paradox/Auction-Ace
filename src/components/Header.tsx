@@ -99,7 +99,7 @@ const Header = () => {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-3 group">
           <Trophy className="h-7 w-7 text-primary transition-transform group-hover:scale-110" />
-          <span className="text-2xl font-serif font-bold tracking-tight text-primary">IPL Auction</span>
+          <span className="text-2xl font-serif font-bold tracking-tight text-primary uppercase italic">IPL AUCTION</span>
         </Link>
         
         {/* Desktop Navigation */}

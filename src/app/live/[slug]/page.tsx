@@ -59,8 +59,8 @@ export default function PublicLivePage() {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#1a0202] p-4 text-center">
         <Trophy className="h-24 w-24 text-primary mb-8 animate-pulse" />
-        <h1 className="text-5xl font-serif text-primary mb-4 italic uppercase tracking-[0.4em]">Broadcast Standby</h1>
-        <p className="text-muted-foreground uppercase tracking-[0.6em] text-xs">Syncing with Paradox Official Floor...</p>
+        <h1 className="text-4xl lg:text-5xl font-serif text-primary mb-4 italic uppercase tracking-[0.4em]">Floor Standby</h1>
+        <p className="text-muted-foreground uppercase tracking-[0.6em] text-xs">Synchronizing with Official Auction Floor...</p>
         <div className="mt-12 w-48 h-1 bg-primary/20 rounded-full overflow-hidden">
           <motion.div 
             className="h-full bg-primary"
@@ -85,10 +85,10 @@ export default function PublicLivePage() {
             <span className="text-red-600 font-bold uppercase tracking-[0.4em] text-xs">Live Floor Feed</span>
           </div>
           <div className="h-6 w-px bg-primary/30 mx-2" />
-          <span className="text-primary font-serif font-black text-2xl tracking-widest uppercase italic">{set?.name || 'Paradox Auction'}</span>
+          <span className="text-primary font-serif font-black text-2xl tracking-widest uppercase italic">{set?.name || 'IPL Auction Hub'}</span>
         </div>
         <div className="hidden lg:block">
-          <span className="text-white/40 font-serif text-[10px] uppercase tracking-[0.8em]">Official Broadcast System • Paradox 2026</span>
+          <span className="text-white/40 font-serif text-[10px] uppercase tracking-[0.8em]">Official Broadcast System • Auction 2026</span>
         </div>
       </div>
 
@@ -112,10 +112,10 @@ export default function PublicLivePage() {
                           <motion.div 
                             initial={{ opacity: 0, backdropFilter: "blur(0px)" }} 
                             animate={{ opacity: 1, backdropFilter: "blur(12px)" }} 
-                            className="absolute inset-0 z-[110] flex flex-col items-center justify-center bg-black/90 p-12 text-center"
+                            className="absolute inset-0 z-[110] flex flex-col items-center justify-center bg-black/95 p-12 text-center"
                           >
                              <motion.div 
-                                initial={{ scale: 0.6, opacity: 0 }}
+                                initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 className={cn(
                                   "p-16 border-8 ornate-border bg-card/40 max-w-4xl w-full relative",
@@ -171,7 +171,7 @@ export default function PublicLivePage() {
                           </div>
                       ) : currentPlayer ? (
                           <div className="flex flex-col lg:flex-row items-stretch w-full">
-                              {/* Player Image - Contain Fit */}
+                              {/* Player Image */}
                               <div className="w-full lg:w-[45%] p-10 bg-black/30 border-r border-primary/20 flex items-center justify-center">
                                 <div className="w-full aspect-[3/4] relative ornate-border bg-[#0a0101] overflow-hidden flex items-center justify-center shadow-2xl">
                                     {currentPlayer.imageUrl ? (
@@ -197,7 +197,7 @@ export default function PublicLivePage() {
                                   <div className="space-y-12">
                                       <div>
                                           <div className="flex items-center gap-4 mb-4">
-                                            <span className="font-serif text-sm text-primary font-black uppercase tracking-[0.6em] border-l-4 border-primary pl-4">Live Auction Lot</span>
+                                            <span className="font-serif text-sm text-primary font-black uppercase tracking-[0.6em] border-l-4 border-primary pl-4">Live Auction Floor</span>
                                             {isMarquee && <Badge className="bg-primary text-primary-foreground animate-bounce px-4 py-1 text-xs">MARQUEE PLAYER</Badge>}
                                           </div>
                                           <h1 className="text-6xl lg:text-[7rem] font-bold font-serif text-white italic tracking-tighter drop-shadow-2xl leading-none">
@@ -214,7 +214,7 @@ export default function PublicLivePage() {
                                           ].map((s, i) => (
                                               <div key={i} className="relative">
                                                   <span className="text-[10px] text-primary font-black uppercase block tracking-[0.4em] mb-3">{s.label}</span>
-                                                  <span className="font-serif text-3xl lg:text-4xl text-white font-bold tracking-wide">{s.value}</span>
+                                                  <span className="font-serif text-3xl lg:text-4xl text-white font-bold tracking-wide uppercase">{s.value}</span>
                                               </div>
                                           ))}
                                       </div>
@@ -246,10 +246,10 @@ export default function PublicLivePage() {
         </AnimatePresence>
       </div>
       
-      {/* Broadcast Ticker - Marquee History */}
+      {/* Broadcast Ticker */}
       <div className="fixed bottom-0 left-0 w-full h-20 bg-black border-t-2 border-primary overflow-hidden flex items-center z-[100] shadow-[0_-10px_40px_rgba(0,0,0,0.9)]">
           <div className="bg-primary px-12 h-full flex items-center z-10 shadow-[10px_0_30px_rgba(0,0,0,0.8)] border-r-2 border-white/20">
-              <span className="text-primary-foreground font-black text-2xl uppercase tracking-[0.3em] italic whitespace-nowrap">PARADOX LIVE</span>
+              <span className="text-primary-foreground font-black text-2xl uppercase tracking-[0.3em] italic whitespace-nowrap">AUCTION HUB LIVE</span>
           </div>
           <div className="flex-1 overflow-hidden relative h-full bg-black/40">
               <div className="animate-marquee whitespace-nowrap flex flex-row items-center gap-24 absolute inset-0">
@@ -274,7 +274,7 @@ export default function PublicLivePage() {
                       );
                   })}
                   {marqueeHistory.length === 0 && (
-                      <div className="text-white/20 text-lg uppercase tracking-[0.8em] italic ml-10">Awaiting Floor activity... Synchronizing with moderator feed...</div>
+                      <div className="text-white/20 text-lg uppercase tracking-[0.8em] italic ml-10">Syncing with Official Floor Signal...</div>
                   )}
               </div>
           </div>

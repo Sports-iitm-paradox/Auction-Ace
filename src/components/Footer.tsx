@@ -17,7 +17,7 @@ const Footer = () => {
 
         <div className="pt-4 border-t border-primary/10 w-full max-w-md">
             <p className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.2em]">
-                &copy; 2026 SAAVAN - IIT MADRAS PARADOX • ALL RIGHTS RESERVED
+                &copy; 2026 OFFICIAL IPL AUCTION HUB • ALL RIGHTS RESERVED
             </p>
         </div>
       </div>
