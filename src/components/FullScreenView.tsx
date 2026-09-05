@@ -13,6 +13,7 @@ import { doc, serverTimestamp, DocumentReference } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import confetti from 'canvas-confetti';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from '@/components/ui/badge';
 
 const SOUNDS = {
     REVEAL: 'https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-beep-221.mp3',
@@ -470,21 +471,21 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                     <motion.div 
                       initial={{ opacity: 0, scale: 0.9 }} 
                       animate={{ opacity: 1, scale: 1 }} 
-                      className="flex flex-col items-center gap-16"
+                      className="flex flex-col items-center gap-12"
                     >
                         <div className="relative">
-                          <Trophy size={160} className="text-primary animate-pulse" />
+                          <Trophy size={140} className="text-primary animate-pulse" />
                           <div className="absolute inset-0 bg-primary/20 blur-[100px] -z-10" />
                         </div>
                         <div className="space-y-4 text-center">
-                          <h1 className="text-5xl lg:text-[6rem] font-serif font-black text-primary uppercase tracking-[0.5em] italic leading-none drop-shadow-2xl">
+                          <h1 className="text-4xl lg:text-7xl font-serif font-black text-primary uppercase tracking-[0.3em] italic leading-none drop-shadow-2xl">
                             Paradox Floor
                           </h1>
-                          <p className="text-2xl font-serif text-white/40 tracking-[0.8em] uppercase">Bidding Operations Standby</p>
+                          <p className="text-lg font-serif text-white/40 tracking-[0.5em] uppercase">Bidding Operations Standby</p>
                         </div>
                         <Button 
                           onClick={handleDrawPlayer} 
-                          className="h-28 px-28 text-3xl font-serif font-black uppercase tracking-[0.3em] shadow-[0_0_50px_rgba(255,215,0,0.2)] hover:scale-105 transition-transform"
+                          className="h-24 px-20 text-2xl font-serif font-black uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,215,0,0.2)] hover:scale-105 transition-transform"
                         >
                           Begin Next Lot
                         </Button>
@@ -494,13 +495,13 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
         </main>
       </div>
 
-      <footer className="w-full bg-black border-t-2 border-primary/40 p-8 z-50 shadow-[0_-10px_50px_rgba(0,0,0,0.8)]">
-        <div className="max-w-7xl mx-auto flex gap-8">
+      <footer className="w-full bg-black border-t-2 border-primary/40 p-6 z-50 shadow-[0_-10px_50px_rgba(0,0,0,0.8)]">
+        <div className="max-w-7xl mx-auto flex gap-6">
             {currentPlayer && !auction.isSold && !auction.isUnsold ? (
                 <>
                     <Button 
                       onClick={handleIncreaseBid} 
-                      className="h-24 flex-1 text-3xl font-serif font-black tracking-[0.2em] uppercase shadow-2xl shadow-primary/20 hover:bg-primary/90"
+                      className="h-20 lg:h-24 flex-1 text-xl lg:text-2xl font-serif font-black tracking-[0.1em] uppercase shadow-2xl shadow-primary/20 hover:bg-primary/90"
                     >
                       + Raise Valuation
                     </Button>
@@ -508,7 +509,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                       onClick={handleHammerCall} 
                       disabled={auction.hammerStep > 0} 
                       className={cn(
-                        "h-24 px-16 font-serif font-black tracking-[0.2em] uppercase text-2xl transition-all",
+                        "h-20 lg:h-24 px-10 lg:px-16 font-serif font-black tracking-[0.1em] uppercase text-xl lg:text-2xl transition-all",
                         auction.hammerStep > 0 ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90"
                       )}
                     >
@@ -517,7 +518,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                     <Button 
                       onClick={handleUnsold} 
                       variant="destructive" 
-                      className="h-24 px-16 font-serif font-black tracking-[0.2em] uppercase text-2xl"
+                      className="h-20 lg:h-24 px-10 lg:px-16 font-serif font-black tracking-[0.1em] uppercase text-xl lg:text-2xl"
                     >
                       UNSOLD
                     </Button>
@@ -526,9 +527,11 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                 <Button 
                   onClick={handleDrawPlayer} 
                   disabled={auction.status === 'drawing'} 
-                  className="h-28 w-full text-2xl lg:text-4xl font-serif font-black uppercase tracking-[0.5em] shadow-[0_0_60px_rgba(255,215,0,0.15)] truncate"
+                  className="h-20 lg:h-24 w-full text-lg lg:text-2xl font-serif font-black uppercase tracking-[0.2em] shadow-[0_0_60px_rgba(255,215,0,0.15)] px-4"
                 >
-                    {auction.status === 'drawing' ? 'Accessing Official Lot...' : `REVEAL NEXT PLAYER LOT (${undrawnIds.length} REMAINING)`}
+                    <span className="truncate">
+                        {auction.status === 'drawing' ? 'Accessing Official Lot...' : `REVEAL NEXT PLAYER LOT (${undrawnIds.length} REMAINING)`}
+                    </span>
                 </Button>
             )}
         </div>
