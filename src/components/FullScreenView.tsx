@@ -268,7 +268,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
       <div className="w-full flex items-center justify-between px-8 h-20 z-[100] bg-white border-b-2 border-foreground shadow-sm">
         <div className="flex items-center gap-6">
             <h2 className="font-headline text-lg text-foreground tracking-[0.4em] uppercase font-black italic">
-              IPL AUCTION HUB <span className="text-foreground/20 mx-4">|</span> FLOOR
+              IPL AUCTION HUB
             </h2>
         </div>
         <div className="flex items-center gap-4">
@@ -362,8 +362,8 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                         )}
 
                         {/* Left: Player Visual */}
-                        <div className="w-[40%] h-full border-r-2 border-foreground p-8 flex flex-col gap-6 bg-accent/30">
-                            <div className="w-full aspect-[3/4] relative bg-white border-2 border-foreground overflow-hidden">
+                        <div className="w-[40%] h-full border-r-2 border-foreground p-8 flex flex-col items-center justify-center bg-accent/30">
+                            <div className="w-full aspect-[3/4] relative bg-white border-2 border-foreground overflow-hidden shadow-2xl">
                                 {currentPlayer.imageUrl ? (
                                   <Image src={currentPlayer.imageUrl} alt={currentPlayer.playerName} fill className="object-contain p-4" priority />
                                 ) : (
@@ -375,19 +375,12 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                                   <Badge className="bg-foreground text-white font-black text-xs px-3 py-1 rounded-none uppercase tracking-widest">LOT #{currentPlayer.playerNumber}</Badge>
                                 </div>
                             </div>
-                            <div className="flex-1 bg-white p-6 border-2 border-foreground overflow-hidden">
-                                <span className="text-[9px] text-primary font-black uppercase tracking-[0.4em] block mb-3 border-l-4 border-primary pl-3">Asset Assessment</span>
-                                <p className="text-[11px] text-foreground font-bold uppercase tracking-tight leading-relaxed line-clamp-4">
-                                  {currentPlayer.auctionInsight || 'High-performance operational profile verified for professional selection.'}
-                                </p>
-                            </div>
                         </div>
 
                         {/* Right: Valuation & Info */}
                         <div className="flex-1 p-10 lg:p-14 flex flex-col justify-between">
                             <div>
-                                <span className="font-headline text-[10px] text-primary font-black uppercase tracking-[0.4em] mb-4 block border-l-4 border-primary pl-4">Live Session Active</span>
-                                <h1 className="text-6xl lg:text-7xl font-headline font-black text-foreground tracking-tighter leading-none mb-10 italic">
+                                <h1 className="text-6xl lg:text-7xl font-headline font-black text-foreground tracking-tighter leading-none mb-12 italic">
                                   {currentPlayer.playerName}
                                 </h1>
                                 <div className="grid grid-cols-2 gap-8">
@@ -407,7 +400,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                             
                             <div className="bg-foreground text-white p-8 flex items-center justify-between shadow-[8px_8px_0px_rgba(59,130,246,1)] relative overflow-hidden min-h-[160px]">
                                 <div className="flex-1 z-10">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.4em] block mb-2 text-white/50">Current Bid Valuation</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.4em] block mb-2 text-white/50">Current Bid</span>
                                     <div className="flex items-baseline gap-4">
                                         <motion.span 
                                           key={auction.currentBid}
@@ -436,18 +429,17 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                     </motion.div>
                 ) : (
                     <div className="flex flex-col items-center gap-12">
-                        <div className="text-center space-y-4">
+                        <div className="text-center">
                           <h1 className="text-8xl font-headline font-black text-foreground uppercase tracking-tighter italic">
-                            Floor Standby
+                            Standby
                           </h1>
-                          <p className="text-[12px] font-headline text-foreground/40 tracking-[0.8em] uppercase font-black">Official Moderation Portal</p>
                         </div>
                         <Button 
                           onClick={handleDrawPlayer} 
                           disabled={auction.status === 'drawing'} 
                           className="h-20 px-24 text-xl vector-button bg-foreground text-white hover:bg-foreground/90 min-w-[320px]"
                         >
-                          {auction.status === 'drawing' ? 'Initializing...' : 'Reveal Next Lot'}
+                          {auction.status === 'drawing' ? 'Syncing...' : 'Next Lot'}
                         </Button>
                     </div>
                 )}
@@ -464,7 +456,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                       onClick={handleIncreaseBid} 
                       className="h-16 flex-1 text-xl vector-button bg-primary text-white hover:bg-primary/90"
                     >
-                      Raise Bid
+                      Increase Bid
                     </Button>
                     <Button 
                       onClick={handleHammerCall} 
@@ -474,7 +466,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                         auction.hammerStep > 0 ? "bg-accent text-foreground/30" : "bg-foreground text-white"
                       )}
                     >
-                        {auction.hammerStep === 0 ? 'Start Hammer' : hammerSteps[auction.hammerStep-1]}
+                        {auction.hammerStep === 0 ? 'Hammer' : hammerSteps[auction.hammerStep-1]}
                     </Button>
                     <Button 
                       onClick={handleUnsold} 
@@ -490,7 +482,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                   disabled={auction.status === 'drawing' || undrawnIds.length === 0} 
                   className="h-16 w-full text-xl vector-button bg-foreground text-white"
                 >
-                    {auction.status === 'drawing' ? 'Syncing...' : undrawnIds.length > 0 ? `Enter Next Entry (${undrawnIds.length} Left)` : 'Session Complete'}
+                    {auction.status === 'drawing' ? 'Syncing...' : undrawnIds.length > 0 ? `Next Lot (${undrawnIds.length})` : 'Session End'}
                 </Button>
             )}
         </div>

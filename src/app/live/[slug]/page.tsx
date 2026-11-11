@@ -138,7 +138,6 @@ export default function PublicLivePage() {
 
                               <div className="w-full lg:w-[58%] p-10 lg:p-16 flex flex-col justify-between h-full">
                                   <div>
-                                      <span className="font-headline text-[10px] text-primary font-black uppercase tracking-[0.4em] border-l-4 border-primary pl-4 mb-6 block">Official Roster Item</span>
                                       <h1 className="text-6xl lg:text-8xl font-headline font-black text-foreground tracking-tighter leading-none mb-12 italic">
                                         {currentPlayer.playerName}
                                       </h1>
@@ -159,7 +158,7 @@ export default function PublicLivePage() {
 
                                   <div className="mt-auto p-10 bg-foreground text-white shadow-[10px_10px_0px_rgba(59,130,246,1)] flex items-center justify-between min-h-[140px]">
                                       <div>
-                                          <span className="text-[11px] font-black uppercase tracking-[0.4em] block mb-3 text-white/50">Current Valuation</span>
+                                          <span className="text-[11px] font-black uppercase tracking-[0.4em] block mb-3 text-white/50">Current Bid</span>
                                           <div className="flex items-baseline gap-4">
                                               <span className="text-8xl font-mono font-black tracking-tighter leading-none">{auction.currentBid}</span>
                                               <span className="text-4xl font-headline font-black italic uppercase opacity-40">LAKH</span>
@@ -182,7 +181,7 @@ export default function PublicLivePage() {
       {/* Ticker */}
       <div className="fixed bottom-0 left-0 w-full h-28 bg-white border-t-2 border-foreground flex items-center z-[100] shadow-2xl">
           <div className="bg-foreground px-16 h-full flex items-center z-10">
-              <span className="text-white font-black text-3xl uppercase tracking-[0.5em] italic whitespace-nowrap">LIVE LEDGER</span>
+              <span className="text-white font-black text-3xl uppercase tracking-[0.5em] italic whitespace-nowrap">LEDGER</span>
           </div>
           <div className="flex-1 overflow-hidden relative h-full">
               <div className="animate-marquee whitespace-nowrap flex flex-row items-center gap-32 absolute inset-0 py-6">
