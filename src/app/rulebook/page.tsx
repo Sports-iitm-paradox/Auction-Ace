@@ -317,9 +317,9 @@ export default function RulebookPage() {
                     <div>
                         <CardTitle className="flex items-center text-xl sm:text-3xl font-serif text-primary">
                             <BookOpen className="mr-3 h-6 w-6 sm:h-8 sm:w-8" />
-                            Official Statutes
+                            Official Rulebook
                         </CardTitle>
-                        <CardDescription className="hidden sm:block">SAAVAN '26 - IIT Madras Paradox</CardDescription>
+                        <CardDescription className="hidden sm:block">IPL Auction Hub - Paradox Event</CardDescription>
                     </div>
                     
                     {/* Mobile Navigation Trigger */}
@@ -360,7 +360,7 @@ export default function RulebookPage() {
                                     initial="hidden"
                                     animate="visible"
                                     exit="exit"
-                                    transition={{ duration: 0.3, urea: 'easeInOut' }}
+                                    transition={{ duration: 0.3 }}
                                     className="space-y-6"
                                 >
                                     <h2 className="text-2xl sm:text-4xl font-serif text-primary border-b border-primary/10 pb-4">{activeRule.section}</h2>

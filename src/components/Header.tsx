@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -36,7 +37,7 @@ const Header = () => {
             </Button>
             <Button variant="ghost" asChild className="font-black text-[11px] uppercase tracking-[0.4em] hover:text-primary transition-colors">
                 <Link href="/rulebook" onClick={() => setIsSheetOpen(false)}>
-                    Statutes
+                    Rulebook
                 </Link>
             </Button>
             <Button variant="ghost" asChild className="font-black text-[11px] uppercase tracking-[0.4em] hover:text-primary transition-colors">

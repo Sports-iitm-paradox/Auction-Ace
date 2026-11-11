@@ -45,10 +45,13 @@ export default function PresentPage() {
     return null; // Redirecting...
   }
 
-  if (!set) {
+  // Robust check for set data before rendering or throwing 404
+  if (!set && !isLoadingSet) {
     notFound();
     return null;
   }
+
+  if (!set) return null;
 
   return <FullScreenView set={set} />;
 }
