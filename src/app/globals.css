@@ -6,38 +6,39 @@
 
 @layer base {
   :root {
-    /* Valorant / Cyberpunk Palette */
-    --background: 210 40% 4%;
-    --foreground: 45 100% 95%;
+    /* Matgazhi '27 Vector Art Palette */
+    --background: 222 47% 4%; /* Deepest Navy */
+    --foreground: 0 0% 100%; /* Pure White */
 
-    --card: 210 40% 6%;
-    --card-foreground: 45 100% 95%;
+    --card: 222 47% 6%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 210 40% 4%;
-    --popover-foreground: 45 100% 95%;
+    --popover: 222 47% 4%;
+    --popover-foreground: 0 0% 100%;
     
-    /* Neon Pink Primary */
-    --primary: 355 100% 64%;
+    /* Vibrant Magenta Primary */
+    --primary: 329 80% 61%; 
     --primary-foreground: 0 0% 100%;
 
-    /* Cyan Secondary */
-    --secondary: 180 100% 50%;
-    --secondary-foreground: 210 40% 4%;
+    /* Steel Blue Secondary */
+    --secondary: 214 43% 70%;
+    --secondary-foreground: 222 47% 4%;
 
-    --muted: 210 20% 15%;
-    --muted-foreground: 210 10% 70%;
+    /* Cream/Peach Accent */
+    --accent: 30 65% 91%;
+    --accent-foreground: 222 47% 4%;
 
-    --accent: 280 100% 60%;
-    --accent-foreground: 0 0% 100%;
+    --muted: 222 30% 12%;
+    --muted-foreground: 214 20% 70%;
 
-    --destructive: 0 100% 50%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 210 20% 20%;
-    --input: 210 20% 20%;
-    --ring: 355 100% 64%;
+    --border: 222 30% 18%;
+    --input: 222 30% 18%;
+    --ring: 329 80% 61%;
 
-    --radius: 0px; /* Sharp edges for vector art look */
+    --radius: 0px; /* Sharp vector edges */
   }
 }
 
@@ -61,40 +62,40 @@
 @layer components {
   .cyber-border {
     @apply border border-primary/40 relative p-1 bg-black/40 backdrop-blur-sm transition-all duration-200;
-    clip-path: polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%);
+    clip-path: polygon(0 0, 97% 0, 100% 3%, 100% 100%, 3% 100%, 0 97%);
   }
   
   .cyber-border::before {
     content: '';
-    @apply absolute -top-px -left-px w-4 h-4 border-t-2 border-l-2 border-primary;
+    @apply absolute -top-px -left-px w-6 h-6 border-t-2 border-l-2 border-primary shadow-[0_0_10px_rgba(241,70,144,0.5)];
   }
 
   .cyber-grid {
     background-image: 
-      linear-gradient(to right, rgba(255, 70, 85, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 70, 85, 0.05) 1px, transparent 1px);
-    background-size: 40px 40px;
+      linear-gradient(to right, rgba(241, 70, 144, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(241, 70, 144, 0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
   }
 
-  .text-glow-pink {
-    text-shadow: 0 0 10px rgba(255, 70, 85, 0.5), 0 0 20px rgba(255, 70, 85, 0.3);
+  .text-glow-primary {
+    text-shadow: 0 0 10px rgba(241, 70, 144, 0.6), 0 0 20px rgba(241, 70, 144, 0.3);
+  }
+
+  .text-glow-secondary {
+    text-shadow: 0 0 10px rgba(144, 175, 210, 0.6), 0 0 20px rgba(144, 175, 210, 0.3);
   }
 
   .glass-card {
-    @apply bg-card/60 backdrop-blur-md border border-white/5 shadow-2xl;
+    @apply bg-card/40 backdrop-blur-xl border border-white/5 shadow-2xl;
   }
 }
 
 @layer utilities {
-  .animate-glitch {
-    animation: glitch 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+  .animate-scanline {
+    animation: scanline 10s linear infinite;
   }
-  @keyframes glitch {
-    0% { transform: translate(0); }
-    20% { transform: translate(-2px, 2px); }
-    40% { transform: translate(-2px, -2px); }
-    60% { transform: translate(2px, 2px); }
-    80% { transform: translate(2px, -2px); }
-    100% { transform: translate(0); }
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
   }
 }
