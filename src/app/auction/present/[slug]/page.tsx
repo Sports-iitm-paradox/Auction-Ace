@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect } from 'react';
@@ -41,17 +40,13 @@ export default function PresentPage() {
     );
   }
 
-  if (!user) {
-    return null; // Redirecting...
-  }
-
-  // Robust check for set data before rendering or throwing 404
-  if (!set && !isLoadingSet) {
+  // Only trigger 404 if loading finished and no set was returned for a valid ref
+  if (!set && !isLoadingSet && setRef) {
     notFound();
     return null;
   }
 
-  if (!set) return null;
+  if (!set || !user) return null;
 
   return <FullScreenView set={set} />;
 }

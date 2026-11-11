@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ShieldCheck, Loader2, FileText, ImageIcon, Download, Info, Upload } from 'lucide-react';
+import { LayoutGrid, Loader2, FileText, ImageIcon, Download, Info, Upload } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,7 @@ import { SquadPoster } from '@/components/SquadPoster';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import Papa from 'papaparse';
+import { cn } from '@/lib/utils';
 
 export default function SquadsPage() {
     const { user } = useUser();
@@ -83,7 +83,7 @@ export default function SquadsPage() {
                     });
 
                     await batch.commit();
-                    toast({ title: "Standings Updated", description: "Paradox official squads imported successfully." });
+                    toast({ title: "Standings Updated", description: "IPL Auction Hub squads imported successfully." });
                 } catch (e: any) {
                     toast({ title: "Import Failed", description: e.message, variant: "destructive" });
                 } finally {
@@ -116,13 +116,13 @@ export default function SquadsPage() {
         if (!squadData) return;
         const doc = new jsPDF();
         doc.setFontSize(22);
-        doc.text("Paradox IPL Auction Standings", 20, 30);
+        doc.text("IPL Auction Standings", 20, 30);
         const rows = squadData.map(s => [s.name, `${s.moneyLeft} Cr`, s.totalPoints, s.budgetStatus]);
         (doc as any).autoTable({
             startY: 50,
             head: [['House', 'Remaining Purse', 'Total Points', 'Status']],
             body: rows,
-            headStyles: { fillColor: [184, 134, 11] }
+            headStyles: { fillColor: [37, 99, 235] }
         });
         doc.save(`Standings.pdf`);
     };
@@ -132,10 +132,10 @@ export default function SquadsPage() {
             <Card className="bg-card/90 backdrop-blur-sm ornate-border shadow-2xl">
                 <CardHeader className="border-b border-primary/20 pb-8">
                     <CardTitle className="flex items-center text-4xl gap-4 font-serif text-primary">
-                        <ShieldCheck className="h-10 w-10" />
+                        <LayoutGrid className="h-10 w-10" />
                         Franchise Ledger
                     </CardTitle>
-                    <CardDescription className="text-lg italic tracking-wider">Official Paradox Standings & Metrics</CardDescription>
+                    <CardDescription className="text-lg italic tracking-wider">Official Event Standings & Metrics</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8 pt-8">
                     {user && (
@@ -196,7 +196,7 @@ export default function SquadsPage() {
                          <div className="text-center py-24 border-2 border-dashed border-primary/20 rounded-xl bg-black/20">
                             <Info className="mx-auto h-24 w-24 opacity-10 mb-8 text-primary" />
                             <h3 className="text-4xl font-serif text-primary uppercase tracking-[0.4em] italic">No Standings Data</h3>
-                            <p className="mt-4 text-sm text-muted-foreground uppercase tracking-widest">Upload Paradox Official CSV to populate Franchise ledger</p>
+                            <p className="mt-4 text-sm text-muted-foreground uppercase tracking-widest">Upload Official CSV to populate Franchise ledger</p>
                         </div>
                     )}
                 </CardContent>
@@ -205,7 +205,7 @@ export default function SquadsPage() {
             <Dialog open={!!previewSquad} onOpenChange={() => setPreviewSquad(null)}>
                 <DialogContent className="max-w-[900px] h-[95vh] bg-black border-primary/40 flex flex-col p-0 overflow-hidden shadow-2xl">
                     <DialogHeader className="p-10 border-b border-primary/20 flex-shrink-0 bg-black/80 backdrop-blur-md">
-                        <DialogTitle className="font-serif text-primary text-4xl uppercase tracking-widest italic">Official Paradox Squad Poster</DialogTitle>
+                        <DialogTitle className="font-serif text-primary text-4xl uppercase tracking-widest italic">Official Squad Poster</DialogTitle>
                     </DialogHeader>
                     <div className="flex-1 overflow-auto bg-[#1a0202] p-10 flex justify-center custom-scrollbar">
                         {previewSquad && (
