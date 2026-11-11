@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Trophy, Users, PlusCircle, LogOut, LogIn, Menu, BookOpen, ShieldCheck, ChevronDown, Upload, Info } from 'lucide-react';
+import { Trophy, Users, PlusCircle, Menu, ChevronDown, Upload } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -29,45 +29,45 @@ const Header = () => {
     <>
       { !isUserLoading && (
         <div className='flex flex-col md:flex-row items-stretch md:items-center gap-1'>
-            <Button variant="ghost" asChild className="font-bold text-xs uppercase tracking-widest">
+            <Button variant="ghost" asChild className="font-bold text-[10px] uppercase tracking-[0.2em]">
                 <Link href="/squads" onClick={() => setIsSheetOpen(false)}>
-                    Squads
+                    Squad Ledger
                 </Link>
             </Button>
-            <Button variant="ghost" asChild className="font-bold text-xs uppercase tracking-widest">
+            <Button variant="ghost" asChild className="font-bold text-[10px] uppercase tracking-[0.2em]">
                 <Link href="/rulebook" onClick={() => setIsSheetOpen(false)}>
                     Rulebook
                 </Link>
             </Button>
-            <Button variant="ghost" asChild className="font-bold text-xs uppercase tracking-widest">
+            <Button variant="ghost" asChild className="font-bold text-[10px] uppercase tracking-[0.2em]">
                 <Link href="/credits" onClick={() => setIsSheetOpen(false)}>
-                    Info
+                    System Info
                 </Link>
             </Button>
 
             { user &&
               <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="font-bold text-xs uppercase tracking-widest">Manage <ChevronDown className="ml-1 h-3 w-3" /></Button>
+                      <Button variant="ghost" className="font-bold text-[10px] uppercase tracking-[0.2em]">Moderator <ChevronDown className="ml-1 h-3 w-3" /></Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuContent align="end" className="w-48 rounded-none border-2">
                       <DropdownMenuItem asChild>
                           <Link href="/players">
                               <Users className="mr-2 h-4 w-4" />
-                              <span>Players</span>
+                              <span>Master Roster</span>
                           </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                           <Link href="/sets/create">
                               <PlusCircle className="mr-2 h-4 w-4" />
-                              <span>Sets</span>
+                              <span>Create Sets</span>
                           </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
                           <Link href="/import">
                               <Upload className="mr-2 h-4 w-4" />
-                              <span>Import CSV</span>
+                              <span>Import Ledger</span>
                           </Link>
                       </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -79,13 +79,13 @@ const Header = () => {
       {isUserLoading ? (
          <div className="h-9 w-24 animate-pulse rounded bg-muted" />
       ) : user ? (
-        <Button variant="secondary" size="sm" onClick={handleSignOut} className="font-bold text-xs uppercase tracking-widest h-9">
+        <Button variant="secondary" size="sm" onClick={handleSignOut} className="font-bold text-[10px] uppercase tracking-widest h-9 px-6 rounded-none">
           Sign Out
         </Button>
       ) : (
-        <Button size="sm" asChild className="font-bold text-xs uppercase tracking-widest h-9">
+        <Button size="sm" asChild className="font-bold text-[10px] uppercase tracking-widest h-9 px-6 rounded-none">
           <Link href="/login" onClick={() => setIsSheetOpen(false)}>
-            Login
+            Admin Login
           </Link>
         </Button>
       )}
@@ -94,11 +94,11 @@ const Header = () => {
   );
 
   return (
-    <header className="w-full border-b border-border bg-white/80 backdrop-blur-md z-20 sticky top-0 shadow-sm">
+    <header className="w-full border-b border-border bg-white/95 backdrop-blur-md z-20 sticky top-0 shadow-sm gpu-layer">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-3">
-          <Trophy className="h-6 w-6 text-primary" />
-          <span className="text-xl font-serif font-black tracking-tight text-foreground uppercase italic">IPL AUCTION HUB</span>
+          <Trophy className="h-5 w-5 text-primary" />
+          <span className="text-lg font-serif font-black tracking-tight text-foreground uppercase italic">IPL AUCTION HUB</span>
         </Link>
         
         <nav className="hidden md:flex items-center gap-2">
@@ -113,7 +113,7 @@ const Header = () => {
                 <span className="sr-only">Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-white border-l border-border">
+            <SheetContent side="right" className="bg-white border-l border-border rounded-none">
               <nav className="flex flex-col gap-6 pt-12">
                 <NavContent />
               </nav>

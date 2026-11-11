@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Layers, PlusCircle, Users, LogIn, Edit, Gavel, Upload, Lock, View } from 'lucide-react';
+import { Layers, PlusCircle, Lock, Upload, Trophy, ArrowRight } from 'lucide-react';
 import { PlayerSet } from '@/lib/player-data';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
@@ -17,7 +16,6 @@ export default function Home() {
 
   const setsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    // Always query all sets for public viewing.
     return query(
         collection(firestore, 'sets'),
         orderBy('order')
@@ -31,19 +29,18 @@ export default function Home() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.08,
+        staggerChildren: 0.05,
       },
     },
   };
 
   const cardVariants = {
-    hidden: { opacity: 0, y: 50, scale: 0.95 },
+    hidden: { opacity: 0, y: 10 },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1,
       transition: {
-        duration: 0.4,
+        duration: 0.3,
         ease: "easeOut",
       },
     },
@@ -53,112 +50,98 @@ export default function Home() {
 
   if (isLoading && !sets) {
     return (
-      <div className="w-full max-w-5xl mx-auto">
-        {user && (
-          <div className="flex justify-end gap-2 mb-4">
-            <div className="h-10 w-40 animate-pulse rounded-md bg-muted/50" />
-            <div className="h-10 w-40 animate-pulse rounded-md bg-muted/50" />
-          </div>
-        )}
-        <Card>
-          <CardHeader>
-            <div className="h-8 w-64 animate-pulse rounded-md bg-muted/50" />
-            <div className="h-4 w-96 animate-pulse rounded-md bg-muted/50 mt-2" />
-          </CardHeader>
-          <CardContent>
-             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-48 animate-pulse rounded-lg bg-muted/50" />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="w-full max-w-5xl mx-auto py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-64 animate-pulse rounded-none bg-muted/30 border border-border" />
+          ))}
+        </div>
       </div>
     )
   }
 
   return (
     <motion.div 
-      className="w-full max-w-5xl mx-auto"
+      className="w-full max-w-6xl mx-auto py-6 sm:py-10 gpu-layer"
       initial="hidden"
       animate="visible"
     >
-      <Card className="bg-card/80 backdrop-blur-sm border-border/50">
-        <CardHeader>
-          <CardTitle className="font-serif">Select a Player Set</CardTitle>
-          <CardDescription>
-            {user ? "Choose one of the available sets to begin an auction." : "Choose a set to start an auction or log in to manage your sets."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AnimatePresence>
-            {sets && sets.length > 0 ? (
-              <motion.div 
-                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                {sets.map((set) => (
-                  <motion.div
-                    key={set.id}
-                    variants={cardVariants}
-                  >
-                    <Card className="hover:border-primary/80 transition-all flex flex-col h-full bg-card hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/20 shadow-primary/10">
-                      <CardHeader className="p-4 flex-row items-start justify-between">
-                         <CardTitle className="text-xl truncate font-bold font-serif">{set.name}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-4 pt-0 flex-grow">
-                         <div className="flex flex-col items-start text-sm text-muted-foreground">
-                            <span className="text-xs uppercase font-bold tracking-wider text-primary">Players</span>
-                            <span className="text-4xl font-mono font-bold text-foreground">{set.players.length}</span>
-                         </div>
-                      </CardContent>
-                      <CardFooter className="p-4 mt-auto flex flex-col gap-2">
-                         <Button asChild className="w-full">
-                            <Link href={`/auction/present/${set.id}`}>
-                              Start Auction
-                            </Link>
-                          </Button>
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
-                ))}
-              </motion.div>
-            ) : (
-              <motion.div
-                className="text-center py-16 border-2 border-dashed border-border rounded-lg bg-background/50"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                  <Layers className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <h3 className="mt-4 text-lg font-medium font-serif">{user ? "No Sets Found" : "Welcome to Paradox"}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{user ? "Get started by importing players from a CSV." : "Log in to create and manage your player auctions."}</p>
-                  
-                  {!user && !isUserLoading && (
-                    <div className="mt-6">
-                      <Button asChild>
-                          <Link href="/login">
-                              <Lock className="mr-2" /> Admin Login
-                          </Link>
+      <div className="mb-10 text-center space-y-4">
+        <h1 className="text-4xl sm:text-6xl font-serif font-black italic tracking-tighter text-foreground uppercase border-b-4 border-primary inline-block pb-2">
+          Floor Selection
+        </h1>
+        <p className="text-muted-foreground uppercase tracking-[0.3em] text-[10px] font-bold">
+          {user ? "Administrative Access Granted // Select Active Set" : "Live Floor Monitor // Select Active Feed"}
+        </p>
+      </div>
+
+      <AnimatePresence>
+        {sets && sets.length > 0 ? (
+          <motion.div 
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {sets.map((set) => (
+              <motion.div key={set.id} variants={cardVariants}>
+                <Card className="rounded-none border-2 border-border hover:border-primary transition-all flex flex-col h-full bg-white hover:-translate-y-1 shadow-sm hover:shadow-xl group">
+                  <CardHeader className="p-6 border-b border-border">
+                     <div className="flex items-center gap-3 mb-2">
+                       <Trophy className="h-4 w-4 text-primary" />
+                       <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Active Round</span>
+                     </div>
+                     <CardTitle className="text-2xl truncate font-serif font-black italic uppercase">{set.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 flex-grow bg-muted/5">
+                     <div className="flex flex-col items-start">
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-primary mb-1">Lot Quantity</span>
+                        <span className="text-5xl font-mono font-black text-foreground">{set.players.length}</span>
+                     </div>
+                  </CardContent>
+                  <CardFooter className="p-6 mt-auto">
+                     <Button asChild className="w-full rounded-none h-12 font-headline uppercase tracking-widest text-xs group-hover:scale-[1.02] transition-transform">
+                        <Link href={user ? `/auction/present/${set.id}` : `/live/${user?.uid || 'live'}`}>
+                          {user ? "Enter Floor" : "View Live Feed"}
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
                       </Button>
-                    </div>
-                  )}
-                   {user && !isLoadingSets && (
-                    <div className="mt-6">
-                      <Button asChild>
-                          <Link href="/import">
-                              <Upload className="mr-2" /> Import CSV
-                          </Link>
-                      </Button>
-                    </div>
-                  )}
+                  </CardFooter>
+                </Card>
               </motion.div>
-            )}
-          </AnimatePresence>
-        </CardContent>
-      </Card>
+            ))}
+          </motion.div>
+        ) : (
+          <motion.div
+            className="text-center py-32 border-2 border-dashed border-border rounded-none bg-white/50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+              <Layers className="mx-auto h-16 w-16 text-muted-foreground opacity-20" />
+              <h3 className="mt-6 text-2xl font-serif font-black uppercase tracking-widest italic">{user ? "No Sets Established" : "Auction Standby"}</h3>
+              <p className="mt-2 text-xs text-muted-foreground uppercase tracking-[0.2em] font-medium">{user ? "Import Paradox Roster to begin session." : "Waiting for Moderator to initialize floor."}</p>
+              
+              {!user && !isUserLoading && (
+                <div className="mt-10">
+                  <Button asChild className="rounded-none px-12 h-14 font-headline uppercase tracking-[0.2em]">
+                      <Link href="/login">
+                          <Lock className="mr-3 h-4 w-4" /> Admin Portal
+                      </Link>
+                  </Button>
+                </div>
+              )}
+               {user && !isLoadingSets && (
+                <div className="mt-10">
+                  <Button asChild className="rounded-none px-12 h-14 font-headline uppercase tracking-[0.2em]">
+                      <Link href="/import">
+                          <Upload className="mr-3 h-4 w-4" /> Import Ledger
+                      </Link>
+                  </Button>
+                </div>
+              )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

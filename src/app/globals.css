@@ -7,8 +7,9 @@
 @layer base {
   :root {
     /* Matgazhi '27 Vector Art Palette - Light & Premium Variation */
-    --background: 30 65% 96%; /* Very Light Cream */
-    --foreground: 222 47% 10%; /* Deepest Navy for text */
+    /* Primary changed to Vibrant Blue per user request */
+    --background: 210 20% 98%; /* Ultra Light Gray/Blue Tint */
+    --foreground: 222 47% 10%; /* Deepest Navy */
 
     --card: 0 0% 100%;
     --card-foreground: 222 47% 10%;
@@ -16,17 +17,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 10%;
     
-    /* Vibrant Magenta Primary */
-    --primary: 329 80% 61%; 
+    /* Vibrant Blue Primary */
+    --primary: 221 83% 53%; 
     --primary-foreground: 0 0% 100%;
 
     /* Steel Blue Secondary */
     --secondary: 214 43% 30%;
-    --secondary-foreground: 30 65% 96%;
+    --secondary-foreground: 210 20% 98%;
 
-    /* Cream/Peach Accent */
-    --accent: 214 43% 90%;
-    --accent-foreground: 222 47% 10%;
+    /* Light Blue/Navy Accent */
+    --accent: 214 43% 92%;
+    --accent-foreground: 214 43% 30%;
 
     --muted: 214 20% 92%;
     --muted-foreground: 214 20% 40%;
@@ -36,9 +37,9 @@
 
     --border: 214 43% 85%;
     --input: 214 43% 85%;
-    --ring: 329 80% 61%;
+    --ring: 221 83% 53%;
 
-    --radius: 4px; /* Slightly rounded for "Vector" feel */
+    --radius: 2px; /* Sharp, Vector feel */
   }
 }
 
@@ -61,19 +62,25 @@
 
 @layer components {
   .vector-border {
-    @apply border-2 border-primary/20 bg-white shadow-[4px_4px_0px_rgba(241,70,144,0.1)] transition-all duration-200;
+    @apply border-2 border-primary/20 bg-white shadow-[4px_4px_0px_rgba(37,99,235,0.1)] transition-all duration-200;
   }
   
   .vector-card {
-    @apply bg-white border border-border shadow-sm rounded-lg;
+    @apply bg-white border border-border shadow-sm rounded-none;
   }
 
   .text-glow-primary {
-    text-shadow: 2px 2px 0px rgba(241, 70, 144, 0.2);
+    text-shadow: 2px 2px 0px rgba(37, 99, 235, 0.1);
   }
 
   .sunburst-bg {
-    background-image: radial-gradient(circle at center, transparent 0%, rgba(144, 175, 210, 0.05) 100%);
+    background-image: radial-gradient(circle at center, transparent 0%, rgba(37, 99, 235, 0.03) 100%);
+  }
+
+  /* Optimized animations for performance */
+  .gpu-layer {
+    transform: translateZ(0);
+    will-change: transform, opacity;
   }
 }
 
