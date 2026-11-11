@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Trophy, Users, PlusCircle, Menu, ChevronDown, Upload } from 'lucide-react';
+import { Trophy, Users, PlusCircle, Menu, ChevronDown, Upload, Shield } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -28,46 +28,46 @@ const Header = () => {
   const NavContent = () => (
     <>
       { !isUserLoading && (
-        <div className='flex flex-col md:flex-row items-stretch md:items-center gap-1'>
-            <Button variant="ghost" asChild className="font-bold text-[10px] uppercase tracking-[0.2em]">
+        <div className='flex flex-col md:flex-row items-stretch md:items-center gap-3'>
+            <Button variant="ghost" asChild className="font-black text-[11px] uppercase tracking-[0.4em] hover:text-primary transition-colors">
                 <Link href="/squads" onClick={() => setIsSheetOpen(false)}>
-                    Squad Ledger
+                    Squads
                 </Link>
             </Button>
-            <Button variant="ghost" asChild className="font-bold text-[10px] uppercase tracking-[0.2em]">
+            <Button variant="ghost" asChild className="font-black text-[11px] uppercase tracking-[0.4em] hover:text-primary transition-colors">
                 <Link href="/rulebook" onClick={() => setIsSheetOpen(false)}>
-                    Rulebook
+                    Statutes
                 </Link>
             </Button>
-            <Button variant="ghost" asChild className="font-bold text-[10px] uppercase tracking-[0.2em]">
+            <Button variant="ghost" asChild className="font-black text-[11px] uppercase tracking-[0.4em] hover:text-primary transition-colors">
                 <Link href="/credits" onClick={() => setIsSheetOpen(false)}>
-                    System Info
+                    Systems
                 </Link>
             </Button>
 
             { user &&
               <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="font-bold text-[10px] uppercase tracking-[0.2em]">Moderator <ChevronDown className="ml-1 h-3 w-3" /></Button>
+                      <Button variant="ghost" className="font-black text-[11px] uppercase tracking-[0.4em] hover:text-primary">Moderator <ChevronDown className="ml-2 h-4 w-4" /></Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 rounded-none border-2">
-                      <DropdownMenuItem asChild>
+                  <DropdownMenuContent align="end" className="w-56 rounded-none border-2 border-foreground shadow-[4px_4px_0px_rgba(10,25,47,1)] p-2">
+                      <DropdownMenuItem asChild className="rounded-none h-12 font-black uppercase tracking-widest text-[10px]">
                           <Link href="/players">
-                              <Users className="mr-2 h-4 w-4" />
+                              <Users className="mr-3 h-5 w-5" />
                               <span>Master Roster</span>
                           </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
+                      <DropdownMenuItem asChild className="rounded-none h-12 font-black uppercase tracking-widest text-[10px]">
                           <Link href="/sets/create">
-                              <PlusCircle className="mr-2 h-4 w-4" />
-                              <span>Create Sets</span>
+                              <PlusCircle className="mr-3 h-5 w-5" />
+                              <span>Round Creation</span>
                           </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
+                      <DropdownMenuSeparator className="bg-foreground/10 mx-2" />
+                      <DropdownMenuItem asChild className="rounded-none h-12 font-black uppercase tracking-widest text-[10px]">
                           <Link href="/import">
-                              <Upload className="mr-2 h-4 w-4" />
-                              <span>Import Ledger</span>
+                              <Upload className="mr-3 h-5 w-5" />
+                              <span>Ledger Sync</span>
                           </Link>
                       </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -75,15 +75,15 @@ const Header = () => {
             }
         </div>
       )}
-      <div className="flex items-center gap-2 ml-2">
+      <div className="flex items-center gap-4 ml-4">
       {isUserLoading ? (
-         <div className="h-9 w-24 animate-pulse rounded bg-muted" />
+         <div className="h-10 w-28 animate-pulse bg-foreground/10 border-2 border-foreground/20" />
       ) : user ? (
-        <Button variant="secondary" size="sm" onClick={handleSignOut} className="font-bold text-[10px] uppercase tracking-widest h-9 px-6 rounded-none">
+        <Button variant="secondary" onClick={handleSignOut} className="vector-button h-10 px-8 bg-foreground text-white hover:bg-foreground/90">
           Sign Out
         </Button>
       ) : (
-        <Button size="sm" asChild className="font-bold text-[10px] uppercase tracking-widest h-9 px-6 rounded-none">
+        <Button asChild className="vector-button h-10 px-8 bg-foreground text-white hover:bg-foreground/90">
           <Link href="/login" onClick={() => setIsSheetOpen(false)}>
             Admin Login
           </Link>
@@ -94,27 +94,27 @@ const Header = () => {
   );
 
   return (
-    <header className="w-full border-b border-border bg-white/95 backdrop-blur-md z-20 sticky top-0 shadow-sm gpu-layer">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-3">
-          <Trophy className="h-5 w-5 text-primary" />
-          <span className="text-lg font-serif font-black tracking-tight text-foreground uppercase italic">IPL AUCTION HUB</span>
+    <header className="w-full border-b-2 border-foreground bg-white/95 backdrop-blur-md z-20 sticky top-0 shadow-sm gpu-layer">
+      <div className="container mx-auto flex h-20 items-center justify-between px-6">
+        <Link href="/" className="flex items-center gap-4 group">
+          <Shield className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
+          <span className="text-2xl font-headline font-black tracking-tight text-foreground uppercase italic leading-none">IPL AUCTION HUB</span>
         </Link>
         
-        <nav className="hidden md:flex items-center gap-2">
+        <nav className="hidden md:flex items-center gap-4">
           <NavContent />
         </nav>
 
         <div className="md:hidden">
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu />
+              <Button variant="ghost" size="icon" className="h-12 w-12 border-2 border-foreground">
+                <Menu className="h-6 w-6" />
                 <span className="sr-only">Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-white border-l border-border rounded-none">
-              <nav className="flex flex-col gap-6 pt-12">
+            <SheetContent side="right" className="bg-white border-l-2 border-foreground rounded-none w-full sm:w-[400px]">
+              <nav className="flex flex-col gap-10 pt-20 px-8">
                 <NavContent />
               </nav>
             </SheetContent>
