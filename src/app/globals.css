@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Kurale&family=JetBrains+Mono:wght@400;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700;800&family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,37 +6,38 @@
 
 @layer base {
   :root {
-    /* Rich Red Background */
-    --background: 0 75% 12%;
+    /* Valorant / Cyberpunk Palette */
+    --background: 210 40% 4%;
     --foreground: 45 100% 95%;
 
-    --card: 0 75% 15%;
+    --card: 210 40% 6%;
     --card-foreground: 45 100% 95%;
 
-    --popover: 0 75% 12%;
+    --popover: 210 40% 4%;
     --popover-foreground: 45 100% 95%;
     
-    /* Vibrant Gold Primary */
-    --primary: 45 100% 50%;
-    --primary-foreground: 0 75% 8%;
+    /* Neon Pink Primary */
+    --primary: 355 100% 64%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 80% 25%;
-    --secondary-foreground: 45 100% 90%;
+    /* Cyan Secondary */
+    --secondary: 180 100% 50%;
+    --secondary-foreground: 210 40% 4%;
 
-    --muted: 0 40% 20%;
-    --muted-foreground: 45 30% 70%;
+    --muted: 210 20% 15%;
+    --muted-foreground: 210 10% 70%;
 
-    --accent: 20 100% 50%;
+    --accent: 280 100% 60%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 100% 50%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 45 60% 30%;
-    --input: 45 60% 30%;
-    --ring: 45 100% 50%;
+    --border: 210 20% 20%;
+    --input: 210 20% 20%;
+    --ring: 355 100% 64%;
 
-    --radius: 0.5rem;
+    --radius: 0px; /* Sharp edges for vector art look */
   }
 }
 
@@ -45,13 +46,12 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Kurale', serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Rajdhani', sans-serif;
   }
   h1, h2, h3, h4, h5, h6, .font-headline {
-    @apply font-serif;
-    font-family: 'Cinzel', serif;
-    letter-spacing: 0.05em;
+    @apply font-bold uppercase tracking-tighter;
+    font-family: 'Oxanium', cursive;
   }
   .font-mono {
     font-family: 'JetBrains Mono', monospace;
@@ -59,51 +59,42 @@
 }
 
 @layer components {
-  .ornate-border {
-    @apply border-4 border-primary relative p-2 transition-all duration-300;
-    box-shadow: inset 0 0 0 2px hsl(var(--background)), 0 0 20px rgba(255, 204, 0, 0.2);
+  .cyber-border {
+    @apply border border-primary/40 relative p-1 bg-black/40 backdrop-blur-sm transition-all duration-200;
+    clip-path: polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%);
   }
   
-  .ornate-border::after {
+  .cyber-border::before {
     content: '';
-    @apply absolute inset-1 border border-primary pointer-events-none;
+    @apply absolute -top-px -left-px w-4 h-4 border-t-2 border-l-2 border-primary;
   }
 
-  .sunburst-bg {
-    background: 
-      radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 100%),
-      repeating-conic-gradient(
-        from 0deg at 50% 50%,
-        hsl(0, 80% , 15%) 0deg 15deg,
-        hsl(0, 80%, 12%) 15deg 30deg
-      );
+  .cyber-grid {
+    background-image: 
+      linear-gradient(to right, rgba(255, 70, 85, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 70, 85, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-black/20;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-primary/40 hover:bg-primary rounded-full transition-colors;
-  }
-
-  .text-glow-gold {
-    text-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.3);
+  .text-glow-pink {
+    text-shadow: 0 0 10px rgba(255, 70, 85, 0.5), 0 0 20px rgba(255, 70, 85, 0.3);
   }
 
   .glass-card {
-    @apply bg-card/80 backdrop-blur-xl border border-primary/20 shadow-2xl;
+    @apply bg-card/60 backdrop-blur-md border border-white/5 shadow-2xl;
   }
 }
 
 @layer utilities {
-  .animate-slow-spin {
-    animation: spin 8s linear infinite;
+  .animate-glitch {
+    animation: glitch 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
   }
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  @keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
   }
 }
