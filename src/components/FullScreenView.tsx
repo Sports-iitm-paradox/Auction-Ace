@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { X, Trophy, Gavel, Undo2, RotateCcw, Shield, Loader2, Sparkles, Award, Zap, Timer } from 'lucide-react';
+import { X, Trophy, Gavel, Undo2, RotateCcw, Shield, Loader2, Sparkles, Award, Zap, Timer, ChevronRight } from 'lucide-react';
 import { Player, PlayerSet, ActiveAuctionState, ActionEvent } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -79,7 +79,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
   const playSound = useCallback((key: string) => {
     if (typeof Audio === 'undefined') return;
     const audio = new Audio((SOUNDS as any)[key.toUpperCase()]);
-    audio.volume = 0.3;
+    audio.volume = 0.2;
     audio.play().catch(() => {});
   }, []);
 
@@ -131,7 +131,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
         lastUpdated: serverTimestamp()
       });
       setIsTimerActive(true);
-    }, 600);
+    }, 400);
   };
 
   const handleIncreaseBid = () => {
@@ -161,7 +161,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
             setIsTimerActive(false);
             playSound('sold');
             if (auction.currentBid >= MARQUEE_THRESHOLD) {
-              confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 }, colors: ['#f14690', '#90afd2', '#f8eadd'] });
+              confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
             }
             
             const newHistory: ActionEvent[] = [...(auction.history || []), { 
@@ -234,25 +234,11 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
     });
   };
 
-  const handleHardReset = () => {
-    if (!auctionRef || !confirm("CRITICAL: Wipe global auction ledger?")) return;
-    updateDocumentNonBlocking(auctionRef, {
-        status: 'idle',
-        currentPlayerId: "",
-        currentBid: 0,
-        hammerStep: 0,
-        isSold: false,
-        isUnsold: false,
-        history: [],
-        lastUpdated: serverTimestamp()
-    });
-  };
-
   if (isLoadingAuction || !auction) {
     return (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-[200]">
-            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-            <h2 className="text-primary font-headline uppercase tracking-widest text-sm">Initializing Floor...</h2>
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <h2 className="text-primary font-headline uppercase tracking-widest text-xs">Preparing Floor...</h2>
         </div>
     );
   }
@@ -260,50 +246,48 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
   const steps = ['Going Once', 'Going Twice', 'Final Call'];
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center bg-background cyber-grid select-none overflow-hidden h-screen text-foreground">
-      {/* HUD Header */}
-      <div className="w-full flex items-center justify-between px-6 py-4 z-[100] bg-black/60 backdrop-blur-xl border-b border-primary/20 shadow-2xl">
-        <div className="flex items-center gap-4">
-            <Zap className="h-5 w-5 text-primary" />
-            <h2 className="font-headline text-[11px] text-primary tracking-[0.3em] uppercase">IPL AUCTION HUB // MODERATOR SYSTEM</h2>
+    <div className="fixed inset-0 flex flex-col items-center bg-background select-none overflow-hidden h-screen text-foreground">
+      {/* Premium Vector HUD */}
+      <div className="w-full flex items-center justify-between px-8 py-4 z-[100] bg-white border-b border-border shadow-sm">
+        <div className="flex items-center gap-6">
+            <Trophy className="h-6 w-6 text-primary" />
+            <h2 className="font-headline text-sm text-foreground tracking-[0.2em] uppercase">IPL AUCTION HUB <span className="text-primary/40 mx-2">//</span> MODERATOR FLOOR</h2>
         </div>
-        <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={() => setIsHistoryOpen(!isHistoryOpen)} className={cn("h-8 text-[10px] uppercase tracking-widest border-primary/20", isHistoryOpen && "bg-primary text-primary-foreground")}>Ledger</Button>
-            <div className="h-4 w-px bg-primary/20 mx-1" />
-            <Button variant="outline" size="sm" onClick={handleUndo} className="h-8 w-8 p-0 border-primary/20 hover:text-primary"><Undo2 size={14} /></Button>
-            <Button variant="outline" size="sm" onClick={handleHardReset} className="h-8 w-8 p-0 border-destructive/20 text-destructive hover:bg-destructive/10"><RotateCcw size={14} /></Button>
-            <Button variant="outline" size="sm" onClick={() => router.push('/')} className="h-8 w-8 p-0 border-primary/20"><X size={16} /></Button>
+        <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => setIsHistoryOpen(!isHistoryOpen)} className={cn("h-9 px-4 uppercase tracking-widest text-xs font-bold", isHistoryOpen ? "bg-secondary text-secondary-foreground" : "hover:bg-accent")}>History</Button>
+            <div className="h-4 w-px bg-border mx-1" />
+            <Button variant="outline" size="icon" onClick={handleUndo} className="h-9 w-9 border-border hover:text-primary"><Undo2 size={16} /></Button>
+            <Button variant="outline" size="icon" onClick={() => router.push('/')} className="h-9 w-9 border-border"><X size={18} /></Button>
         </div>
       </div>
 
       <div className="flex flex-1 w-full relative overflow-hidden">
-        {/* Ledger Sidebar */}
+        {/* Ledger Sidebar - Premium Vector Style */}
         <AnimatePresence>
           {isHistoryOpen && (
               <motion.aside 
-                initial={{ x: -320 }}
+                initial={{ x: -350 }}
                 animate={{ x: 0 }}
-                exit={{ x: -320 }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="w-80 bg-black/95 border-r border-primary/20 h-full p-8 z-[90] flex flex-col shadow-2xl"
+                exit={{ x: -350 }}
+                transition={{ type: "tween", duration: 0.3 }}
+                className="w-[350px] bg-white border-r border-border h-full p-8 z-[90] flex flex-col shadow-xl"
               >
-                  <h3 className="text-primary font-headline uppercase tracking-[0.4em] text-[12px] mb-8 flex items-center gap-3">
-                    <Award size={16} /> Transaction Log
+                  <h3 className="text-foreground font-headline uppercase tracking-widest text-xs mb-8 flex items-center gap-3 border-b border-border pb-4">
+                    <Award size={18} className="text-primary" /> Auction History
                   </h3>
                   <ScrollArea className="flex-1 -mr-4 pr-4">
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                           {auction.history.slice().reverse().map((p, i) => (
-                              <div key={i} className="bg-white/[0.02] border border-white/[0.05] p-4 relative overflow-hidden group hover:border-primary/40 transition-all duration-300">
-                                  <div className={cn("absolute left-0 top-0 bottom-0 w-1", p.type === 'sold' ? "bg-primary" : "bg-destructive")} />
-                                  <p className="text-[11px] font-black text-white uppercase truncate mb-2">{players.find(pl => pl.id === p.playerId)?.playerName}</p>
-                                  <div className="flex justify-between items-center">
-                                      <span className={cn("text-[9px] font-black uppercase tracking-widest", p.type === 'sold' ? "text-primary" : "text-destructive")}>{p.type === 'sold' ? 'SOLD' : 'UNSOLD'}</span>
-                                      {p.bid && <span className="text-[12px] font-mono font-black text-secondary">{p.bid}L</span>}
+                              <div key={i} className="bg-background border border-border p-4 rounded-md transition-all hover:border-primary/40 group">
+                                  <div className="flex justify-between items-start mb-2">
+                                    <span className={cn("text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded", p.type === 'sold' ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive")}>{p.type === 'sold' ? 'SOLD' : 'UNSOLD'}</span>
+                                    {p.bid && <span className="text-sm font-mono font-bold text-foreground">{p.bid}L</span>}
                                   </div>
+                                  <p className="text-xs font-bold text-foreground uppercase truncate">{players.find(pl => pl.id === p.playerId)?.playerName}</p>
                               </div>
                           ))}
                           {auction.history.length === 0 && (
-                            <div className="text-center py-20 opacity-20 italic text-[10px] uppercase tracking-widest">Awaiting Floor Action</div>
+                            <div className="text-center py-20 text-muted-foreground italic text-xs uppercase tracking-widest">Awaiting Floor Activity</div>
                           )}
                       </div>
                   </ScrollArea>
@@ -311,62 +295,55 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
           )}
         </AnimatePresence>
 
-        <main className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
+        <main className="flex-1 flex flex-col items-center justify-center p-12 relative z-10">
             <AnimatePresence mode="wait">
                 {auction.status !== 'drawing' && currentPlayer ? (
                     <motion.div 
                       key={currentPlayer.id}
-                      initial={{ opacity: 0, scale: 0.96, filter: 'blur(10px)' }} 
-                      animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }} 
-                      className={cn(
-                        "w-full max-w-6xl aspect-[16/9] cyber-border shadow-[0_0_100px_rgba(0,0,0,0.8)] flex overflow-hidden relative", 
-                        auction.currentBid >= MARQUEE_THRESHOLD && "border-primary shadow-[0_0_120px_rgba(241,70,144,0.15)]"
-                      )}
+                      initial={{ opacity: 0, y: 20 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      className="w-full max-w-6xl aspect-[16/9] bg-white border border-border rounded-xl shadow-2xl flex overflow-hidden relative"
                     >
-                        {/* Sold/Unsold Cinematic Overlay */}
+                        {/* Sold/Unsold Cinematic Overlay - Clean Vector Art Style */}
                         {(auction.isSold || auction.isUnsold) && (
                             <motion.div 
-                              initial={{ opacity: 0, backdropFilter: 'blur(0px)' }} 
-                              animate={{ opacity: 1, backdropFilter: 'blur(20px)' }} 
-                              className="absolute inset-0 z-[110] flex flex-col items-center justify-center bg-background/95 p-12 text-center"
+                              initial={{ opacity: 0 }} 
+                              animate={{ opacity: 1 }} 
+                              className="absolute inset-0 z-[110] flex flex-col items-center justify-center bg-white/95 p-12 text-center"
                             >
                                 <motion.div 
-                                  initial={{ scale: 0.9, opacity: 0, y: 40 }}
-                                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                                  initial={{ scale: 0.95, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
                                   className={cn(
-                                    "p-14 cyber-border max-w-3xl w-full relative bg-black/60",
-                                    auction.isSold ? "border-primary shadow-[0_0_120px_rgba(241,70,144,0.4)]" : "border-destructive shadow-[0_0_120px_rgba(255,0,0,0.3)]"
+                                    "p-16 border-4 rounded-xl max-w-3xl w-full relative bg-white shadow-2xl",
+                                    auction.isSold ? "border-primary" : "border-destructive"
                                   )}
                                 >
-                                  <div className="absolute top-8 right-8 opacity-20">
-                                    {auction.isSold ? <Award size={120} className="text-primary" /> : <Shield size={120} className="text-destructive" />}
-                                  </div>
-                                  
-                                  <Gavel size={100} className={cn("mx-auto mb-8", auction.isSold ? "text-primary animate-pulse" : "text-destructive")} />
+                                  <Gavel size={80} className={cn("mx-auto mb-8", auction.isSold ? "text-primary" : "text-destructive")} />
                                   
                                   <h2 className={cn(
-                                    "text-8xl lg:text-9xl font-headline font-black uppercase tracking-tighter leading-none mb-6", 
-                                    auction.isSold ? "text-primary text-glow-primary" : "text-destructive"
+                                    "text-8xl font-headline font-black uppercase tracking-tighter leading-none mb-6", 
+                                    auction.isSold ? "text-primary" : "text-destructive"
                                   )}>
                                     {auction.isSold ? 'SOLD' : 'UNSOLD'}
                                   </h2>
                                   
-                                  <h3 className="text-4xl lg:text-6xl font-headline text-white uppercase tracking-[0.2em] border-y border-white/10 py-8 my-8 bg-white/[0.02]">
+                                  <h3 className="text-4xl font-headline text-foreground uppercase tracking-widest border-y border-border py-8 my-8">
                                     {currentPlayer.playerName}
                                   </h3>
                                   
                                   {auction.isSold && (
-                                    <div className="flex items-center justify-center gap-8">
-                                      <span className="text-8xl lg:text-9xl font-mono font-black text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">{auction.currentBid}L</span>
+                                    <div className="flex items-center justify-center gap-4">
+                                      <span className="text-8xl font-mono font-black text-foreground">{auction.currentBid}L</span>
                                     </div>
                                   )}
                                 </motion.div>
 
                                 <Button 
                                   onClick={handleNextLot} 
-                                  className="mt-16 h-20 px-20 text-2xl font-headline font-black uppercase tracking-[0.4em] bg-primary hover:bg-primary/80 transition-all shadow-[0_0_40px_rgba(241,70,144,0.3)]"
+                                  className="mt-12 h-16 px-16 text-xl font-headline font-black uppercase tracking-widest bg-primary hover:bg-primary/90 shadow-lg"
                                 >
-                                  Next Lot Incoming
+                                  Next Lot
                                 </Button>
                             </motion.div>
                         )}
@@ -374,123 +351,118 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                         {/* Hammer Step Header */}
                         {auction.hammerStep > 0 && auction.hammerStep < 4 && !auction.isSold && (
                             <motion.div 
-                              initial={{ y: -120 }} 
+                              initial={{ y: -100 }} 
                               animate={{ y: 0 }} 
-                              className="absolute top-0 left-0 w-full bg-primary py-8 flex justify-center z-[105] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-b-2 border-white/20"
+                              className="absolute top-0 left-0 w-full bg-primary py-6 flex justify-center z-[105] shadow-lg"
                             >
-                                <h2 className="text-4xl lg:text-6xl font-headline font-black uppercase tracking-[0.8em] text-primary-foreground drop-shadow-2xl">
+                                <h2 className="text-4xl font-headline font-black uppercase tracking-[0.5em] text-primary-foreground">
                                     {steps[auction.hammerStep - 1].toUpperCase()}
                                 </h2>
                             </motion.div>
                         )}
 
                         {/* Left Column: Player Visuals */}
-                        <div className="w-[42%] h-full border-r border-primary/20 p-10 flex flex-col gap-8 bg-black/40">
-                            <div className="w-full aspect-[3/4] relative bg-black/80 shadow-[inset_0_0_60px_rgba(0,0,0,1)] overflow-hidden flex items-center justify-center group border border-white/5">
+                        <div className="w-[40%] h-full border-r border-border p-12 flex flex-col gap-8 bg-muted/30">
+                            <div className="w-full aspect-[3/4] relative bg-white rounded-lg shadow-inner overflow-hidden flex items-center justify-center border border-border">
                                 {currentPlayer.imageUrl ? (
                                   <Image 
                                     src={currentPlayer.imageUrl} 
                                     alt={currentPlayer.playerName} 
                                     fill 
-                                    className="object-contain p-6 transition-transform duration-700 group-hover:scale-105" 
+                                    className="object-contain p-4" 
                                     priority
                                   />
                                 ) : (
-                                  <Shield className="w-full h-full p-32 opacity-5 text-primary" />
+                                  <Shield className="w-full h-full p-24 opacity-5 text-primary" />
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-                                <div className="absolute top-6 left-6">
-                                  <Badge className="bg-primary text-primary-foreground font-black text-xl px-4 py-1 shadow-2xl border border-white/20">LOT #{currentPlayer.playerNumber}</Badge>
+                                <div className="absolute top-4 left-4">
+                                  <Badge className="bg-secondary text-secondary-foreground font-bold text-lg px-3 py-1">LOT #{currentPlayer.playerNumber}</Badge>
                                 </div>
                             </div>
-                            <div className="flex-1 bg-white/[0.02] p-8 border-l-4 border-primary shadow-2xl">
-                                <span className="text-[11px] text-primary font-black uppercase tracking-[0.5em] block mb-4 underline underline-offset-8">Floor Scouting Report</span>
-                                <p className="text-[13px] text-secondary/80 leading-relaxed font-sans font-medium italic pr-4">
-                                  {currentPlayer.auctionInsight || 'Strategic asset identified with high performance metrics for current squad requirements.'}
+                            <div className="flex-1 bg-white p-6 rounded-lg border border-border shadow-sm">
+                                <span className="text-[10px] text-primary font-black uppercase tracking-widest block mb-3">Scouting Insight</span>
+                                <p className="text-sm text-foreground/70 leading-relaxed font-medium italic">
+                                  {currentPlayer.auctionInsight || 'Strategic asset with high performance metrics for current squad requirements.'}
                                 </p>
                             </div>
                         </div>
 
                         {/* Right Column: Player Details & Bidding */}
-                        <div className="flex-1 p-14 flex flex-col justify-between bg-gradient-to-br from-black/20 to-primary/5">
+                        <div className="flex-1 p-16 flex flex-col justify-between">
                             <div>
-                                <div className="flex items-center gap-4 mb-8">
-                                  <span className="font-headline text-[10px] text-primary font-black uppercase tracking-[0.6em] border-l-4 border-primary pl-5">Auction Floor Active</span>
-                                  {auction.currentBid >= MARQUEE_THRESHOLD && <Badge className="bg-primary text-primary-foreground animate-pulse text-[10px] px-3">MARQUEE STATUS</Badge>}
+                                <div className="flex items-center gap-4 mb-6">
+                                  <span className="font-headline text-[10px] text-primary font-black uppercase tracking-widest border-l-2 border-primary pl-4">Live Floor Active</span>
+                                  {auction.currentBid >= MARQUEE_THRESHOLD && <Badge className="bg-primary text-primary-foreground text-[10px] px-3">MARQUEE</Badge>}
                                 </div>
-                                <h1 className="text-6xl lg:text-[6.5rem] font-headline font-black text-white tracking-tighter mb-16 drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] leading-none">
+                                <h1 className="text-7xl font-headline font-black text-foreground tracking-tighter mb-12 leading-none">
                                   {currentPlayer.playerName}
                                 </h1>
-                                <div className="grid grid-cols-2 gap-x-12 gap-y-12">
+                                <div className="grid grid-cols-2 gap-12">
                                     {[
                                         { label: 'Specialism', value: currentPlayer.specialism },
                                         { label: 'Category', value: currentPlayer.cua },
-                                        { label: 'Valuation', value: `${currentPlayer.points} PTS` },
+                                        { label: 'Rating', value: `${currentPlayer.points} PTS` },
                                         { label: 'Country', value: currentPlayer.country },
                                     ].map((s, i) => (
-                                        <div key={i} className="relative">
-                                            <span className="text-[10px] text-primary font-black uppercase tracking-[0.4em] block mb-3 opacity-80">{s.label}</span>
-                                            <span className="text-2xl lg:text-3xl font-headline font-bold text-white uppercase tracking-wider block truncate">{s.value}</span>
+                                        <div key={i}>
+                                            <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest block mb-2">{s.label}</span>
+                                            <span className="text-2xl font-headline font-bold text-foreground uppercase tracking-wide block truncate">{s.value}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                             
                             {/* Bidding & Timer Block */}
-                            <div className="bg-black/60 border border-primary/30 p-10 flex items-center justify-between shadow-[0_30px_60px_rgba(0,0,0,0.5)] relative overflow-hidden group">
-                                <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                
-                                {/* Countdown Timer */}
+                            <div className="bg-secondary text-secondary-foreground p-10 rounded-xl flex items-center justify-between shadow-xl relative overflow-hidden">
+                                <div className="flex-1">
+                                    <span className="text-[11px] font-black uppercase tracking-widest block mb-2 opacity-60">Current Valuation</span>
+                                    <div className="flex items-baseline gap-4">
+                                        <motion.span 
+                                          key={auction.currentBid}
+                                          initial={{ scale: 1.1 }}
+                                          animate={{ scale: 1 }}
+                                          className="text-8xl font-mono font-black tracking-tighter leading-none"
+                                        >
+                                          {auction.currentBid}
+                                        </motion.span>
+                                        <span className="text-4xl font-headline font-black italic opacity-80">LAKH</span>
+                                    </div>
+                                </div>
+
+                                {/* Simplified, High-Performance Timer */}
                                 {isTimerActive && (
-                                    <div className="absolute right-0 top-0 bottom-0 w-28 bg-primary flex flex-col items-center justify-center shadow-[-10px_0_30px_rgba(0,0,0,0.3)]">
-                                        <Timer size={24} className="text-primary-foreground mb-2" />
+                                    <div className="bg-primary w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-lg animate-in zoom-in duration-300">
+                                        <Timer size={20} className="mb-1 text-primary-foreground" />
                                         <span className={cn(
-                                          "text-4xl font-mono font-black", 
-                                          timer <= 5 ? "text-white animate-pulse scale-110" : "text-primary-foreground"
+                                          "text-3xl font-mono font-black", 
+                                          timer <= 5 ? "text-white animate-pulse" : "text-primary-foreground"
                                         )}>
                                           {timer}
                                         </span>
                                     </div>
                                 )}
-                                
-                                <div className="z-10 flex-1 pr-32">
-                                    <span className="text-[12px] text-primary font-black uppercase tracking-[0.8em] block mb-3">Live Valuation //</span>
-                                    <div className="flex items-baseline gap-6">
-                                        <motion.span 
-                                          key={auction.currentBid}
-                                          initial={{ y: -10, opacity: 0 }}
-                                          animate={{ y: 0, opacity: 1 }}
-                                          className="text-7xl lg:text-[7rem] font-mono font-black text-white tracking-tighter leading-none text-glow-primary"
-                                        >
-                                          {auction.currentBid}
-                                        </motion.span>
-                                        <span className="text-3xl lg:text-5xl font-headline text-primary font-black italic">LAKH</span>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </motion.div>
                 ) : (
                     <motion.div 
-                      initial={{ opacity: 0, y: 30 }} 
-                      animate={{ opacity: 1, y: 0 }} 
-                      className="flex flex-col items-center gap-16"
+                      initial={{ opacity: 0, scale: 0.95 }} 
+                      animate={{ opacity: 1, scale: 1 }} 
+                      className="flex flex-col items-center gap-12"
                     >
-                        <div className="relative">
-                            <Zap size={140} className="text-primary animate-pulse relative z-10 drop-shadow-[0_0_30px_rgba(241,70,144,0.5)]" />
-                            <div className="absolute inset-0 bg-primary/20 blur-[60px] rounded-full animate-ping" />
-                        </div>
-                        <div className="space-y-6 text-center">
-                          <h1 className="text-7xl lg:text-9xl font-headline font-black text-white uppercase tracking-tighter italic">
-                            Floor Standby
+                        <Trophy size={100} className="text-primary opacity-20" />
+                        <div className="space-y-4 text-center">
+                          <h1 className="text-8xl font-headline font-black text-foreground uppercase tracking-tighter">
+                            Standby
                           </h1>
-                          <p className="text-xl font-headline text-primary tracking-[1em] uppercase animate-pulse">Awaiting Signal // Lot Synchronization</p>
+                          <p className="text-sm font-headline text-muted-foreground tracking-[0.5em] uppercase">Awaiting Floor Signal</p>
                         </div>
                         <Button 
                           onClick={handleDrawPlayer} 
-                          className="h-24 px-24 text-3xl font-headline font-black uppercase tracking-[0.5em] bg-primary hover:bg-primary/80 transition-all shadow-[0_0_60px_rgba(241,70,144,0.3)] hover:scale-105 active:scale-95"
+                          disabled={auction.status === 'drawing'} 
+                          className="h-20 px-20 text-2xl font-headline font-black uppercase tracking-widest bg-primary hover:bg-primary/90 shadow-xl"
                         >
-                          Reveal Next Lot
+                          {auction.status === 'drawing' ? 'Syncing...' : 'Reveal Lot'}
                         </Button>
                     </motion.div>
                 )}
@@ -498,31 +470,31 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
         </main>
       </div>
 
-      {/* Control Footer */}
-      <footer className="w-full bg-black/90 border-t border-primary/20 p-8 z-[100] backdrop-blur-2xl shadow-[0_-20px_50px_rgba(0,0,0,0.8)]">
-        <div className="max-w-7xl mx-auto flex gap-6">
+      {/* Premium Footer Controls */}
+      <footer className="w-full bg-white border-t border-border p-8 z-[100] shadow-2xl">
+        <div className="max-w-7xl mx-auto flex gap-4">
             {currentPlayer && !auction.isSold && !auction.isUnsold ? (
                 <>
                     <Button 
                       onClick={handleIncreaseBid} 
-                      className="h-20 flex-1 text-2xl font-headline font-black tracking-[0.4em] uppercase bg-primary hover:bg-primary/90 transition-all border-b-4 border-black/20"
+                      className="h-16 flex-1 text-xl font-headline font-black tracking-widest uppercase bg-primary hover:bg-primary/90 shadow-md"
                     >
-                      + Raise Bid
+                      Raise Bid
                     </Button>
                     <Button 
                       onClick={handleHammerCall} 
                       disabled={auction.hammerStep > 0} 
                       className={cn(
-                        "h-20 px-24 font-headline font-black tracking-[0.4em] uppercase text-2xl transition-all border-b-4 border-black/20",
-                        auction.hammerStep > 0 ? "bg-muted text-primary cursor-wait" : "bg-white text-black hover:bg-white/90"
+                        "h-16 px-16 font-headline font-black tracking-widest uppercase text-xl transition-all shadow-md",
+                        auction.hammerStep > 0 ? "bg-muted text-foreground cursor-wait" : "bg-secondary text-secondary-foreground hover:bg-secondary/90"
                       )}
                     >
-                        {auction.hammerStep === 0 ? 'Start Hammer' : steps[auction.hammerStep-1]}
+                        {auction.hammerStep === 0 ? 'Hammer' : steps[auction.hammerStep-1]}
                     </Button>
                     <Button 
                       onClick={handleUnsold} 
-                      variant="destructive" 
-                      className="h-20 px-20 font-headline font-black tracking-[0.4em] uppercase text-2xl transition-all border-b-4 border-black/20"
+                      variant="outline" 
+                      className="h-16 px-12 font-headline font-black tracking-widest uppercase text-xl border-destructive/20 text-destructive hover:bg-destructive/5"
                     >
                       Unsold
                     </Button>
@@ -531,22 +503,13 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                 <Button 
                   onClick={handleDrawPlayer} 
                   disabled={auction.status === 'drawing'} 
-                  className="h-20 w-full text-2xl font-headline font-black uppercase tracking-[0.5em] bg-primary transition-all border-b-4 border-black/20"
+                  className="h-16 w-full text-xl font-headline font-black uppercase tracking-widest bg-primary shadow-md"
                 >
-                    {auction.status === 'drawing' ? 'Synchronizing Lot...' : `Access Next Lot (${undrawnIds.length} Available)`}
+                    {auction.status === 'drawing' ? 'Processing...' : `Draw Next Player (${undrawnIds.length} Left)`}
                 </Button>
             )}
         </div>
       </footer>
-      
-      <style jsx global>{`
-        .text-glow-primary { 
-          text-shadow: 0 0 25px rgba(241, 70, 144, 0.8), 0 0 60px rgba(241, 70, 144, 0.4); 
-        }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: hsl(var(--primary) / 0.4); border-radius: 10px; }
-      `}</style>
     </div>
   );
 }
