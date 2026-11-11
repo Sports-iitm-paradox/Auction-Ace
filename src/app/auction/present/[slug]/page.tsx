@@ -1,20 +1,20 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { notFound, useParams, useRouter } from 'next/navigation';
-import { Player, PlayerSet } from '@/lib/player-data';
+import { PlayerSet } from '@/lib/player-data';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, DocumentReference } from 'firebase/firestore';
 import FullScreenView from '@/components/FullScreenView';
-import { shuffleArray } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
 export default function PresentPage() {
   const router = useRouter();
   const params = useParams();
   const slug = params.slug;
 
-  const { isUserLoading } = useUser();
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
   const setRef = useMemoFirebase(() => {
@@ -23,34 +23,32 @@ export default function PresentPage() {
   }, [firestore, slug]);
 
   const { data: set, isLoading: isLoadingSet } = useDoc<PlayerSet>(setRef);
-  const [activePlayerList, setActivePlayerList] = useState<Player[] | null>(null);
 
   useEffect(() => {
-    if (set && set.players) {
-        setActivePlayerList(shuffleArray(set.players));
+    if (!isUserLoading && !user) {
+      router.push('/login');
     }
-  }, [set]);
+  }, [user, isUserLoading, router]);
 
-  const resetAuction = () => {
-    if (set && set.players) {
-        setActivePlayerList(shuffleArray(set.players));
-    }
-  }
-
-  const isLoading = isLoadingSet || isUserLoading || !activePlayerList;
+  const isLoading = isLoadingSet || isUserLoading;
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <p className="text-lg">Loading Presentation...</p>
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-[100] vector-grid-bg">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-foreground/40 font-headline uppercase tracking-[0.5em] text-[11px]">Syncing Floor Session</p>
       </div>
     );
   }
 
-  if (!set || !activePlayerList) {
+  if (!user) {
+    return null; // Redirecting...
+  }
+
+  if (!set) {
     notFound();
     return null;
   }
 
-  return <FullScreenView players={activePlayerList} set={set} onReset={resetAuction} />;
+  return <FullScreenView set={set} />;
 }

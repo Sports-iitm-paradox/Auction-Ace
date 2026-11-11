@@ -7,7 +7,7 @@ import { Button } from './ui/button';
 import { X, Undo2, Loader2, Volume2, VolumeX, ListRestart, ArrowRight } from 'lucide-react';
 import { Player, PlayerSet, ActiveAuctionState, ActionEvent } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn, shuffleArray } from '@/lib/utils';
 import Image from 'next/image';
 import { useFirestore, useUser, useDoc, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { doc, serverTimestamp, DocumentReference } from 'firebase/firestore';
@@ -29,7 +29,7 @@ const DEFAULT_TIMER = 20;
 const MARQUEE_THRESHOLD = 500;
 const HAMMER_INTERVAL = 1500;
 
-export default function FullScreenView({ players, set, onReset }: { players: Player[], set: PlayerSet, onReset: () => void }) {
+export default function FullScreenView({ set }: { set: PlayerSet }) {
   const router = useRouter();
   const firestore = useFirestore();
   const { user } = useUser();
@@ -43,15 +43,18 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
   const hammerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Persistence: Each set has its own auction floor state for the user
   const auctionRef = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    return doc(firestore, 'activeAuctions', user.uid) as DocumentReference<ActiveAuctionState>;
-  }, [firestore, user]);
+    if (!firestore || !user || !set) return null;
+    return doc(firestore, 'activeAuctions', `${user.uid}_${set.id}`) as DocumentReference<ActiveAuctionState>;
+  }, [firestore, user, set]);
 
   const { data: auction, isLoading: isLoadingAuction } = useDoc<ActiveAuctionState>(auctionRef);
 
   useEffect(() => {
-    if (isLoadingAuction || !auctionRef || !user) return;
+    if (isLoadingAuction || !auctionRef || !user || !set) return;
+    
+    // Initialize the persistent session if it does not exist
     if (!auction) {
         setDocumentNonBlocking(auctionRef, {
             currentPlayerId: "",
@@ -61,22 +64,18 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
             isSold: false,
             isUnsold: false,
             userId: user.uid,
+            setId: set.id,
             lastUpdated: serverTimestamp(),
-            history: []
+            history: [],
+            undrawnIds: shuffleArray(set.players).map(p => p.id) // Persistent shuffle
         }, { merge: true });
     }
-  }, [auction, isLoadingAuction, auctionRef, user]);
-
-  const undrawnIds = useMemo(() => {
-    if (!auction || !players) return [];
-    const historyIds = new Set(auction.history.map(h => h.playerId));
-    return players.filter(p => !historyIds.has(p.id)).map(p => p.id);
-  }, [auction?.history, players]);
+  }, [auction, isLoadingAuction, auctionRef, user, set]);
 
   const currentPlayer = useMemo(() => {
-    if (!auction?.currentPlayerId) return null;
-    return players.find(p => p.id === auction.currentPlayerId) || null;
-  }, [auction?.currentPlayerId, players]);
+    if (!auction?.currentPlayerId || !set.players) return null;
+    return set.players.find(p => p.id === auction.currentPlayerId) || null;
+  }, [auction?.currentPlayerId, set.players]);
 
   const playSound = useCallback((key: string) => {
     if (typeof Audio === 'undefined' || isMuted) return;
@@ -108,10 +107,12 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
   }, [isTimerActive, timer, playSound]);
 
   const handleDrawPlayer = async () => {
-    if (!auction || undrawnIds.length === 0 || auction.status === 'drawing' || !auctionRef) return;
+    if (!auction || !auction.undrawnIds || auction.undrawnIds.length === 0 || auction.status === 'drawing' || !auctionRef) return;
     
     clearHammerSequence();
-    const nextId = undrawnIds[Math.floor(Math.random() * undrawnIds.length)];
+    const undrawn = [...auction.undrawnIds];
+    const nextId = undrawn[0]; // Take next from persistent shuffle
+    const remaining = undrawn.slice(1);
     
     setTimer(DEFAULT_TIMER);
     updateDocumentNonBlocking(auctionRef, { 
@@ -120,12 +121,13 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
         isSold: false, 
         isUnsold: false,
         currentPlayerId: nextId,
+        undrawnIds: remaining,
         lastUpdated: serverTimestamp() 
     });
 
     setTimeout(() => {
       playSound('reveal');
-      const nextPlayer = players.find(p => p.id === nextId);
+      const nextPlayer = set.players.find(p => p.id === nextId);
       updateDocumentNonBlocking(auctionRef, {
         status: 'bidding',
         currentBid: nextPlayer?.reservePrice || 0,
@@ -223,12 +225,17 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
     if (!auction || !auctionRef || auction.history.length === 0) return;
     const history = [...auction.history];
     const last = history.pop();
+    
+    // Put the player back in undrawn pool (at the start)
+    const undrawn = [last!.playerId, ...(auction.undrawnIds || [])];
+
     updateDocumentNonBlocking(auctionRef, {
         status: 'bidding',
         hammerStep: 0,
         isSold: false,
         isUnsold: false,
         history,
+        undrawnIds: undrawn,
         currentPlayerId: last?.playerId,
         currentBid: last?.bid || 0,
         lastUpdated: serverTimestamp()
@@ -236,8 +243,8 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
   };
 
   const hardResetAuction = () => {
-    if (!auctionRef || !user) return;
-    if (confirm("Reset official session? This will clear all ledger entries.")) {
+    if (!auctionRef || !user || !set) return;
+    if (confirm("Reset official session for this set? This will clear all ledger entries and reshuffle assets.")) {
         setDocumentNonBlocking(auctionRef, {
             currentPlayerId: "",
             currentBid: 0,
@@ -246,8 +253,10 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
             isSold: false,
             isUnsold: false,
             userId: user.uid,
+            setId: set.id,
             lastUpdated: serverTimestamp(),
-            history: []
+            history: [],
+            undrawnIds: shuffleArray(set.players).map(p => p.id)
         });
     }
   };
@@ -270,6 +279,8 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
             <h2 className="font-headline text-lg text-foreground tracking-[0.4em] uppercase font-black italic">
               IPL AUCTION HUB
             </h2>
+            <div className="h-6 w-px bg-foreground/10" />
+            <span className="text-[10px] font-black uppercase text-foreground/40 tracking-widest">{set.name} Floor</span>
         </div>
         <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => setIsMuted(!isMuted)} className="h-10 w-10 border-2 border-foreground hover:bg-accent">
@@ -304,7 +315,7 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                                     <span className={cn("text-[9px] font-black uppercase tracking-widest px-2 py-0.5", p.type === 'sold' ? "bg-primary text-white" : "bg-foreground text-white")}>{p.type === 'sold' ? 'SOLD' : 'UNSOLD'}</span>
                                     {p.bid && <span className="text-sm font-mono font-black">{p.bid}L</span>}
                                   </div>
-                                  <p className="text-[12px] font-black text-foreground uppercase truncate tracking-tight">{players.find(pl => pl.id === p.playerId)?.playerName}</p>
+                                  <p className="text-[12px] font-black text-foreground uppercase truncate tracking-tight">{set.players.find(pl => pl.id === p.playerId)?.playerName}</p>
                               </div>
                           ))}
                           {auction.history.length === 0 && (
@@ -433,13 +444,16 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
                           <h1 className="text-8xl font-headline font-black text-foreground uppercase tracking-tighter italic">
                             Standby
                           </h1>
+                          <p className="text-[11px] font-black uppercase tracking-[0.8em] text-foreground/30 mt-4">
+                            {auction.undrawnIds?.length || 0} Assets Remaining in Ledger
+                          </p>
                         </div>
                         <Button 
                           onClick={handleDrawPlayer} 
-                          disabled={auction.status === 'drawing'} 
+                          disabled={auction.status === 'drawing' || !auction.undrawnIds || auction.undrawnIds.length === 0} 
                           className="h-20 px-24 text-xl vector-button bg-foreground text-white hover:bg-foreground/90 min-w-[320px]"
                         >
-                          {auction.status === 'drawing' ? 'Syncing...' : 'Next Lot'}
+                          {auction.status === 'drawing' ? 'Syncing...' : auction.undrawnIds?.length ? 'Initiate Draw' : 'Roster Complete'}
                         </Button>
                     </div>
                 )}
@@ -479,10 +493,10 @@ export default function FullScreenView({ players, set, onReset }: { players: Pla
             ) : (
                 <Button 
                   onClick={handleDrawPlayer} 
-                  disabled={auction.status === 'drawing' || undrawnIds.length === 0} 
+                  disabled={auction.status === 'drawing' || !auction.undrawnIds || auction.undrawnIds.length === 0} 
                   className="h-16 w-full text-xl vector-button bg-foreground text-white"
                 >
-                    {auction.status === 'drawing' ? 'Syncing...' : undrawnIds.length > 0 ? `Next Lot (${undrawnIds.length})` : 'Session End'}
+                    {auction.status === 'drawing' ? 'Syncing...' : auction.undrawnIds?.length ? `Draw Next Lot (${auction.undrawnIds.length} Left)` : 'Session Complete'}
                 </Button>
             )}
         </div>
