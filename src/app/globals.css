@@ -6,9 +6,9 @@
 
 @layer base {
   :root {
-    /* Matgazhi '27 Vector Art Palette - Premium Light Variation */
-    --background: 210 20% 98%; /* Ultra Light Gray/Blue Tint (Cream-ish) */
-    --foreground: 222 47% 10%; /* Deepest Navy */
+    /* Matgazhi '27 Vector Art Palette - Premium Blue Edition */
+    --background: 210 20% 98%; /* Light Cream */
+    --foreground: 222 47% 10%; /* Deep Navy */
 
     --card: 0 0% 100%;
     --card-foreground: 222 47% 10%;
@@ -16,17 +16,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 10%;
     
-    /* Vibrant Magenta/Pink Tertiary from Palette */
-    --primary: 341 100% 50%; 
+    /* Vibrant Paradox Blue - Replaced Magenta */
+    --primary: 217 91% 60%; 
     --primary-foreground: 0 0% 100%;
 
     /* Steel Blue Secondary */
-    --secondary: 214 43% 30%;
+    --secondary: 222 47% 20%;
     --secondary-foreground: 210 20% 98%;
 
     /* Light Blue Accent */
-    --accent: 214 43% 92%;
-    --accent-foreground: 214 43% 30%;
+    --accent: 217 91% 95%;
+    --accent-foreground: 217 91% 40%;
 
     --muted: 214 20% 92%;
     --muted-foreground: 214 20% 40%;
@@ -34,11 +34,11 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 43% 85%;
-    --input: 214 43% 85%;
-    --ring: 341 100% 50%;
+    --border: 222 47% 10%;
+    --input: 222 47% 10%;
+    --ring: 217 91% 60%;
 
-    --radius: 0px; /* Sharp Vector feel - No rounding */
+    --radius: 0px; /* Sharp Vector Edge */
   }
 }
 
@@ -61,7 +61,7 @@
 
 @layer components {
   .vector-border {
-    @apply border-2 border-foreground bg-white shadow-[4px_4px_0px_rgba(10,25,47,1)] transition-all duration-200;
+    @apply border-2 border-foreground bg-white shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all duration-200;
   }
   
   .vector-card {
@@ -69,17 +69,14 @@
   }
 
   .vector-button {
-    @apply rounded-none border-2 border-foreground font-headline uppercase tracking-widest text-xs font-black transition-all hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[4px_4px_0px_rgba(10,25,47,1)] active:translate-x-0 active:translate-y-0 active:shadow-none;
-  }
-
-  .text-glow-vector {
-    text-shadow: 2px 2px 0px rgba(10, 25, 47, 0.1);
+    @apply rounded-none border-2 border-foreground font-headline uppercase tracking-widest text-xs font-black transition-all hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none;
   }
 
   .vector-grid-bg {
     background-image: 
-      radial-gradient(circle at center, rgba(10, 25, 47, 0.05) 1px, transparent 1px);
-    background-size: 30px 30px;
+      linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 
   .gpu-layer {
@@ -92,7 +89,7 @@
   .animate-marquee {
     display: flex;
     width: max-content;
-    animation: marquee 40s linear infinite;
+    animation: marquee 30s linear infinite;
   }
   @keyframes marquee {
     0% { transform: translateX(100vw); }

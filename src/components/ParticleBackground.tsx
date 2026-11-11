@@ -13,9 +13,9 @@ const AnimatedBackground = () => {
 
   return (
     <div className="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden bg-background vector-grid-bg">
-      {/* Dynamic Vector Gradient Accents */}
-      <div className="absolute -top-[10vh] -right-[10vw] w-[60vw] h-[60vh] bg-primary/5 blur-[120px] rounded-full gpu-layer" />
-      <div className="absolute -bottom-[10vh] -left-[10vw] w-[40vw] h-[40vh] bg-foreground/5 blur-[100px] rounded-full gpu-layer" />
+      {/* Static Vector Accents for better performance */}
+      <div className="absolute top-0 right-0 w-[50vw] h-[50vh] bg-primary/[0.03] blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[40vw] h-[40vh] bg-foreground/[0.02] blur-[120px] pointer-events-none" />
     </div>
   );
 };
