@@ -23,10 +23,12 @@ service cloud.firestore {
       allow update, delete: if request.auth.uid == resource.data.userId;
     }
 
-    // Active auction state is publicly viewable; only the owner can modify
+    // Active auction state is publicly viewable; only the set owner can modify
     match /activeAuctions/{auctionId} {
       allow read: if true;
-      allow create, update, delete: if request.auth.uid == request.resource.data.userId || (resource != null && request.auth.uid == resource.data.userId);
+      // auctionId is the Set ID. We verify ownership via the userId field in the doc.
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth.uid == resource.data.userId;
     }
 
     // Squad standings are publicly viewable

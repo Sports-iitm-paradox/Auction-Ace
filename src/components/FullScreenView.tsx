@@ -43,11 +43,11 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
   const hammerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Persistence: Each set has its own auction floor state for the user
+  // Persistence: Session is identified by the SET ID to allow spectators to follow
   const auctionRef = useMemoFirebase(() => {
-    if (!firestore || !user || !set) return null;
-    return doc(firestore, 'activeAuctions', `${user.uid}_${set.id}`) as DocumentReference<ActiveAuctionState>;
-  }, [firestore, user, set]);
+    if (!firestore || !set) return null;
+    return doc(firestore, 'activeAuctions', set.id) as DocumentReference<ActiveAuctionState>;
+  }, [firestore, set]);
 
   const { data: auction, isLoading: isLoadingAuction } = useDoc<ActiveAuctionState>(auctionRef);
 
@@ -63,11 +63,11 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
             hammerStep: 0,
             isSold: false,
             isUnsold: false,
-            userId: user.uid,
+            userId: set.userId, // Link to the set owner for rules validation
             setId: set.id,
             lastUpdated: serverTimestamp(),
             history: [],
-            undrawnIds: shuffleArray(set.players).map(p => p.id) // Persistent shuffle
+            undrawnIds: shuffleArray(set.players).map(p => p.id) 
         }, { merge: true });
     }
   }, [auction, isLoadingAuction, auctionRef, user, set]);
@@ -111,7 +111,7 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
     
     clearHammerSequence();
     const undrawn = [...auction.undrawnIds];
-    const nextId = undrawn[0]; // Take next from persistent shuffle
+    const nextId = undrawn[0]; 
     const remaining = undrawn.slice(1);
     
     setTimer(DEFAULT_TIMER);
@@ -225,8 +225,6 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
     if (!auction || !auctionRef || auction.history.length === 0) return;
     const history = [...auction.history];
     const last = history.pop();
-    
-    // Put the player back in undrawn pool (at the start)
     const undrawn = [last!.playerId, ...(auction.undrawnIds || [])];
 
     updateDocumentNonBlocking(auctionRef, {
@@ -252,7 +250,7 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
             hammerStep: 0,
             isSold: false,
             isUnsold: false,
-            userId: user.uid,
+            userId: set.userId,
             setId: set.id,
             lastUpdated: serverTimestamp(),
             history: [],
@@ -265,6 +263,7 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
     return (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-[200]">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <p className="mt-4 text-foreground/40 font-headline uppercase tracking-[0.4em] text-[11px]">Syncing Floor Ledger</p>
         </div>
     );
   }

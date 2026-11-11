@@ -69,8 +69,8 @@ export default function Home() {
                   </CardContent>
                   <CardFooter className="p-5 mt-auto">
                      <Button asChild className="w-full vector-button h-10 text-[11px] font-black bg-foreground text-white hover:bg-foreground/90">
-                        <Link href={user ? `/auction/present/${set.id}` : `/live/${user?.uid || 'live'}`}>
-                          {user ? "Open Floor" : "Watch Live"}
+                        <Link href={user && user.uid === set.userId ? `/auction/present/${set.id}` : `/live/${set.id}`}>
+                          {user && user.uid === set.userId ? "Open Floor" : "Watch Live"}
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>
