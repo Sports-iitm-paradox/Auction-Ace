@@ -1,5 +1,4 @@
-
-'use client';
+"use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -43,7 +42,6 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
   const hammerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Persistence: Session is identified by the SET ID to allow spectators to follow
   const auctionRef = useMemoFirebase(() => {
     if (!firestore || !set) return null;
     return doc(firestore, 'activeAuctions', set.id) as DocumentReference<ActiveAuctionState>;
@@ -54,7 +52,6 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
   useEffect(() => {
     if (isLoadingAuction || !auctionRef || !user || !set) return;
     
-    // Initialize the persistent session if it does not exist
     if (!auction) {
         setDocumentNonBlocking(auctionRef, {
             currentPlayerId: "",
@@ -63,7 +60,7 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
             hammerStep: 0,
             isSold: false,
             isUnsold: false,
-            userId: set.userId, // Link to the set owner for rules validation
+            userId: set.userId,
             setId: set.id,
             lastUpdated: serverTimestamp(),
             history: [],
@@ -261,7 +258,7 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
 
   if (isLoadingAuction || !auction) {
     return (
-        <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-[200]">
+        <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-[200] vector-grid-bg">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
             <p className="mt-4 text-foreground/40 font-headline uppercase tracking-[0.4em] text-[11px]">Syncing Floor Ledger</p>
         </div>
@@ -335,7 +332,6 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                       animate={{ opacity: 1, scale: 1 }} 
                       className="w-full max-w-6xl aspect-[16/9] bg-white border-2 border-foreground shadow-[12px_12px_0px_rgba(0,0,0,1)] flex overflow-hidden relative"
                     >
-                        {/* Status Overlays */}
                         {(auction.isSold || auction.isUnsold) && (
                             <motion.div 
                               initial={{ opacity: 0 }} 
@@ -362,7 +358,6 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                             </motion.div>
                         )}
 
-                        {/* Hammer Banner */}
                         {auction.hammerStep > 0 && auction.hammerStep < 4 && !auction.isSold && (
                             <motion.div initial={{ y: -80 }} animate={{ y: 0 }} className="absolute top-0 left-0 w-full bg-primary py-4 flex justify-center z-[105] border-b-2 border-foreground">
                                 <h2 className="text-3xl font-headline font-black uppercase tracking-[0.4em] text-white">
@@ -371,8 +366,8 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                             </motion.div>
                         )}
 
-                        {/* Left: Player Visual */}
-                        <div className="w-[40%] h-full border-r-2 border-foreground p-8 flex flex-col items-center justify-center bg-accent/30">
+                        {/* Player Visual Frame */}
+                        <div className="w-[42%] h-full border-r-2 border-foreground p-8 flex flex-col items-center justify-center bg-accent/30">
                             <div className="w-full aspect-[3/4] relative bg-white border-2 border-foreground overflow-hidden shadow-2xl">
                                 {currentPlayer.imageUrl ? (
                                   <Image src={currentPlayer.imageUrl} alt={currentPlayer.playerName} fill className="object-contain p-4" priority />
@@ -387,18 +382,18 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                             </div>
                         </div>
 
-                        {/* Right: Valuation & Info */}
-                        <div className="flex-1 p-10 lg:p-14 flex flex-col justify-between">
+                        {/* Info & Valuation HUD */}
+                        <div className="flex-1 p-10 lg:p-14 flex flex-col justify-between h-full">
                             <div>
-                                <h1 className="text-6xl lg:text-7xl font-headline font-black text-foreground tracking-tighter leading-none mb-12 italic">
+                                <h1 className="text-5xl lg:text-7xl font-headline font-black text-foreground tracking-tighter leading-none mb-10 italic">
                                   {currentPlayer.playerName}
                                 </h1>
-                                <div className="grid grid-cols-2 gap-8">
+                                <div className="grid grid-cols-2 gap-8 mb-8">
                                     {[
-                                        { label: 'Specialism', value: currentPlayer.specialism },
-                                        { label: 'Category', value: currentPlayer.cua },
-                                        { label: 'Metric', value: `${currentPlayer.points} PTS` },
-                                        { label: 'Nationality', value: currentPlayer.country },
+                                        { label: 'Role', value: currentPlayer.specialism },
+                                        { label: 'Asset', value: currentPlayer.cua },
+                                        { label: 'Score', value: `${currentPlayer.points} PTS` },
+                                        { label: 'Region', value: currentPlayer.country },
                                     ].map((s, i) => (
                                         <div key={i} className="border-l-2 border-foreground/10 pl-5">
                                             <span className="text-[9px] text-foreground/40 font-black uppercase tracking-[0.2em] block mb-1">{s.label}</span>
@@ -408,7 +403,7 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                                 </div>
                             </div>
                             
-                            <div className="bg-foreground text-white p-8 flex items-center justify-between shadow-[8px_8px_0px_rgba(59,130,246,1)] relative overflow-hidden min-h-[160px]">
+                            <div className="bg-foreground text-white p-8 flex items-center justify-between shadow-[8px_8px_0px_rgba(59,130,246,1)] relative overflow-hidden min-h-[160px] mt-auto">
                                 <div className="flex-1 z-10">
                                     <span className="text-[10px] font-black uppercase tracking-[0.4em] block mb-2 text-white/50">Current Bid</span>
                                     <div className="flex items-baseline gap-4">
@@ -416,18 +411,18 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                                           key={auction.currentBid}
                                           initial={{ scale: 1.1, opacity: 0 }}
                                           animate={{ scale: 1, opacity: 1 }}
-                                          className="text-8xl font-mono font-black tracking-tighter leading-none"
+                                          className="text-7xl lg:text-8xl font-mono font-black tracking-tighter leading-none"
                                         >
                                           {auction.currentBid}
                                         </motion.span>
-                                        <span className="text-3xl font-headline font-black italic opacity-40 uppercase">LAKH</span>
+                                        <span className="text-2xl lg:text-3xl font-headline font-black italic opacity-40 uppercase">LAKH</span>
                                     </div>
                                 </div>
 
                                 {isTimerActive && (
-                                    <div className="bg-primary w-20 h-20 flex flex-col items-center justify-center border-4 border-white shadow-2xl ml-4 shrink-0">
+                                    <div className="bg-primary w-20 h-20 lg:w-24 lg:h-24 flex flex-col items-center justify-center border-4 border-white shadow-2xl ml-4 shrink-0">
                                         <span className={cn(
-                                          "text-4xl font-mono font-black", 
+                                          "text-4xl lg:text-5xl font-mono font-black", 
                                           timer <= 5 ? "animate-pulse" : ""
                                         )}>
                                           {timer}
@@ -461,7 +456,7 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
       </div>
 
       {/* Control Footer */}
-      <footer className="w-full bg-white border-t-2 border-foreground p-8 z-[100] shadow-2xl">
+      <footer className="w-full bg-white border-t-2 border-foreground p-6 z-[100] shadow-2xl">
         <div className="max-w-6xl mx-auto flex gap-6">
             {currentPlayer && !auction.isSold && !auction.isUnsold ? (
                 <>

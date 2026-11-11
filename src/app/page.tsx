@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -39,9 +38,9 @@ export default function Home() {
   }
 
   return (
-    <div className="w-full max-w-[1800px] mx-auto py-12 sm:py-16 px-6 gpu-layer">
+    <div className="w-full max-w-[1800px] mx-auto py-8 sm:py-12 px-6 gpu-layer">
       <div className="mb-12 text-center">
-        <h1 className="text-3xl sm:text-5xl font-headline font-black tracking-tighter text-foreground uppercase border-b-4 border-primary inline-block pb-3 leading-none italic">
+        <h1 className="text-2xl sm:text-4xl font-headline font-black tracking-tighter text-foreground uppercase border-b-4 border-primary inline-block pb-2 leading-none italic">
           Floor Select
         </h1>
       </div>
@@ -57,18 +56,18 @@ export default function Home() {
               >
                 <Card className="rounded-none border-2 border-foreground hover:border-primary transition-all flex flex-col h-full bg-white hover:-translate-x-1 hover:-translate-y-1 shadow-none hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] group relative overflow-hidden">
                   <div className="p-5 border-b-2 border-foreground bg-accent/20">
-                     <CardTitle className="text-3xl truncate font-headline font-black italic uppercase tracking-tight">{set.name}</CardTitle>
+                     <CardTitle className="text-4xl truncate font-headline font-black italic uppercase tracking-tighter">{set.name}</CardTitle>
                   </div>
                   <CardContent className="p-5 flex-grow">
                      <div className="flex flex-col items-start">
                         <div className="flex items-baseline gap-2">
-                           <span className="text-5xl font-mono font-black text-foreground leading-none">{set.players.length}</span>
-                           <span className="text-lg font-headline font-black text-foreground/20 italic uppercase">Assets</span>
+                           <span className="text-6xl font-mono font-black text-foreground leading-none">{set.players.length}</span>
+                           <span className="text-xl font-headline font-black text-foreground/20 italic uppercase">Assets</span>
                         </div>
                      </div>
                   </CardContent>
                   <CardFooter className="p-5 mt-auto">
-                     <Button asChild className="w-full vector-button h-10 text-[11px] font-black bg-foreground text-white hover:bg-foreground/90">
+                     <Button asChild className="w-full vector-button h-11 text-[11px] font-black bg-foreground text-white hover:bg-foreground/90">
                         <Link href={user && user.uid === set.userId ? `/auction/present/${set.id}` : `/live/${set.id}`}>
                           {user && user.uid === set.userId ? "Open Floor" : "Watch Live"}
                           <ArrowRight className="ml-2 h-4 w-4" />

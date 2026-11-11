@@ -16,7 +16,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 10%;
     
-    /* Vibrant Paradox Blue - Replaced Magenta */
+    /* Vibrant Paradox Blue */
     --primary: 217 91% 60%; 
     --primary-foreground: 0 0% 100%;
 
@@ -49,6 +49,7 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
   }
   h1, h2, h3, h4, h5, h6, .font-headline {
     @apply font-bold uppercase tracking-tight;
@@ -82,6 +83,17 @@
   .gpu-layer {
     transform: translateZ(0);
     will-change: transform, opacity;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 0;
   }
 }
 
