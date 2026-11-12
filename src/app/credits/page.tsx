@@ -33,7 +33,7 @@ export default function SystemNoticePage() {
             Official System & IP Notice
           </CardTitle>
           <CardDescription className="text-sm font-black text-foreground/40 tracking-[0.6em] uppercase">
-            Margazhi '27 Paradox // Auction Infrastructure
+            Margazhi'27 // Auction Infrastructure
           </CardDescription>
         </CardHeader>
         
@@ -113,7 +113,7 @@ export default function SystemNoticePage() {
                 </div>
                 <div className="p-8 bg-accent/10 border-2 border-foreground">
                   <p className="text-sm font-medium text-foreground/70 mb-6 uppercase tracking-wider leading-relaxed">
-                    For technical verification regarding the Margazhi '27 Paradox infrastructure:
+                    For technical verification regarding the Margazhi'27 infrastructure:
                   </p>
                   <a 
                     href="mailto:sports@iitmparadox.org" 

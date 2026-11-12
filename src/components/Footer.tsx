@@ -12,7 +12,7 @@ const Footer = () => {
 
         <div className="pt-8 border-t-2 border-foreground/5 w-full max-w-xl">
             <p className="text-[9px] text-foreground/30 font-black uppercase tracking-[0.6em] leading-relaxed">
-                IPL Auction Hub Infrastructure // Official Margazhi '27 Roster Management
+                IPL Auction Hub Infrastructure // Official Margazhi'27 Roster Management
             </p>
         </div>
       </div>

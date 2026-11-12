@@ -45,7 +45,7 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
         </div>
         <div className="text-right">
           <p className="text-[11px] font-black uppercase tracking-[0.5em] text-primary italic mb-2">Session Ledger</p>
-          <p className="text-2xl font-black uppercase tracking-[0.3em] opacity-30 italic">Margazhi '27</p>
+          <p className="text-2xl font-black uppercase tracking-[0.3em] opacity-30 italic">Margazhi'27</p>
         </div>
       </div>
 

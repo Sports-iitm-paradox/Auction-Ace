@@ -27,7 +27,7 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid, houseName }
       <div className="bg-foreground text-white px-12 py-12 flex justify-between items-center z-10 box-border border-b-[10px] border-primary">
           <div>
             <h2 className="text-[12px] font-black uppercase tracking-[0.6em] mb-2 opacity-50">Official Media Release</h2>
-            <h1 className="text-5xl font-black italic tracking-tighter uppercase leading-none">Margazhi '27 Paradox</h1>
+            <h1 className="text-5xl font-black italic tracking-tighter uppercase leading-none">Margazhi'27</h1>
           </div>
           <div className="text-right">
               <span className="bg-white text-foreground px-6 py-2 text-lg font-black uppercase tracking-widest italic border-2 border-foreground shadow-[6px_6px_0px_rgba(59,130,246,1)]">Lot #{player.playerNumber}</span>
@@ -99,7 +99,7 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid, houseName }
       {/* Footer Branding */}
       <div className="p-12 border-t-[10px] border-foreground flex items-center justify-center text-center bg-white z-10 box-border">
           <p className="text-[11px] font-black uppercase tracking-[1em] text-foreground/30 leading-none italic">
-            Margazhi '27 Paradox // Official Live Ledger Announcement
+            Margazhi'27 // Official Live Ledger Announcement
           </p>
       </div>
 

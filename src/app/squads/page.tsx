@@ -76,7 +76,7 @@ export default function SquadsPage() {
         doc.setFontSize(24);
         doc.text("Official Franchise Standings", 20, 30);
         doc.setFontSize(10);
-        doc.text(`Margazhi '27 Paradox // ${new Date().toLocaleString()}`, 20, 38);
+        doc.text(`Margazhi'27 // ${new Date().toLocaleString()}`, 20, 38);
         
         const rows = squadData.map(s => [s.name, `${s.moneyLeft} Cr`, s.totalPoints, s.budgetStatus]);
         (doc as any).autoTable({
@@ -99,7 +99,7 @@ export default function SquadsPage() {
                     </h1>
                     <div className="flex items-center gap-4">
                         <div className="w-3 h-3 bg-primary animate-pulse" />
-                        <span className="text-[11px] font-black uppercase tracking-[0.6em] text-foreground/40 italic">Live Margazhi '27 Paradox Sync</span>
+                        <span className="text-[11px] font-black uppercase tracking-[0.6em] text-foreground/40 italic">Live Margazhi'27 Sync</span>
                     </div>
                 </div>
                 

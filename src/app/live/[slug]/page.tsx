@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useMemo } from 'react';
@@ -69,7 +68,7 @@ export default function PublicLivePage() {
             <div className="h-8 w-px bg-foreground/10" />
             <div className="flex items-center gap-4">
               <div className="w-3 h-3 bg-primary animate-pulse" />
-              <span className="text-primary font-black uppercase tracking-[0.5em] text-[11px]">Live Broadcast</span>
+              <span className="text-primary font-black uppercase tracking-[0.5em] text-[11px]">Live Margazhi'27 Sync</span>
             </div>
         </div>
       </div>
