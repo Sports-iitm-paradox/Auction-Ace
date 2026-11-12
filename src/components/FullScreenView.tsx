@@ -10,7 +10,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { cn, shuffleArray } from '@/lib/utils';
 import Image from 'next/image';
 import { useFirestore, useUser, useDoc, useCollection, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { doc, serverTimestamp, DocumentReference, collection, query, orderBy } from 'firebase/firestore';
+import { doc, serverTimestamp, DocumentReference, collection, query, orderBy, getDocs, where } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import confetti from 'canvas-confetti';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -208,15 +208,61 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
     runStep(1);
   };
 
+  const syncSquadData = async (houseName: string, playerId: string, bid: number, isRemoving: boolean = false) => {
+    if (!firestore || !squads) return;
+    
+    const squad = squads.find(s => s.name === houseName);
+    if (!squad) return;
+
+    const player = set.players.find(p => p.id === playerId);
+    if (!player) return;
+
+    const bidInCr = bid / 100; // Assuming bid is in Lakhs, converting to Cr for Squad page
+    const points = player.points || 0;
+    
+    const currentList = squad.playersList || '';
+    const playerEntry = `${player.playerName}:${bidInCr}:${player.specialism}:${player.cua}`;
+    
+    let newList = '';
+    if (isRemoving) {
+        newList = currentList.split(';').filter(entry => !entry.startsWith(`${player.playerName}:`)).join(';');
+    } else {
+        newList = currentList ? `${currentList};${playerEntry}` : playerEntry;
+    }
+
+    const newMoneySpent = isRemoving ? squad.moneySpent - bidInCr : squad.moneySpent + bidInCr;
+    const newMoneyLeft = isRemoving ? squad.moneyLeft + bidInCr : squad.moneyLeft - bidInCr;
+    const newPoints = isRemoving ? squad.totalPoints - points : squad.totalPoints + points;
+
+    const squadRef = doc(firestore, 'squads', squad.id);
+    updateDocumentNonBlocking(squadRef, {
+        moneySpent: parseFloat(newMoneySpent.toFixed(2)),
+        moneyLeft: parseFloat(newMoneyLeft.toFixed(2)),
+        totalPoints: newPoints,
+        playersList: newList,
+        budgetStatus: newMoneyLeft < 0 ? 'OVER' : 'OK'
+    });
+  };
+
   const assignWinningHouse = (houseName: string) => {
-      if (!auction || !auctionRef) return;
+      if (!auction || !auctionRef || !currentPlayer) return;
       setWinningHouse(houseName);
+      
       const history = [...auction.history];
       if (history.length > 0) {
           const lastIndex = history.length - 1;
           if (history[lastIndex].playerId === auction.currentPlayerId) {
+              const prevHouse = history[lastIndex].houseName;
+              // If re-assigning, undo previous squad update
+              if (prevHouse) {
+                  syncSquadData(prevHouse, auction.currentPlayerId, auction.currentBid, true);
+              }
+              
               history[lastIndex].houseName = houseName;
               updateDocumentNonBlocking(auctionRef, { history, lastUpdated: serverTimestamp() });
+              
+              // Sync to backend squad ledger
+              syncSquadData(houseName, auction.currentPlayerId, auction.currentBid);
           }
       }
   };
@@ -274,6 +320,11 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
     if (!auction || !auctionRef || auction.history.length === 0) return;
     const history = [...auction.history];
     const last = history.pop();
+    
+    if (last?.type === 'sold' && last.houseName) {
+        syncSquadData(last.houseName, last.playerId, last.bid || 0, true);
+    }
+
     const undrawn = [last!.playerId, ...(auction.undrawnIds || [])];
 
     updateDocumentNonBlocking(auctionRef, {

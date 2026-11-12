@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -27,7 +28,7 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid, houseName }
       <div className="bg-foreground text-white px-12 py-10 flex justify-between items-center z-10 box-border">
           <div>
             <h2 className="text-[12px] font-black uppercase tracking-[0.6em] mb-2 opacity-50">Official Announcement</h2>
-            <h1 className="text-4xl font-black italic tracking-tighter uppercase">IPL Auction Hub</h1>
+            <h1 className="text-4xl font-black italic tracking-tighter uppercase">Margazhi '27 Paradox</h1>
           </div>
           <div className="text-right">
               <span className="bg-primary px-4 py-1 text-sm font-black uppercase tracking-widest italic">Lot #{player.playerNumber}</span>
