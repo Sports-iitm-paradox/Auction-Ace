@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -35,84 +34,93 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
       className="w-[1080px] h-[1350px] bg-white text-foreground p-0 relative flex flex-col items-stretch overflow-hidden border-[20px] border-foreground"
       style={{ fontFamily: "'Oxanium', cursive" }}
     >
+      {/* Background Element */}
+      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-accent/10 rounded-full blur-[200px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
       {/* Header HUD */}
-      <div className="bg-foreground text-white px-12 py-12 flex justify-between items-center z-10">
+      <div className="bg-foreground text-white px-16 py-16 flex justify-between items-end z-10 border-b-[12px] border-primary">
         <div>
-          <h2 className="text-[12px] font-black uppercase tracking-[0.6em] mb-2 opacity-50">Official Squad Announcement</h2>
-          <h1 className="text-6xl font-black italic tracking-tighter uppercase leading-none">{squad.name}</h1>
+          <h2 className="text-[12px] font-black uppercase tracking-[0.8em] mb-4 opacity-40">Official Squad Announcement</h2>
+          <h1 className="text-8xl font-black italic tracking-tighter uppercase leading-none">{squad.name}</h1>
         </div>
         <div className="text-right">
-          <span className="text-[10px] font-black uppercase tracking-[0.5em] opacity-40">Margazhi '27 Paradox</span>
+          <p className="text-[11px] font-black uppercase tracking-[0.5em] text-primary italic mb-2">Session Ledger</p>
+          <p className="text-2xl font-black uppercase tracking-[0.3em] opacity-30 italic">Margazhi '27</p>
         </div>
       </div>
 
-      {/* Stats Bar */}
-      <div className="bg-primary text-white px-12 py-6 flex gap-12 border-b-[10px] border-foreground z-10">
+      {/* Stats Block */}
+      <div className="bg-white px-16 py-12 flex gap-16 border-b-[10px] border-foreground z-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Total Points</p>
-          <p className="text-4xl font-black italic tracking-tighter leading-none">{squad.totalPoints}</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-foreground/40 mb-2">Total Points</p>
+          <p className="text-5xl font-black italic tracking-tighter leading-none">{squad.totalPoints}</p>
         </div>
-        <div className="h-10 w-px bg-white/20" />
+        <div className="w-[2px] bg-foreground/10 h-12 self-center" />
         <div>
-          <p className="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Purse Spent</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-foreground/40 mb-2">Purse Spent</p>
           <div className="flex items-baseline gap-2">
-            <p className="text-4xl font-black italic tracking-tighter leading-none">{squad.moneySpent}</p>
-            <p className="text-xs font-black uppercase italic opacity-40">CR</p>
+            <p className="text-5xl font-black italic tracking-tighter leading-none text-primary">{squad.moneySpent}</p>
+            <p className="text-xl font-black uppercase italic text-foreground/20">CR</p>
           </div>
         </div>
-        <div className="h-10 w-px bg-white/20" />
+        <div className="w-[2px] bg-foreground/10 h-12 self-center" />
         <div>
-          <p className="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Status</p>
-          <p className="text-2xl font-black italic uppercase tracking-widest leading-none">{squad.budgetStatus}</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-foreground/40 mb-2">Purse Left</p>
+          <div className="flex items-baseline gap-2">
+            <p className="text-5xl font-black italic tracking-tighter leading-none">{squad.moneyLeft}</p>
+            <p className="text-xl font-black uppercase italic text-foreground/20">CR</p>
+          </div>
         </div>
       </div>
 
       {/* Players Grid */}
-      <div className="flex-1 grid grid-cols-5 gap-6 p-12 bg-accent/10 z-10 relative">
+      <div className="flex-1 grid grid-cols-4 gap-8 p-16 bg-accent/5 z-10 relative overflow-hidden">
         {playerEntries.map((entry, idx) => (
-          <div key={idx} className="bg-white border-[6px] border-foreground flex flex-col shadow-[10px_10px_0px_rgba(0,0,0,1)] relative overflow-hidden group">
+          <div key={idx} className="bg-white border-[6px] border-foreground flex flex-col shadow-[12px_12px_0px_rgba(0,0,0,1)] relative overflow-hidden group hover:-translate-x-1 hover:-translate-y-1 transition-transform">
              <div className="w-full aspect-[3/4] relative bg-accent/20 border-b-[6px] border-foreground flex items-center justify-center overflow-hidden">
                 {entry.playerInfo?.imageUrl ? (
                   <img 
                     src={entry.playerInfo.imageUrl} 
                     alt={entry.name} 
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" 
                     crossOrigin="anonymous"
                   />
                 ) : (
-                  <User className="h-12 w-12 text-foreground/10" />
+                  <User className="h-20 w-20 text-foreground/5" />
                 )}
-                <div className="absolute bottom-2 right-2">
-                   <span className="text-[8px] font-black bg-foreground text-white px-2 py-0.5 uppercase tracking-widest">{entry.role}</span>
+                <div className="absolute top-2 left-2">
+                   <span className="text-[8px] font-black bg-foreground text-white px-2 py-0.5 uppercase tracking-widest italic shadow-md">{entry.role}</span>
                 </div>
              </div>
-             <div className="p-3 bg-white flex-1 flex flex-col justify-between">
-                <p className="text-[10px] font-black uppercase tracking-tight leading-tight mb-2 line-clamp-2">{entry.name}</p>
-                <div className="flex items-baseline gap-1">
-                   <p className="text-lg font-black italic tracking-tighter text-primary">{entry.price}</p>
-                   <p className="text-[8px] font-black uppercase italic text-foreground/30">CR</p>
+             <div className="p-4 bg-white flex-1 flex flex-col justify-between">
+                <p className="text-[12px] font-black uppercase tracking-tight leading-tight mb-3 line-clamp-2">{entry.name}</p>
+                <div className="flex items-baseline gap-2 pt-2 border-t border-foreground/5">
+                   <p className="text-2xl font-black italic tracking-tighter text-primary">{entry.price}</p>
+                   <p className="text-[10px] font-black uppercase italic text-foreground/20">CR</p>
                 </div>
              </div>
           </div>
         ))}
-        {/* Placeholder slots for empty spots */}
-        {playerEntries.length < 15 && Array.from({ length: 15 - playerEntries.length }).map((_, i) => (
-           <div key={`empty-${i}`} className="bg-white/40 border-[6px] border-dashed border-foreground/10 flex items-center justify-center opacity-20 aspect-[3/4.5]">
-              <User className="h-10 w-10 text-foreground" />
+        {/* Fill empty slots with placeholder vector boxes */}
+        {playerEntries.length < 12 && Array.from({ length: 12 - playerEntries.length }).map((_, i) => (
+           <div key={`empty-${i}`} className="bg-white/50 border-[6px] border-dashed border-foreground/10 flex flex-col items-center justify-center opacity-20 aspect-[3/4.5]">
+              <div className="w-12 h-12 border-2 border-foreground/20 rounded-full flex items-center justify-center">
+                 <User className="h-6 w-6 text-foreground/20" />
+              </div>
            </div>
         ))}
       </div>
 
       {/* Footer Branding */}
-      <div className="p-10 border-t-[10px] border-foreground bg-white z-10 flex items-center justify-center text-center">
-        <p className="text-[10px] font-black uppercase tracking-[0.8em] text-foreground/40 leading-none">
-          IIT Madras Paradox • Sports Department // Official Media Release
+      <div className="p-12 border-t-[12px] border-foreground bg-white z-10 flex items-center justify-center text-center">
+        <p className="text-[11px] font-black uppercase tracking-[1.2em] text-foreground/20 leading-none italic">
+          IIT Madras Paradox // Sports Department // Official Document
         </p>
       </div>
 
-      {/* Aesthetic Accents */}
-      <div className="absolute top-1/2 left-0 w-8 h-[300px] bg-primary -translate-y-1/2" />
-      <div className="absolute top-1/2 right-0 w-8 h-[300px] bg-primary -translate-y-1/2" />
+      {/* Vertical Accents */}
+      <div className="absolute top-1/2 left-0 w-12 h-[400px] bg-primary -translate-y-1/2" />
+      <div className="absolute top-1/2 right-0 w-12 h-[400px] bg-primary -translate-y-1/2" />
     </div>
   );
 };

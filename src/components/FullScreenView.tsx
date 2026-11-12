@@ -1,16 +1,15 @@
-
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { X, Undo2, Loader2, Volume2, VolumeX, ListRestart, ArrowRight, Download, ImageIcon, Check } from 'lucide-react';
+import { X, Undo2, Loader2, Volume2, VolumeX, ListRestart, ArrowRight, Download, ImageIcon } from 'lucide-react';
 import { Player, PlayerSet, ActiveAuctionState, ActionEvent, Squad } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn, shuffleArray } from '@/lib/utils';
 import Image from 'next/image';
 import { useFirestore, useUser, useDoc, useCollection, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { doc, serverTimestamp, DocumentReference, collection, query, orderBy, getDocs, where } from 'firebase/firestore';
+import { doc, serverTimestamp, DocumentReference, collection, query, orderBy } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import confetti from 'canvas-confetti';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -79,7 +78,7 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
             hammerStep: 0,
             isSold: false,
             isUnsold: false,
-            userId: set.userId,
+            userId: user.uid,
             setId: set.id,
             lastUpdated: serverTimestamp(),
             history: [],
@@ -305,10 +304,10 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
     try {
       const dataUrl = await toPng(node, { quality: 0.95, pixelRatio: 2 });
       const link = document.createElement('a');
-      link.download = `SOLD_${playerId}_Announcement.png`;
+      link.download = `Margazhi27_SOLD_${playerId}.png`;
       link.href = dataUrl;
       link.click();
-      toast({ title: "Graphic Exported", description: "Official Vector-Art poster saved successfully." });
+      toast({ title: "Graphic Exported", description: "Official Vector-Art announcement poster saved." });
     } catch (err) {
       toast({ title: "Export Failed", variant: "destructive" });
     } finally {
@@ -350,7 +349,7 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
             hammerStep: 0,
             isSold: false,
             isUnsold: false,
-            userId: set.userId,
+            userId: user.uid,
             setId: set.id,
             lastUpdated: serverTimestamp(),
             history: [],
@@ -541,7 +540,7 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                         {/* Info & Valuation HUD */}
                         <div className="flex-1 p-10 lg:p-14 flex flex-col justify-between h-full">
                             <div>
-                                <h1 className="text-5xl lg:text-7xl font-headline font-black text-foreground tracking-tighter leading-none mb-10 italic">
+                                <h1 className="text-5xl lg:text-7xl font-headline font-black text-foreground tracking-tighter leading-none mb-10 italic text-wrap break-words">
                                   {currentPlayer.playerName}
                                 </h1>
                                 <div className="grid grid-cols-2 gap-8 mb-8">
