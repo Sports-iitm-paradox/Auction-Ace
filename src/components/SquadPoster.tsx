@@ -114,7 +114,7 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
       {/* Footer Branding */}
       <div className="p-12 border-t-[12px] border-foreground bg-white z-10 flex items-center justify-center text-center">
         <p className="text-[11px] font-black uppercase tracking-[1.2em] text-foreground/20 leading-none italic">
-          IIT Madras Paradox // Sports Department // Official Document
+          Margazhi'27 // Official Roster Ledger // Live Release
         </p>
       </div>
 

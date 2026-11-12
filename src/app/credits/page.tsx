@@ -131,7 +131,7 @@ export default function SystemNoticePage() {
                 </div>
                 <div className="p-8 bg-accent/10 border-2 border-foreground">
                   <p className="text-[10px] text-foreground/40 font-black uppercase tracking-[0.3em] leading-loose italic">
-                    Unauthorized redistribution or commercial exploitation of this platform is strictly prohibited. Technical breaches are subject to review by the IIT Madras Paradox Core Team.
+                    Unauthorized redistribution or commercial exploitation of this platform is strictly prohibited. Technical breaches are subject to review by the official Core Team.
                   </p>
                 </div>
               </div>

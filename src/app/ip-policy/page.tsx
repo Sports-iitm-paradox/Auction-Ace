@@ -29,7 +29,7 @@ export default function IPPolicyPage() {
           </div>
           <CardTitle className="text-4xl font-serif text-primary mb-2">Intellectual Property Notice</CardTitle>
           <CardDescription className="text-lg italic text-muted-foreground">
-            Legal Statement regarding SAAVAN '26 - IIT Madras Paradox
+            Legal Statement regarding Margazhi'27
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-8 space-y-6 text-center">
@@ -43,7 +43,7 @@ export default function IPPolicyPage() {
                 Sports Department
               </h2>
               <p className="text-lg font-medium text-primary">
-                IIT Madras Paradox
+                Paradox Event Core
               </p>
             </div>
           </div>
@@ -52,10 +52,10 @@ export default function IPPolicyPage() {
             <p>
               Unauthorized reproduction, distribution, or modification of this software, 
               in whole or in part, without the express written consent of the 
-              IIT Madras Paradox Sports Department is strictly prohibited.
+              Sports Department is strictly prohibited.
             </p>
             <p className="mt-4">
-              &copy; 2026 Sports Department, IIT Madras Paradox. All rights reserved.
+              &copy; 2027 Sports Department. All rights reserved.
             </p>
           </div>
         </CardContent>

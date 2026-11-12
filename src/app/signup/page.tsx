@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -35,7 +34,7 @@ export default function SignupPage() {
         </CardHeader>
         <CardContent className="text-center space-y-6 pt-4">
           <p className="text-foreground/80 leading-relaxed">
-            Public account creation for the Saavan '26 Auction Hub is currently <span className="text-primary font-bold">disabled</span> to protect event integrity.
+            Public account creation for the Margazhi'27 Auction Hub is currently <span className="text-primary font-bold">disabled</span> to protect event integrity.
           </p>
           
           <div className="p-4 bg-secondary/20 border border-primary/20 rounded-lg">
