@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { Player } from '@/lib/player-data';
-import { Shield } from 'lucide-react';
+import { User } from 'lucide-react';
 
 interface SoldPosterProps {
   player: Player;
@@ -28,17 +28,17 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid, houseName }
       <div className="bg-foreground text-white px-12 py-10 flex justify-between items-center z-10 box-border">
           <div>
             <h2 className="text-[12px] font-black uppercase tracking-[0.6em] mb-2 opacity-50">Official Announcement</h2>
-            <h1 className="text-4xl font-black italic tracking-tighter uppercase">Margazhi '27 Paradox</h1>
+            <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">Margazhi '27 Paradox</h1>
           </div>
           <div className="text-right">
-              <span className="bg-primary px-4 py-1 text-sm font-black uppercase tracking-widest italic">Lot #{player.playerNumber}</span>
+              <span className="bg-primary px-4 py-1.5 text-sm font-black uppercase tracking-widest italic">Lot #{player.playerNumber}</span>
           </div>
       </div>
 
       <div className="flex-1 flex flex-row items-stretch z-10 relative">
           {/* Player Visual */}
           <div className="w-[45%] border-r-[10px] border-foreground bg-accent/20 flex items-center justify-center p-12">
-            <div className="w-full aspect-[3/4] relative bg-white border-4 border-foreground shadow-[20px_20px_0px_rgba(0,0,0,1)] overflow-hidden">
+            <div className="w-full aspect-[3/4] relative bg-white border-4 border-foreground shadow-[20px_20px_0px_rgba(0,0,0,1)] overflow-hidden flex items-center justify-center">
                 {player.imageUrl ? (
                   <img 
                     src={player.imageUrl} 
@@ -48,7 +48,7 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid, houseName }
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center opacity-10">
-                    <Shield className="h-40 w-40 text-foreground" />
+                    <User className="h-40 w-40 text-foreground" />
                   </div>
                 )}
             </div>
@@ -60,24 +60,24 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid, houseName }
                   <h2 className="text-7xl font-black italic uppercase tracking-tighter leading-[0.9] mb-8 text-foreground">
                     {player.playerName}
                   </h2>
-                  <div className="flex gap-4 flex-wrap mb-8">
+                  <div className="flex gap-4 flex-wrap mb-10">
                       <span className="border-2 border-foreground px-4 py-1.5 text-xs font-black uppercase tracking-widest">{player.specialism}</span>
                       <span className="border-2 border-foreground px-4 py-1.5 text-xs font-black uppercase tracking-widest">{player.country}</span>
                       <span className="border-2 border-foreground px-4 py-1.5 text-xs font-black uppercase tracking-widest">{player.cua}</span>
                   </div>
 
-                  <div className="flex items-center gap-4 py-6 border-y-2 border-foreground/10">
-                      <div className="h-10 w-px bg-foreground/20" />
+                  <div className="flex items-center gap-6 py-8 border-y-2 border-foreground/10">
+                      <div className="h-12 w-px bg-foreground/20" />
                       <div>
                           <span className="block text-[10px] font-black uppercase tracking-widest text-foreground/40 mb-1">Performance Metric</span>
-                          <span className="text-4xl font-black italic text-foreground tracking-tighter">{player.points} POINTS</span>
+                          <span className="text-5xl font-black italic text-foreground tracking-tighter leading-none">{player.points} POINTS</span>
                       </div>
                   </div>
               </div>
 
               <div className="mt-8 space-y-4">
                   <div className="bg-foreground text-white p-10 shadow-[12px_12px_0px_rgba(59,130,246,1)]">
-                      <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-4 opacity-50">Acquisition Value</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-4 opacity-50">Final Valuation</p>
                       <div className="flex items-baseline gap-4">
                           <span className="text-9xl font-mono font-black italic tracking-tighter leading-none">{bid}</span>
                           <span className="text-4xl font-black italic uppercase opacity-30">Lakh</span>
@@ -97,7 +97,7 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid, houseName }
       {/* Footer Branding */}
       <div className="p-10 border-t-[10px] border-foreground flex items-center justify-center text-center bg-white z-10 box-border">
           <p className="text-[10px] font-black uppercase tracking-[0.8em] text-foreground/40 leading-none">
-            Margazhi '27 Paradox // Official Broadcast Feed
+            Margazhi '27 Paradox // Official Live Broadcast
           </p>
       </div>
 

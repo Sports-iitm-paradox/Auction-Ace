@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { LayoutGrid, Loader2, FileText, ImageIcon, Download, Info, Upload, Search } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { LayoutGrid, Loader2, FileText, ImageIcon, Download, Info, Upload, Search, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +19,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import Papa from 'papaparse';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export default function SquadsPage() {
     const { user } = useUser();
@@ -27,6 +30,7 @@ export default function SquadsPage() {
     const [previewSquad, setPreviewSquad] = useState<Squad | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [expandedSquads, setExpandedSquads] = useState<string[]>([]);
 
     const squadsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -45,6 +49,10 @@ export default function SquadsPage() {
     const filteredSquads = squadData?.filter(s => 
         s.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const toggleExpand = (id: string) => {
+        setExpandedSquads(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    };
 
     const handleSquadImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -67,19 +75,16 @@ export default function SquadsPage() {
                         const name = row['House Name'];
                         if (!name) return;
 
-                        const moneySpent = parseFloat(row['Total Money Spent']) || 0;
-                        const moneyLeft = parseFloat(row['Money Left']) || 0;
+                        const moneyLeft = parseFloat(row['Money Left']) || 80.00;
                         const totalPoints = parseInt(row['Total No. of Points'], 10) || 0;
                         const playersList = row['Players List'] || '';
-                        const rawStatus = row['Budget Status'] || '';
-                        const budgetStatus = rawStatus.includes('OK') ? 'OK' : 'OVER';
-
+                        
                         const newRef = doc(squadsCollectionRef);
                         batch.set(newRef, {
                             name,
-                            moneySpent,
+                            moneySpent: 80.00 - moneyLeft,
                             moneyLeft,
-                            budgetStatus,
+                            budgetStatus: moneyLeft < 0 ? 'OVER' : 'OK',
                             totalPoints,
                             playersList,
                             userId: user.uid,
@@ -160,7 +165,7 @@ export default function SquadsPage() {
                         <>
                              <div className="relative group">
                                 <Button className="vector-button h-12 bg-white text-foreground hover:bg-accent px-8">
-                                    <Upload className="mr-3 h-4 w-4" /> Ledger Sync
+                                    <Upload className="mr-3 h-4 w-4" /> Import Squads
                                     <Input type="file" accept=".csv" onChange={handleSquadImport} className="absolute inset-0 opacity-0 cursor-pointer" />
                                 </Button>
                             </div>
@@ -177,62 +182,111 @@ export default function SquadsPage() {
                     {isLoadingSquads ? (
                         <div className="py-32 flex flex-col items-center justify-center">
                             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Fetching Data...</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Syncing Standings...</span>
                         </div>
                     ) : filteredSquads && filteredSquads.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="bg-accent/20 hover:bg-accent/20 border-b-2 border-foreground">
-                                        <TableHead className="h-16 font-black text-foreground uppercase tracking-[0.2em] px-8 text-[11px]">Franchise</TableHead>
-                                        <TableHead className="text-right font-black text-foreground uppercase tracking-[0.2em] text-[11px]">Money Left (Cr)</TableHead>
-                                        <TableHead className="text-center font-black text-foreground uppercase tracking-[0.2em] text-[11px]">Points</TableHead>
-                                        <TableHead className="text-center font-black text-foreground uppercase tracking-[0.2em] text-[11px]">Budget</TableHead>
-                                        <TableHead className="text-right font-black text-foreground uppercase tracking-[0.2em] text-[11px] w-[100px] pr-8">Assets</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredSquads.map((house) => (
-                                        <TableRow key={house.id} className="hover:bg-accent/10 border-b-2 border-foreground/5 transition-colors">
-                                            <TableCell className="py-10 px-8">
-                                                <span className="font-headline text-3xl font-black italic uppercase tracking-tighter text-foreground">{house.name}</span>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex items-baseline justify-end gap-2">
-                                                    <span className="font-mono text-4xl font-black text-primary">{house.moneyLeft}</span>
-                                                    <span className="text-xs font-black text-foreground/30 uppercase italic">CR</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                <span className="font-mono text-3xl font-black text-foreground">{house.totalPoints}</span>
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                <span className={cn(
-                                                    "px-6 py-2 border-2 text-[10px] font-black tracking-widest uppercase",
-                                                    house.budgetStatus === 'OK' ? "border-green-500 text-green-500 bg-green-50" : "border-red-500 text-red-500 bg-red-50"
-                                                )}>
-                                                    {house.budgetStatus}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="text-right pr-8">
+                        <div className="divide-y-2 divide-foreground">
+                            {filteredSquads.map((house) => {
+                                const isExpanded = expandedSquads.includes(house.id);
+                                const players = house.playersList?.split(';').filter(Boolean).map(p => {
+                                    const parts = p.split(':');
+                                    return { name: parts[0], price: parts[1], role: parts[2], cat: parts[3] };
+                                }) || [];
+                                
+                                return (
+                                    <div key={house.id} className="bg-white hover:bg-accent/5 transition-colors">
+                                        <div className="flex flex-col md:flex-row items-stretch md:items-center py-8 px-8 gap-8">
+                                            <div className="flex-1 flex items-center gap-6">
                                                 <Button 
                                                     variant="ghost" 
                                                     size="icon" 
-                                                    className="h-12 w-12 border-2 border-foreground hover:bg-foreground hover:text-white transition-all"
-                                                    onClick={() => setPreviewSquad(house)}
+                                                    className="h-10 w-10 border-2 border-foreground hover:bg-foreground hover:text-white shrink-0"
+                                                    onClick={() => toggleExpand(house.id)}
                                                 >
-                                                    <ImageIcon size={20} />
+                                                    {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                                                 </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                                <div className="flex flex-col">
+                                                    <span className="font-headline text-3xl font-black italic uppercase tracking-tighter text-foreground leading-none">{house.name}</span>
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-foreground/30 mt-1">{players.length} Assets Acquired</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 shrink-0">
+                                                <div className="border-l-2 border-foreground/10 pl-5">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-foreground/40 block mb-1">Purse Left</span>
+                                                    <div className="flex items-baseline gap-2">
+                                                        <span className="font-mono text-3xl font-black text-primary">{house.moneyLeft}</span>
+                                                        <span className="text-[10px] font-black text-foreground/30 italic">CR</span>
+                                                    </div>
+                                                </div>
+                                                <div className="border-l-2 border-foreground/10 pl-5">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-foreground/40 block mb-1">Total Points</span>
+                                                    <span className="font-mono text-3xl font-black text-foreground">{house.totalPoints}</span>
+                                                </div>
+                                                <div className="border-l-2 border-foreground/10 pl-5 flex items-center">
+                                                    <Badge className={cn(
+                                                        "rounded-none h-8 px-4 font-black tracking-widest uppercase border-2 text-[10px]",
+                                                        house.budgetStatus === 'OK' ? "bg-green-50 border-green-500 text-green-500" : "bg-red-50 border-red-500 text-red-500"
+                                                    )}>
+                                                        {house.budgetStatus}
+                                                    </Badge>
+                                                </div>
+                                                <div className="border-l-2 border-foreground/10 pl-5 flex items-center">
+                                                     <Button 
+                                                        variant="ghost" 
+                                                        size="icon" 
+                                                        className="h-12 w-12 border-2 border-foreground hover:bg-foreground hover:text-white transition-all"
+                                                        onClick={() => setPreviewSquad(house)}
+                                                    >
+                                                        <ImageIcon size={20} />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {isExpanded && (
+                                                <motion.div 
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    className="overflow-hidden bg-accent/10 border-t-2 border-foreground/5"
+                                                >
+                                                    <div className="p-8">
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                                            {players.map((p, idx) => (
+                                                                <div key={idx} className="bg-white border-2 border-foreground p-4 flex flex-col justify-between shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                                                                    <div>
+                                                                        <h4 className="font-headline font-black uppercase italic tracking-tighter text-lg leading-tight mb-2 truncate">{p.name}</h4>
+                                                                        <div className="flex flex-wrap gap-2">
+                                                                            <span className="text-[8px] font-black px-2 py-0.5 bg-foreground text-white uppercase tracking-widest">{p.role}</span>
+                                                                            <span className="text-[8px] font-black px-2 py-0.5 border border-foreground/20 uppercase tracking-widest">{p.cat}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="mt-4 pt-4 border-t border-foreground/5 flex items-baseline gap-2">
+                                                                        <span className="font-mono text-2xl font-black text-primary">{p.price}</span>
+                                                                        <span className="text-[10px] font-black text-foreground/30 italic">CR</span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            {players.length === 0 && (
+                                                                <div className="col-span-full py-12 text-center text-foreground/20 font-headline uppercase tracking-[0.4em] text-[10px]">
+                                                                    No Assets Acquired Yet
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                );
+                            })}
                         </div>
                     ) : (
                          <div className="text-center py-32 flex flex-col items-center">
-                            <Info className="h-16 w-16 opacity-10 mb-6 text-foreground" />
-                            <h3 className="text-2xl font-headline font-black text-foreground/20 uppercase tracking-[0.4em] italic">No Entries</h3>
+                            <Users className="h-16 w-16 opacity-10 mb-6 text-foreground" />
+                            <h3 className="text-2xl font-headline font-black text-foreground/20 uppercase tracking-[0.4em] italic">Awaiting Official Ledger</h3>
                         </div>
                     )}
                 </CardContent>
@@ -241,7 +295,7 @@ export default function SquadsPage() {
             <Dialog open={!!previewSquad} onOpenChange={() => setPreviewSquad(null)}>
                 <DialogContent className="max-w-[1000px] h-[95vh] bg-white border-2 border-foreground rounded-none flex flex-col p-0 overflow-hidden shadow-2xl">
                     <DialogHeader className="p-8 border-b-2 border-foreground flex-shrink-0 bg-white">
-                        <DialogTitle className="font-headline text-foreground text-3xl uppercase tracking-tighter italic font-black">Margazhi '27 Official Poster</DialogTitle>
+                        <DialogTitle className="font-headline text-foreground text-3xl uppercase tracking-tighter italic font-black">Margazhi '27 Official Announcement</DialogTitle>
                     </DialogHeader>
                     <div className="flex-1 overflow-auto bg-accent/20 p-12 flex justify-center custom-scrollbar">
                         {previewSquad && (
@@ -266,3 +320,4 @@ export default function SquadsPage() {
         </motion.div>
     );
 }
+

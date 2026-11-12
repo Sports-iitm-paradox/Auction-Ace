@@ -1,8 +1,9 @@
+
 'use client';
 
 import React from 'react';
 import { Squad, Player } from '@/lib/player-data';
-import { Trophy, Shield } from 'lucide-react';
+import { User } from 'lucide-react';
 
 interface SquadPosterProps {
   squad: Squad;
@@ -10,103 +11,108 @@ interface SquadPosterProps {
 }
 
 export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) => {
-  // Parse the player list robustly with improved normalization
+  // Parse the player list robustly
   const playerEntries = (squad.playersList || '').split(';').filter(Boolean).map(entry => {
     const parts = entry.split(':');
     if (parts.length < 2) return null;
     
     const name = parts[0].trim();
     const price = parts[1].trim();
+    const role = parts[2]?.trim();
     
-    // Exact matching with improved normalization for spaces and case
-    const playerInfo = allPlayers.find(p => {
-        const dbName = p.playerName.toLowerCase().replace(/\s+/g, ' ').trim();
-        const csvName = name.toLowerCase().replace(/\s+/g, ' ').trim();
-        return dbName === csvName;
-    });
+    // Find matching image from full player pool
+    const playerInfo = allPlayers.find(p => 
+        p.playerName.toLowerCase().replace(/\s+/g, ' ').trim() === 
+        name.toLowerCase().replace(/\s+/g, ' ').trim()
+    );
     
-    return { name, price, playerInfo };
+    return { name, price, role, playerInfo };
   }).filter((e): e is NonNullable<typeof e> => e !== null);
 
   return (
     <div 
       id={`poster-${squad.id}`}
-      className="w-[1080px] h-[1350px] bg-[#020a1a] text-white p-10 relative flex flex-col items-center justify-between overflow-hidden"
-      style={{
-        backgroundImage: 'radial-gradient(circle at center, #05183a 0%, #020a1a 100%)',
-      }}
+      className="w-[1080px] h-[1350px] bg-white text-foreground p-0 relative flex flex-col items-stretch overflow-hidden border-[20px] border-foreground"
+      style={{ fontFamily: "'Oxanium', cursive" }}
     >
-      {/* Decorative Borders */}
-      <div className="absolute inset-4 border-4 border-primary/40 pointer-events-none" />
-      <div className="absolute inset-8 border border-primary/20 pointer-events-none" />
-      
-      {/* Header */}
-      <div className="text-center z-10 w-full mt-4">
-        <div className="flex justify-center mb-4">
-          <Trophy className="h-16 w-16 text-primary drop-shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
+      {/* Header HUD */}
+      <div className="bg-foreground text-white px-12 py-12 flex justify-between items-center z-10">
+        <div>
+          <h2 className="text-[12px] font-black uppercase tracking-[0.6em] mb-2 opacity-50">Official Squad Announcement</h2>
+          <h1 className="text-6xl font-black italic tracking-tighter uppercase leading-none">{squad.name}</h1>
         </div>
-        <h1 className="text-7xl font-serif font-black text-primary uppercase tracking-[0.2em] mb-2 italic">
-          {squad.name}
-        </h1>
-        <div className="h-1 w-64 bg-primary mx-auto mb-4" />
-        <p className="text-lg font-serif text-white/60 tracking-[0.5em] uppercase">
-          Official Margazhi '27 Squad
-        </p>
-      </div>
-
-      {/* Stats Summary */}
-      <div className="flex gap-12 z-10 mt-2">
-        <div className="text-center border-l-2 border-primary/40 pl-8">
-          <p className="text-[10px] font-black uppercase tracking-widest text-primary/60 mb-1">Total Points</p>
-          <p className="text-5xl font-mono font-black text-white">{squad.totalPoints}</p>
-        </div>
-        <div className="text-center border-l-2 border-primary/40 pl-8">
-          <p className="text-[10px] font-black uppercase tracking-widest text-primary/60 mb-1">Purse Remaining</p>
-          <p className="text-5xl font-mono font-black text-primary">{squad.moneyLeft} Cr</p>
+        <div className="text-right">
+          <span className="text-[10px] font-black uppercase tracking-[0.5em] opacity-40">Margazhi '27 Paradox</span>
         </div>
       </div>
 
-      {/* Players Grid - 5 columns for up to 15 players */}
-      <div className="w-full grid grid-cols-5 gap-4 z-10 flex-1 py-8 px-4">
+      {/* Stats Bar */}
+      <div className="bg-primary text-white px-12 py-6 flex gap-12 border-b-[10px] border-foreground z-10">
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Total Points</p>
+          <p className="text-4xl font-black italic tracking-tighter leading-none">{squad.totalPoints}</p>
+        </div>
+        <div className="h-10 w-px bg-white/20" />
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Purse Spent</p>
+          <div className="flex items-baseline gap-2">
+            <p className="text-4xl font-black italic tracking-tighter leading-none">{squad.moneySpent}</p>
+            <p className="text-xs font-black uppercase italic opacity-40">CR</p>
+          </div>
+        </div>
+        <div className="h-10 w-px bg-white/20" />
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Status</p>
+          <p className="text-2xl font-black italic uppercase tracking-widest leading-none">{squad.budgetStatus}</p>
+        </div>
+      </div>
+
+      {/* Players Grid */}
+      <div className="flex-1 grid grid-cols-5 gap-6 p-12 bg-accent/10 z-10 relative">
         {playerEntries.map((entry, idx) => (
-          <div key={idx} className="bg-black/60 border border-primary/30 p-3 flex flex-col items-center text-center relative shadow-2xl h-fit">
-             <div className="w-full aspect-[3/4] relative bg-black/80 mb-2 border border-primary/10 overflow-hidden flex items-center justify-center">
+          <div key={idx} className="bg-white border-[6px] border-foreground flex flex-col shadow-[10px_10px_0px_rgba(0,0,0,1)] relative overflow-hidden group">
+             <div className="w-full aspect-[3/4] relative bg-accent/20 border-b-[6px] border-foreground flex items-center justify-center overflow-hidden">
                 {entry.playerInfo?.imageUrl ? (
                   <img 
                     src={entry.playerInfo.imageUrl} 
                     alt={entry.name} 
-                    className="w-full h-full object-cover" 
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105" 
                     crossOrigin="anonymous"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center opacity-20">
-                    <Shield className="h-12 w-12 text-primary" />
-                  </div>
+                  <User className="h-12 w-12 text-foreground/10" />
                 )}
+                <div className="absolute bottom-2 right-2">
+                   <span className="text-[8px] font-black bg-foreground text-white px-2 py-0.5 uppercase tracking-widest">{entry.role}</span>
+                </div>
              </div>
-             <p className="text-[11px] font-serif font-black truncate w-full uppercase text-white tracking-wider leading-tight">{entry.name}</p>
-             <div className="mt-1 bg-primary/20 border border-primary/40 px-2 py-0.5">
-                <p className="text-[9px] font-mono text-primary font-black uppercase tracking-tighter">{entry.price} Cr</p>
+             <div className="p-3 bg-white flex-1 flex flex-col justify-between">
+                <p className="text-[10px] font-black uppercase tracking-tight leading-tight mb-2 line-clamp-2">{entry.name}</p>
+                <div className="flex items-baseline gap-1">
+                   <p className="text-lg font-black italic tracking-tighter text-primary">{entry.price}</p>
+                   <p className="text-[8px] font-black uppercase italic text-foreground/30">CR</p>
+                </div>
              </div>
           </div>
         ))}
-        {/* Fill the remaining grid with placeholders */}
+        {/* Placeholder slots for empty spots */}
         {playerEntries.length < 15 && Array.from({ length: 15 - playerEntries.length }).map((_, i) => (
-           <div key={`empty-${i}`} className="bg-black/20 border border-white/5 p-3 flex flex-col items-center justify-center opacity-20 aspect-[3/4.5]">
-              <Shield className="h-10 w-10 text-white/10" />
+           <div key={`empty-${i}`} className="bg-white/40 border-[6px] border-dashed border-foreground/10 flex items-center justify-center opacity-20 aspect-[3/4.5]">
+              <User className="h-10 w-10 text-foreground" />
            </div>
         ))}
       </div>
 
       {/* Footer Branding */}
-      <div className="w-full text-center z-10 border-t border-primary/20 pt-6 mb-4">
-        <p className="text-xs font-black text-white/40 tracking-[0.8em] uppercase">
-          IIT Madras Paradox • Sports Department
+      <div className="p-10 border-t-[10px] border-foreground bg-white z-10 flex items-center justify-center text-center">
+        <p className="text-[10px] font-black uppercase tracking-[0.8em] text-foreground/40 leading-none">
+          IIT Madras Paradox • Sports Department // Official Media Release
         </p>
       </div>
-      
-      {/* Texture Overlays */}
-      <div className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-overlay bg-[url('https://picsum.photos/seed/texture/1000/1000')] bg-repeat" />
+
+      {/* Aesthetic Accents */}
+      <div className="absolute top-1/2 left-0 w-8 h-[300px] bg-primary -translate-y-1/2" />
+      <div className="absolute top-1/2 right-0 w-8 h-[300px] bg-primary -translate-y-1/2" />
     </div>
   );
 };
