@@ -30,7 +30,7 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
       </div>
 
       {/* Main Content Area - Player Dominance (68%+) */}
-      <div className="flex-1 flex flex-row items-stretch z-10 relative bg-white">
+      <div className="flex-1 flex flex-row items-stretch z-10 relative bg-white overflow-hidden">
           {/* Hero Section: Massive Player Portrait (68% space) */}
           <div className="w-[68%] flex items-center justify-center p-0 relative overflow-hidden bg-white border-r-[4px] border-[#0f172a]/5">
             {player.imageUrl ? (
@@ -50,14 +50,14 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
           </div>
 
           {/* Data Section */}
-          <div className="w-[32%] flex flex-col justify-between p-10 pr-14 relative bg-white text-left">
-              <div className="mt-8">
-                  <div className="flex flex-col mb-10 gap-1">
-                      <h2 className="text-[72px] font-black italic uppercase tracking-tighter leading-[0.85] text-[#0f172a]">
+          <div className="w-[32%] flex flex-col justify-between p-10 pr-14 relative bg-white text-left overflow-hidden">
+              <div className="mt-8 overflow-hidden">
+                  <div className="flex flex-col mb-10 gap-1 overflow-hidden">
+                      <h2 className="text-[52px] font-black italic uppercase tracking-tighter leading-none text-[#0f172a] truncate">
                         {player.firstName}
                       </h2>
                       {player.surname && (
-                        <h2 className="text-[72px] font-black italic uppercase tracking-tighter leading-[0.85] text-[#0f172a]">
+                        <h2 className="text-[52px] font-black italic uppercase tracking-tighter leading-none text-[#0f172a] truncate">
                           {player.surname}
                         </h2>
                       )}
@@ -72,27 +72,25 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
                   {/* Performance Metric */}
                   <div className="flex items-center gap-5 py-6 border-y-2 border-[#0f172a]/10">
                       <div className="h-12 w-[6px] bg-[#3b82f6]" />
-                      <div>
+                      <div className="overflow-hidden">
                           <span className="block text-[9px] font-black uppercase tracking-[0.3em] text-[#0f172a]/30 mb-1">Performance Metric</span>
-                          <span className="text-4xl font-black italic text-[#0f172a] tracking-tighter leading-none">{player.points} PTS</span>
+                          <span className="text-3xl font-black italic text-[#0f172a] tracking-tighter leading-none">{player.points} PTS</span>
                       </div>
                   </div>
               </div>
 
-              {/* SOLD Box - Optimized for text fit */}
-              <div className="mt-8 relative z-30">
-                  <div className="bg-[#0f172a] text-white p-8 shadow-[16px_16px_0px_rgba(59,130,246,1)] flex flex-col items-center relative overflow-hidden">
-                      <div className="w-full flex justify-between items-center mb-6">
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40">Final Floor Bid</p>
-                        <span className="text-[32px] font-black italic text-[#3b82f6] leading-none uppercase tracking-tighter">SOLD</span>
+              {/* SOLD Box - Optimized for robust text fit */}
+              <div className="mt-8 relative z-30 w-full">
+                  <div className="bg-[#0f172a] text-white p-6 shadow-[16px_16px_0px_rgba(59,130,246,1)] flex flex-col items-center relative overflow-hidden w-full">
+                      <div className="w-full flex justify-between items-center mb-4">
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Final Floor Bid</p>
+                        <span className="text-[24px] font-black italic text-[#3b82f6] leading-none uppercase tracking-tighter">SOLD</span>
                       </div>
-                      <div className="flex items-baseline justify-center">
-                          <span className="text-[64px] font-mono font-black italic tracking-tighter leading-none text-white">
+                      <div className="flex items-center justify-center gap-2 w-full overflow-hidden">
+                          <span className="text-[52px] font-mono font-black italic tracking-tighter leading-none text-white truncate">
                             {bid}
                           </span>
-                          <div className="flex flex-col ml-2">
-                              <span className="text-base font-black italic uppercase text-white/20 leading-none">LAKH</span>
-                          </div>
+                          <span className="text-[12px] font-black italic uppercase text-white/30 pt-4">LAKH</span>
                       </div>
                   </div>
               </div>
