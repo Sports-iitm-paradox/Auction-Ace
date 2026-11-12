@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -482,28 +481,6 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                                             <span className="text-8xl font-mono font-black">{auction.currentBid}</span>
                                             <span className="text-2xl font-headline font-black italic text-foreground/30 pt-8">LAKH</span>
                                         </div>
-                                        
-                                        <div className="flex items-center gap-4 w-full max-w-sm">
-                                            <Select value={winningHouse} onValueChange={assignWinningHouse}>
-                                                <SelectTrigger className="h-12 border-2 border-foreground rounded-none font-black uppercase text-[10px] tracking-widest">
-                                                    <SelectValue placeholder="Assign Franchise" />
-                                                </SelectTrigger>
-                                                <SelectContent className="rounded-none border-2 border-foreground shadow-[6px_6px_0px_rgba(0,0,0,1)]">
-                                                    {squads?.map(s => (
-                                                        <SelectItem key={s.id} value={s.name} className="font-black uppercase tracking-widest text-[10px] h-12 cursor-pointer">
-                                                            {s.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <Button 
-                                                onClick={() => exportSoldGraphic(currentPlayer.id)} 
-                                                className="h-12 w-12 vector-button bg-primary text-white"
-                                                disabled={isExporting}
-                                            >
-                                                {isExporting ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
-                                            </Button>
-                                        </div>
                                     </div>
                                   )}
                                 </div>
@@ -521,10 +498,10 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                             </motion.div>
                         )}
 
-                        <div className="w-[42%] h-full border-r-2 border-foreground p-8 flex flex-col items-center justify-center bg-accent/30">
+                        <div className="w-[48%] h-full border-r-2 border-foreground p-8 flex flex-col items-center justify-center bg-accent/30">
                             <div className="w-full aspect-[3/4] relative bg-white border-2 border-foreground overflow-hidden shadow-2xl">
                                 {currentPlayer.imageUrl ? (
-                                  <Image src={currentPlayer.imageUrl} alt={currentPlayer.playerName} fill className="object-contain p-4" priority />
+                                  <Image src={currentPlayer.imageUrl} alt={currentPlayer.playerName} fill className="object-contain p-4 scale-110" priority />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center opacity-5">
                                       <Image src="https://picsum.photos/seed/placeholder/400/600" alt="Placeholder" fill className="object-cover grayscale" />
@@ -637,6 +614,31 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                       Unsold
                     </Button>
                 </>
+            ) : auction.isSold ? (
+              <div className="flex items-center gap-4 w-full">
+                  <Select value={winningHouse} onValueChange={assignWinningHouse}>
+                      <SelectTrigger className="h-16 flex-1 border-2 border-foreground rounded-none font-black uppercase text-[12px] tracking-widest">
+                          <SelectValue placeholder="Assign Winning Franchise" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-none border-2 border-foreground shadow-[6px_6px_0px_rgba(0,0,0,1)]">
+                          {squads?.map(s => (
+                              <SelectItem key={s.id} value={s.name} className="font-black uppercase tracking-widest text-[12px] h-14 cursor-pointer">
+                                  {s.name}
+                              </SelectItem>
+                          ))}
+                      </SelectContent>
+                  </Select>
+                  <Button 
+                      onClick={() => exportSoldGraphic(currentPlayer!.id)} 
+                      className="h-16 w-16 vector-button bg-primary text-white"
+                      disabled={isExporting}
+                  >
+                      {isExporting ? <Loader2 className="animate-spin" size={20} /> : <ImageIcon size={20} />}
+                  </Button>
+                  <Button onClick={handleNextLot} className="h-16 px-12 text-sm vector-button bg-foreground text-white">
+                      Next Lot <ArrowRight className="ml-3 h-5 w-5" />
+                  </Button>
+              </div>
             ) : (
                 <Button 
                   onClick={handleDrawPlayer} 

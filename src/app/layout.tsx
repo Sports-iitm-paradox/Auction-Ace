@@ -16,6 +16,8 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const isAuctionPage = pathname.includes('/auction/present/');
+  const isLivePage = pathname.includes('/live/');
+  const isFullScreenPage = isAuctionPage || isLivePage;
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -33,7 +35,7 @@ export default function RootLayout({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5 }}
-                className={!isAuctionPage ? "flex flex-1 flex-col items-center p-4 sm:p-6 md:p-8" : "flex-1"}
+                className={!isFullScreenPage ? "flex flex-1 flex-col items-center p-4 sm:p-6 md:p-8" : "flex flex-1 flex-col"}
               >
                 {children}
               </motion.main>

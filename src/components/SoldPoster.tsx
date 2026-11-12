@@ -36,13 +36,13 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid, houseName }
 
       <div className="flex-1 flex flex-row items-stretch z-10 relative">
           {/* Player Visual */}
-          <div className="w-[45%] border-r-[10px] border-foreground bg-accent/10 flex items-center justify-center p-16">
+          <div className="w-[52%] border-r-[10px] border-foreground bg-accent/10 flex items-center justify-center p-12">
             <div className="w-full aspect-[3/4] relative bg-white border-4 border-foreground shadow-[24px_24px_0px_rgba(0,0,0,1)] overflow-hidden flex items-center justify-center">
                 {player.imageUrl ? (
                   <img 
                     src={player.imageUrl} 
                     alt={player.playerName} 
-                    className="w-full h-full object-contain p-4" 
+                    className="w-full h-full object-contain p-2 scale-110" 
                     crossOrigin="anonymous"
                   />
                 ) : (
@@ -54,18 +54,18 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid, houseName }
           </div>
 
           {/* Info Side */}
-          <div className="flex-1 flex flex-col justify-center p-20">
+          <div className="flex-1 flex flex-col justify-center p-16">
               <div className="mb-auto">
-                  <h2 className="text-8xl font-black italic uppercase tracking-tighter leading-[0.85] mb-12 text-foreground">
+                  <h2 className="text-[90px] font-black italic uppercase tracking-tighter leading-[0.8] mb-12 text-foreground">
                     {player.playerName}
                   </h2>
-                  <div className="flex gap-4 flex-wrap mb-12">
+                  <div className="flex gap-4 flex-wrap mb-10">
                       <span className="bg-foreground text-white px-5 py-2 text-sm font-black uppercase tracking-widest">{player.specialism}</span>
                       <span className="border-2 border-foreground px-5 py-2 text-sm font-black uppercase tracking-widest">{player.country}</span>
                       <span className="border-2 border-foreground px-5 py-2 text-sm font-black uppercase tracking-widest">{player.cua}</span>
                   </div>
 
-                  <div className="flex items-center gap-8 py-10 border-y-2 border-foreground/10">
+                  <div className="flex items-center gap-8 py-8 border-y-2 border-foreground/10">
                       <div className="h-16 w-px bg-primary" />
                       <div>
                           <span className="block text-[10px] font-black uppercase tracking-[0.5em] text-foreground/40 mb-2">Performance Metric</span>
@@ -74,7 +74,7 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid, houseName }
                   </div>
               </div>
 
-              <div className="mt-12 space-y-6">
+              <div className="mt-8 space-y-6">
                   <div className="bg-foreground text-white p-12 shadow-[16px_16px_0px_rgba(59,130,246,1)]">
                       <div className="flex justify-between items-start mb-6">
                         <p className="text-[11px] font-black uppercase tracking-[0.5em] opacity-40">Final Floor Bid</p>

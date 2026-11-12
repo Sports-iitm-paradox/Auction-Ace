@@ -50,7 +50,7 @@ export default function PublicLivePage() {
 
   if (!auction || (auction.status === 'idle' && !auction.currentPlayerId)) {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center bg-background p-12 text-center vector-grid-bg">
+      <div className="flex-1 flex flex-col items-center justify-center p-12 text-center vector-grid-bg min-h-[calc(100vh-80px)]">
         <h1 className="text-8xl font-headline text-foreground mb-8 font-black uppercase tracking-tighter italic">Ledger Sync</h1>
         <p className="text-foreground/40 uppercase tracking-[1em] text-[12px] font-black">Official Broadcast Feed // Awaiting Floor Signal</p>
       </div>
@@ -60,20 +60,8 @@ export default function PublicLivePage() {
   const hammerSteps = ['Going Once', 'Going Twice', 'Final Call'];
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center p-8 bg-background vector-grid-bg overflow-hidden gpu-layer">
-      {/* HUD Header */}
-      <div className="absolute top-0 left-0 w-full h-24 px-12 flex items-center justify-between z-50 bg-white border-b-2 border-foreground shadow-sm">
-        <div className="flex items-center gap-12">
-            <span className="text-foreground font-headline font-black text-3xl tracking-[0.2em] uppercase italic">{set?.name || 'IPL AUCTION HUB'}</span>
-            <div className="h-8 w-px bg-foreground/10" />
-            <div className="flex items-center gap-4">
-              <div className="w-3 h-3 bg-primary animate-pulse" />
-              <span className="text-primary font-black uppercase tracking-[0.5em] text-[11px]">Live Margazhi'27 Sync</span>
-            </div>
-        </div>
-      </div>
-
-      <div className="w-full max-w-7xl">
+    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background vector-grid-bg relative overflow-hidden gpu-layer min-h-[calc(100vh-80px-112px)]">
+      <div className="w-full max-w-[1600px] mx-auto z-10">
         <AnimatePresence mode="wait">
           <motion.div 
             key={currentPlayer?.id || 'idle'} 
@@ -127,10 +115,10 @@ export default function PublicLivePage() {
                           </div>
                       ) : currentPlayer ? (
                           <div className="flex flex-col lg:flex-row items-stretch w-full h-full">
-                              <div className="w-full lg:w-[42%] p-10 lg:p-14 bg-accent/30 border-r-2 border-foreground flex items-center justify-center">
+                              <div className="w-full lg:w-[48%] p-10 lg:p-14 bg-accent/30 border-r-2 border-foreground flex items-center justify-center">
                                 <div className="w-full aspect-[3/4] relative bg-white border-2 border-foreground shadow-2xl overflow-hidden">
                                     {currentPlayer.imageUrl ? (
-                                      <Image src={currentPlayer.imageUrl} alt={currentPlayer.playerName} fill className="object-contain p-6" priority />
+                                      <Image src={currentPlayer.imageUrl} alt={currentPlayer.playerName} fill className="object-contain p-6 scale-110" priority />
                                     ) : (
                                       <div className="w-full h-full flex items-center justify-center opacity-5">
                                         <Image src="https://picsum.photos/seed/placeholder/400/600" alt="Placeholder" fill className="object-cover grayscale" />
@@ -142,7 +130,7 @@ export default function PublicLivePage() {
                                 </div>
                               </div>
 
-                              <div className="w-full lg:w-[58%] p-10 lg:p-16 flex flex-col justify-between h-full">
+                              <div className="w-full lg:w-[52%] p-10 lg:p-16 flex flex-col justify-between h-full">
                                   <div>
                                       <h1 className="text-6xl lg:text-8xl font-headline font-black text-foreground tracking-tighter leading-none mb-12 italic">
                                         {currentPlayer.playerName}
