@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -216,11 +217,12 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
     const player = set.players.find(p => p.id === playerId);
     if (!player) return;
 
-    const bidInCr = bid / 100; // Assuming bid is in Lakhs, converting to Cr for Squad page
+    const bidInCr = bid / 100; // Converting Lakhs to Cr for Squad page
     const points = player.points || 0;
     
     const currentList = squad.playersList || '';
-    const playerEntry = `${player.playerName}:${bidInCr}:${player.specialism}:${player.cua}`;
+    // Enhanced serialization: Name:Price:Role:Category:Points:Country
+    const playerEntry = `${player.playerName}:${bidInCr}:${player.specialism || '-'}:${player.cua || '-'}:${player.points || 0}:${player.country || '-'}`;
     
     let newList = '';
     if (isRemoving) {
@@ -252,7 +254,6 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
           const lastIndex = history.length - 1;
           if (history[lastIndex].playerId === auction.currentPlayerId) {
               const prevHouse = history[lastIndex].houseName;
-              // If re-assigning, undo previous squad update
               if (prevHouse) {
                   syncSquadData(prevHouse, auction.currentPlayerId, auction.currentBid, true);
               }
@@ -260,7 +261,6 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
               history[lastIndex].houseName = houseName;
               updateDocumentNonBlocking(auctionRef, { history, lastUpdated: serverTimestamp() });
               
-              // Sync to backend squad ledger
               syncSquadData(houseName, auction.currentPlayerId, auction.currentBid);
           }
       }
@@ -521,7 +521,6 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                             </motion.div>
                         )}
 
-                        {/* Player Visual Frame */}
                         <div className="w-[42%] h-full border-r-2 border-foreground p-8 flex flex-col items-center justify-center bg-accent/30">
                             <div className="w-full aspect-[3/4] relative bg-white border-2 border-foreground overflow-hidden shadow-2xl">
                                 {currentPlayer.imageUrl ? (
@@ -537,7 +536,6 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                             </div>
                         </div>
 
-                        {/* Info & Valuation HUD */}
                         <div className="flex-1 p-10 lg:p-14 flex flex-col justify-between h-full">
                             <div>
                                 <h1 className="text-5xl lg:text-7xl font-headline font-black text-foreground tracking-tighter leading-none mb-10 italic text-wrap break-words">

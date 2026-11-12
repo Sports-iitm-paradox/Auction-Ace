@@ -80,22 +80,20 @@ export default function SquadsPage() {
             format: 'a4'
         });
 
-        // Margazhi'27 Master Header
         const addHeader = (pageTitle: string) => {
             doc.setFillColor(15, 23, 42); 
-            doc.rect(0, 0, 210, 45, 'F');
+            doc.rect(0, 0, 210, 40, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(26);
-            doc.text("MARGAZHI'27", 20, 25);
-            doc.setFontSize(10);
+            doc.setFontSize(22);
+            doc.text("MARGAZHI'27", 20, 20);
+            doc.setFontSize(9);
             doc.setTextColor(59, 130, 246);
-            doc.text(pageTitle.toUpperCase(), 20, 35);
+            doc.text(pageTitle.toUpperCase(), 20, 30);
         };
 
+        // Summary Page
         addHeader("Official Franchise Ledger // Summary Standings");
-
-        // Summary Statistics Table
         const summaryRows = squadData.map(s => [
             s.name.toUpperCase(), 
             `${s.moneyLeft.toFixed(2)} CR`, 
@@ -105,14 +103,14 @@ export default function SquadsPage() {
         ]);
 
         (doc as any).autoTable({
-            startY: 55,
+            startY: 50,
             head: [['FRANCHISE', 'PURSE LEFT', 'MONEY SPENT', 'TOTAL POINTS', 'STATUS']],
             body: summaryRows,
             headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-            bodyStyles: { halign: 'center', fontSize: 9 },
+            bodyStyles: { halign: 'center', fontSize: 8 },
             columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
             theme: 'grid',
-            margin: { left: 20, right: 20 }
+            margin: { left: 15, right: 15 }
         });
 
         // Detailed Roster per Squad
@@ -122,32 +120,40 @@ export default function SquadsPage() {
             
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(10);
-            doc.text(`FRANCHISE: ${s.name.toUpperCase()}`, 20, 55);
-            doc.text(`TOTAL POINTS: ${s.totalPoints}`, 20, 60);
-            doc.text(`REMAINING PURSE: ${s.moneyLeft.toFixed(2)} CR`, 20, 65);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`FRANCHISE: ${s.name.toUpperCase()}`, 20, 50);
+            doc.text(`TOTAL POINTS: ${s.totalPoints}`, 20, 56);
+            doc.text(`REMAINING PURSE: ${s.moneyLeft.toFixed(2)} CR`, 20, 62);
 
             const players = s.playersList?.split(';').filter(Boolean).map(p => {
                 const parts = p.split(':');
-                return [parts[0], `${parts[1]} CR`, parts[2], parts[3]];
+                // parts format: Name:Price:Role:Category:Points:Country
+                return [
+                    parts[0] || '-', 
+                    `${parts[1] || '0'} CR`, 
+                    parts[2] || '-', 
+                    parts[3] || '-', 
+                    parts[4] || '0', 
+                    parts[5] || '-'
+                ];
             }) || [];
 
             (doc as any).autoTable({
                 startY: 75,
-                head: [['PLAYER NAME', 'PRICE', 'ROLE', 'CATEGORY']],
-                body: players.length > 0 ? players : [['NO ASSETS ACQUIRED', '-', '-', '-']],
+                head: [['PLAYER NAME', 'PRICE', 'ROLE', 'CATEGORY', 'PTS', 'REGION']],
+                body: players.length > 0 ? players : [['NO ASSETS ACQUIRED', '-', '-', '-', '-', '-']],
                 headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-                bodyStyles: { halign: 'center', fontSize: 9 },
+                bodyStyles: { halign: 'center', fontSize: 8 },
                 columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
                 theme: 'striped',
-                margin: { left: 20, right: 20 }
+                margin: { left: 15, right: 15 }
             });
         });
 
-        // Add page numbers
         const pageCount = (doc as any).internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
-            doc.setFontSize(8);
+            doc.setFontSize(7);
             doc.setTextColor(150);
             doc.text(`Margazhi'27 Official Documentation // Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
         }
@@ -192,7 +198,7 @@ export default function SquadsPage() {
             {squadData && squadData.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                     {[
-                        { label: 'Highest Purse', value: `${Math.max(...squadData.map(s => s.moneyLeft))} Cr`, icon: Wallet, color: 'primary' },
+                        { label: 'Highest Purse', value: `${Math.max(...squadData.map(s => s.moneyLeft)).toFixed(2)} Cr`, icon: Wallet, color: 'primary' },
                         { label: 'Top Points', value: `${Math.max(...squadData.map(s => s.totalPoints))} Pts`, icon: Trophy, color: 'foreground' },
                         { label: 'Total Assets', value: squadData.reduce((acc, s) => acc + (s.playersList?.split(';').length || 0), 0), icon: TrendingUp, color: 'foreground' },
                     ].map((stat, i) => (
@@ -248,7 +254,7 @@ export default function SquadsPage() {
                                                 <div className="border-l-2 border-foreground/10 pl-8 min-w-[140px] flex flex-col justify-center">
                                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40 block mb-2">Purse Left</span>
                                                     <div className="flex items-baseline gap-2">
-                                                        <span className="font-mono text-5xl font-black text-primary italic leading-none">{house.moneyLeft}</span>
+                                                        <span className="font-mono text-5xl font-black text-primary italic leading-none">{house.moneyLeft.toFixed(2)}</span>
                                                         <span className="text-[12px] font-black text-foreground/20 italic uppercase">Cr</span>
                                                     </div>
                                                 </div>
