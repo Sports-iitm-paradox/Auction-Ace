@@ -52,12 +52,12 @@ export default function SystemNoticePage() {
                 Sports Department
               </h3>
               <p className="text-primary font-black text-lg tracking-[0.4em] uppercase">
-                IIT Madras Paradox
+                IIT Madras
               </p>
             </div>
             
             <p className="max-w-3xl mx-auto text-foreground/60 leading-relaxed text-sm sm:text-base font-medium italic">
-              The IPL Auction Hub infrastructure, including real-time synchronization, slab-based bidding increments, and the visual presentation engine, is the exclusive Intellectual Property of the Sports Department, IIT Madras Paradox. All rights reserved &copy; 2027.
+              The IPL Auction Hub infrastructure, including real-time synchronization, slab-based bidding increments, and the visual presentation engine, is the exclusive Intellectual Property of the Sports Department, IIT Madras. All rights reserved &copy; 2027.
             </p>
           </section>
 

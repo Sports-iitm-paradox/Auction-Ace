@@ -125,23 +125,19 @@ export default function SquadsPage() {
             doc.text(`TOTAL POINTS: ${s.totalPoints}`, 20, 56);
             doc.text(`REMAINING PURSE: ${s.moneyLeft.toFixed(2)} CR`, 20, 62);
 
+            // Fetch name and price for the PDF table
             const players = s.playersList?.split(';').filter(Boolean).map(p => {
                 const parts = p.split(':');
-                // parts format: Name:Price:Role:Category:Points:Country
                 return [
                     parts[0] || '-', 
-                    `${parts[1] || '0'} CR`, 
-                    parts[2] || '-', 
-                    parts[3] || '-', 
-                    parts[4] || '0', 
-                    parts[5] || '-'
+                    `${parts[1] || '0'} CR`
                 ];
             }) || [];
 
             (doc as any).autoTable({
                 startY: 75,
-                head: [['PLAYER NAME', 'PRICE', 'ROLE', 'CATEGORY', 'PTS', 'REGION']],
-                body: players.length > 0 ? players : [['NO ASSETS ACQUIRED', '-', '-', '-', '-', '-']],
+                head: [['PLAYER NAME', 'PRICE']],
+                body: players.length > 0 ? players : [['NO ASSETS ACQUIRED', '-']],
                 headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
                 bodyStyles: { halign: 'center', fontSize: 8 },
                 columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
