@@ -31,8 +31,8 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
 
       {/* Main Content Area - Player Dominance (65%+) */}
       <div className="flex-1 flex flex-row items-stretch z-10 relative bg-white">
-          {/* Hero Section: Massive Player Portrait */}
-          <div className="w-[65%] flex items-center justify-center p-0 relative overflow-hidden bg-white border-r-[4px] border-[#0f172a]/5">
+          {/* Hero Section: Massive Player Portrait (65%+ space) */}
+          <div className="w-[68%] flex items-center justify-center p-0 relative overflow-hidden bg-white border-r-[4px] border-[#0f172a]/5">
             {player.imageUrl ? (
               <img 
                 src={player.imageUrl} 
@@ -45,43 +45,43 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
                 <User className="h-[600px] w-[600px] text-[#0f172a] opacity-5" />
               </div>
             )}
-            {/* Visual Frame - Thick White Border as seen in reference */}
+            {/* Visual Frame - Thick White Border */}
             <div className="absolute inset-0 border-[24px] border-white z-20" />
           </div>
 
           {/* Data Section */}
-          <div className="w-[35%] flex flex-col justify-between p-12 pr-16 relative bg-white">
+          <div className="w-[32%] flex flex-col justify-between p-10 pr-14 relative bg-white">
               <div className="mt-8">
-                  <h2 className="text-[68px] font-black italic uppercase tracking-tighter leading-[0.85] mb-12 text-[#0f172a]">
+                  <h2 className="text-[64px] font-black italic uppercase tracking-tighter leading-[0.85] mb-10 text-[#0f172a]">
                     {player.playerName}
                   </h2>
-                  <div className="flex flex-col gap-4 items-start mb-16">
-                      <span className="bg-[#0f172a] text-white px-6 py-2 text-xs font-black uppercase tracking-widest italic">{player.specialism}</span>
-                      <span className="border-2 border-[#0f172a] px-6 py-2 text-xs font-black uppercase tracking-widest italic">{player.country}</span>
-                      <span className="border-2 border-[#0f172a] px-6 py-2 text-xs font-black uppercase tracking-widest italic">{player.cua}</span>
+                  <div className="flex flex-col gap-3 items-start mb-12">
+                      <span className="bg-[#0f172a] text-white px-5 py-2 text-[10px] font-black uppercase tracking-widest italic">{player.specialism}</span>
+                      <span className="border-2 border-[#0f172a] px-5 py-2 text-[10px] font-black uppercase tracking-widest italic">{player.country}</span>
+                      <span className="border-2 border-[#0f172a] px-5 py-2 text-[10px] font-black uppercase tracking-widest italic">{player.cua}</span>
                   </div>
 
-                  {/* Performance Metric - With Blue Vertical Bar */}
-                  <div className="flex items-center gap-6 py-8 border-y-2 border-[#0f172a]/10">
-                      <div className="h-16 w-[8px] bg-[#3b82f6]" />
+                  {/* Performance Metric */}
+                  <div className="flex items-center gap-5 py-6 border-y-2 border-[#0f172a]/10">
+                      <div className="h-12 w-[6px] bg-[#3b82f6]" />
                       <div>
-                          <span className="block text-[10px] font-black uppercase tracking-[0.4em] text-[#0f172a]/30 mb-2">Performance Metric</span>
-                          <span className="text-5xl font-black italic text-[#0f172a] tracking-tighter leading-none">{player.points} PTS</span>
+                          <span className="block text-[9px] font-black uppercase tracking-[0.3em] text-[#0f172a]/30 mb-1">Performance Metric</span>
+                          <span className="text-4xl font-black italic text-[#0f172a] tracking-tighter leading-none">{player.points} PTS</span>
                       </div>
                   </div>
               </div>
 
-              {/* SOLD Box - Technical HUD with Slanted Typography */}
+              {/* SOLD Box - Scaled for perfect alignment */}
               <div className="mt-8 relative z-30">
-                  <div className="bg-[#0f172a] text-white p-12 shadow-[20px_20px_0px_rgba(59,130,246,1)] flex flex-col items-center relative overflow-hidden">
-                      <div className="w-full flex justify-between items-center mb-8">
-                        <p className="text-[11px] font-black uppercase tracking-[0.5em] opacity-40">Final Floor Bid</p>
-                        <span className="text-[42px] font-black italic text-[#3b82f6] leading-none uppercase tracking-tighter">SOLD</span>
+                  <div className="bg-[#0f172a] text-white p-10 shadow-[16px_16px_0px_rgba(59,130,246,1)] flex flex-col items-center relative overflow-hidden">
+                      <div className="w-full flex justify-between items-center mb-6">
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40">Final Floor Bid</p>
+                        <span className="text-[32px] font-black italic text-[#3b82f6] leading-none uppercase tracking-tighter">SOLD</span>
                       </div>
                       <div className="flex items-baseline justify-center">
-                          <span className="text-[130px] font-mono font-black italic tracking-tighter leading-none text-white">{bid}</span>
-                          <div className="flex flex-col ml-4">
-                              <span className="text-3xl font-black italic uppercase text-white/20 leading-none">LAKH</span>
+                          <span className="text-[110px] font-mono font-black italic tracking-tighter leading-none text-white">{bid}</span>
+                          <div className="flex flex-col ml-3">
+                              <span className="text-2xl font-black italic uppercase text-white/20 leading-none">LAKH</span>
                           </div>
                       </div>
                   </div>

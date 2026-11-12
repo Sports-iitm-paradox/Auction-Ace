@@ -38,7 +38,7 @@ export default function SystemNoticePage() {
         </CardHeader>
         
         <CardContent className="pt-16 space-y-20">
-          {/* Institutional Ownership */}
+          {/* Institutional Ownership - ONLY place where IIT Madras is mentioned */}
           <section className="text-center space-y-8 flex flex-col items-center">
             <div className="flex items-center justify-center gap-4 mb-2">
               <div className="h-0.5 w-12 bg-primary" />
