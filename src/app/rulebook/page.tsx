@@ -1,9 +1,8 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BookOpen, ChevronRight, Menu } from 'lucide-react';
+import { BookOpen, ChevronRight, Menu, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,259 +12,116 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const rules = [
     {
-        section: "1. Auction Overview",
+        section: "01 // OPERATIONAL OVERVIEW",
         content: [
-            "Platform: Google Meet",
-            "Each house acts as one franchise.",
-            "Auction is conducted in live sessions under moderator supervision.",
+            "Official Platform: Google Meet Infrastructure",
+            "Entity Representation: Each House acts as one unified Franchise.",
+            "Auction Environment: Live sessions conducted under strict moderator supervision.",
         ],
     },
     {
-        section: "2. Auction Purse & Squad Limits",
+        section: "02 // PURSE & SQUAD METRICS",
         subsections: [
             {
-                title: "2.1 Purse",
+                title: "2.1 Virtual Capital",
                 content: [
-                    "Each house receives a fixed virtual purse of ₹80 crore.",
-                    "Purse cannot be replenished.",
+                    "Initial Allocation: Fixed virtual purse of ₹80.00 crore per franchise.",
+                    "Replenishment Policy: Purse is static and cannot be replenished post-draw.",
                 ],
             },
             {
-                title: "2.2 Squad Size",
+                title: "2.2 Roster Constraints",
                 content: [
-                    "Minimum: 11 players",
-                    "Maximum: 15 players",
-                    "Failure to meet minimum squad size results in disqualification.",
+                    "Minimum Asset Threshold: 11 players required for a valid squad.",
+                    "Maximum Asset Threshold: 15 players maximum capacity.",
+                    "Non-Compliance Penalty: Disqualification from the final leaderboard.",
                 ],
             },
         ],
     },
     {
-        section: "3. Player Pool & Randomisation System",
+        section: "03 // RANDOMISATION SYSTEM",
         content: [
-            "Players are grouped into predefined sets.",
-            "Player order will be randomised live using a dedicated auction randomisation website.",
-            "No manual interference is permitted.",
-            "The draw order is final and non-negotiable.",
+            "Clustering: Players are grouped into predefined tactical sets.",
+            "Entry Algorithm: Draw order is determined live via the Official Randomiser.",
+            "Integrity Clause: No manual interference permitted; draw sequence is final.",
         ],
     },
     {
-        section: "4. Auction Roles & Authority",
+        section: "04 // COMMAND & AUTHORITY",
         content: [
-            "Each house must nominate:",
-            "House Representative (Bidder) – only person allowed to bid",
-            "Strategic Members – internal discussion only",
-            "House Representative Substitution:",
-            "Each house must nominate one backup bidder before the auction begins.",
-            "Backup bidder may take over only with OC approval.",
-            "Mid-bid substitutions are not permitted.",
-            "If no valid bidder is available, the house forfeits bidding until resolved.",
-            "Any bid by an unauthorised member is invalid.",
+            "Designated Roles: House Representative (Active Bidder) and Strategic Council.",
+            "Substitution Protocol: One backup bidder must be registered pre-event.",
+            "Mid-Bid Lock: No representative changes allowed during an active auction lot.",
+            "Invalid Bids: Any bid placed by unauthorized personnel is void.",
         ],
     },
     {
-        section: "5. Bidding Mechanics",
+        section: "05 // BIDDING MECHANICS",
         subsections: [
             {
-                title: "5.1 Base Price & Fixed Bid Increment Structure",
+                title: "5.1 Fixed Increment Structure",
                 content: [
-                    "Each player shall enter the auction at a predefined base price.",
-                    "To ensure uniformity, fairness, and controlled bidding progression, all bids must strictly follow the fixed incremental slabs defined below.",
-                    "No custom, fractional, or off-slab bids shall be permitted.",
+                    "Mandatory Progression: All bids must adhere to the official slab structure.",
+                    "Non-Standard Bids: Fractional or custom increments are prohibited.",
                 ],
                 table: {
-                    headers: ["Current Bid Value", "Mandatory Increment"],
+                    headers: ["Current Valuation", "Mandatory Step"],
                     rows: [
-                        ["Up to ₹1.00 crore", "₹5 lakh"],
-                        ["₹1.00 crore – ₹2.00 crore", "₹10 lakh"],
-                        ["₹2.00 crore – ₹5.00 crore", "₹20 lakh"],
-                        ["Above ₹5.00 crore", "₹50 lakh"],
+                        ["Up to ₹1.00 Cr", "₹5 Lakh"],
+                        ["₹1.00 Cr – ₹2.00 Cr", "₹10 Lakh"],
+                        ["₹2.00 Cr – ₹5.00 Cr", "₹20 Lakh"],
+                        ["Above ₹5.00 Cr", "₹50 Lakh"],
                     ],
                 },
             },
             {
-                title: "5.1.1 Increment Transition Rule",
+                title: "5.2 Google Meet Protocol",
                 content: [
-                    "Once a bid crosses into a higher slab, the new increment immediately applies.",
-                    "The auctioneer will announce the applicable increment whenever a slab transition occurs.",
-                ],
-            },
-            {
-                title: "5.1.2 Validity of Bids",
-                content: [
-                    "Any bid not conforming to the prescribed increment structure will be deemed invalid.",
-                    "The auctioneer may:",
-                    "Reject the bid outright, or",
-                    "Ask the bidder to restate a valid bid immediately.",
-                    "Repeated violation of increment rules may attract penalties under Auction Floor Misconduct."
-                ],
-            },
-            {
-                title: "5.1.3 Authority Clause",
-                content: [
-                    "The auctioneer’s declaration of the current bid slab and increment shall be considered final during live bidding.",
-                    "No post-bid objections regarding increments will be entertained."
-                ]
-            },
-            {
-                title: "5.2 – Live Bidding Participation Protocol (Google Meet)",
-                content: [
-                    "To ensure orderly conduct, clarity, and fairness during live bidding, the following participation protocol shall be strictly enforced:",
-                ]
-            },
-            {
-                title: "5.2.1 Active Bidder Limit",
-                content: [
-                    "At any given moment, only two (2) houses may actively participate in bidding for a player.",
-                    "Active participation is indicated exclusively via the Google Meet “Raise Hand” feature.",
-                    "Verbal bidding or visual gestures other than those specified shall not be recognised."
-                ]
-            },
-            {
-                title: "5.2.2 Entry into Active Bidding",
-                content: [
-                    "Houses wishing to enter a bid must raise their hand while the bidding window is open.",
-                    "The first two valid hand raises, as acknowledged by the auctioneer, shall become the active bidders.",
-                    "Any subsequent hand raises will be placed in a waiting queue and will not be acknowledged until a slot becomes available."
-                ]
-            },
-            {
-                title: "5.2.3 Exit from Active Bidding",
-                content: [
-                    "A house may voluntarily exit an ongoing bid by:",
-                    "Clearly displaying a thumbs-down gesture (👎) on Google Meet, and",
-                    "Lowering their raised hand on Google Meet.",
-                    "Once a house exits:",
-                    "It cannot re-enter the same bid cycle until another house has placed a valid bid or the bid value changes, and",
-                    "The auctioneer may invite the next waiting house to enter active bidding."
-                ]
-            },
-            {
-                title: "5.2.4 Rotation & Re-entry",
-                content: [
-                    "When one active bidder exits, other houses may enter the bidding by raising their hand.",
-                    "The auctioneer will acknowledge new entrants strictly on a first-come, first-recognised basis.",
-                    "This rotation continues until:",
-                    "Only one active bidder remains, or",
-                    "The hammer falls."
-                ]
-            },
-            {
-                title: "5.2.5 Final Bid Condition",
-                content: [
-                    "If only one active house remains and no new valid entry occurs within the auctioneer’s final call:",
-                    "The player shall be sold to the remaining active house at the last valid bid."
-                ]
-            },
-            {
-                title: "5.2.6 Enforcement & Misconduct",
-                content: [
-                    "Any attempt to:",
-                    "Bypass the hand-raise system",
-                    "Verbally interrupt active bidding",
-                    "Re-enter immediately after backing out will be treated as Auction Floor Misconduct and penalised accordingly.",
-                    "The auctioneer’s recognition of:",
-                    "Active bidders",
-                    "Entry order",
-                    "Exit confirmation shall be final and binding."
+                    "Primary Input: Exclusive use of 'Raise Hand' feature for bid intent.",
+                    "Active Floor Limit: Maximum of two (2) franchises in active rotation.",
+                    "Exit Confirmation: Must lower hand and signal 'Thumbs Down' to exit.",
                 ]
             }
         ]
     },
     {
-        section: "6. Auctioneer Protocol",
+        section: "06 // HAMMER PROTOCOL",
         content: [
-            "Base price announced",
-            "Bidding opens",
-            "Auctioneer calls:",
-            "“Going once”",
-            "“Going twice”",
-            "“Sold”",
-            "Hammer fall confirms sale",
-            "No bids are accepted after “Sold”.",
+            "Initiation: Base price announced; bidding window opens.",
+            "Final Sequence: 'Going Once', 'Going Twice', 'Final Call'.",
+            "Sale Execution: Hammer fall ('Sold') signals a binding transaction.",
+            "Post-Hammer Logic: No bids accepted after the 'Sold' signal.",
         ],
     },
     {
-        section: "7. Playing XI Composition (Mandatory)",
+        section: "07 // SQUAD COMPOSITION",
         content: [
-            "Each house must submit one Playing XI:",
-            "4 Specialist Batters",
-            "1 Specialist Wicketkeeper",
-            "2 Recognised All-Rounders",
-            "3 Specialist Bowlers",
-            "1 Floating Player (any role)",
-            "At least 3 players in the Playing XI must be from the uncapped category.",
-            "A maximum of 4 overseas players may be included in the Playing XI.",
-            "Failure to meet the required Playing XI composition shall result in rejection of the submitted XI. The house shall be given the correction window specified by the Organising Committee. If the house fails to submit a valid XI within that window, the OC may impose the predefined late-submission penalty or make an automatic assignment as specified in this rulebook.",
+            "Specialist Batters: 04",
+            "Wicketkeeper: 01",
+            "All-Rounders: 02",
+            "Specialist Bowlers: 03",
+            "Floating Asset: 01",
+            "Uncapped Requirement: Minimum 03 players.",
+            "Overseas Limit: Maximum 04 players in Playing XI.",
         ],
     },
     {
-        section: "8. Player Points & Captaincy System",
+        section: "08 // PENALTY FRAMEWORK",
         subsections: [
             {
-                title: "8.1 Scoring Mechanics",
-                content: [
-                    "Each player is assigned a performance value between 0–100 points, based on a predefined formula.",
-                    "Multipliers:",
-                    "Captain: 3×",
-                    "Vice-Captain: 2×",
-                    "Others: 1×",
-                    "Total team score = sum of all player points after multipliers.",
-                ],
-            },
-            {
-                title: "8.2 Playing XI & Captaincy Lock",
-                content: [
-                    "Playing XI, Captain, and Vice-Captain must be submitted within the deadline announced by the OC.",
-                    "Once submitted, no changes are permitted.",
-                    "Late submission may result in: Point penalties or Auto-assignment by OC.",
-                ],
-            },
-        ],
-    },
-    {
-        section: "9. Penalties & Enforcement Framework",
-        subsections: [
-            {
-                title: "9.1 Violation Categories",
-                content: [
-                    "Minor Violations (e.g., speaking out of turn, delays). Penalty: Warning or point deduction (-20 points).",
-                    "Major Violations (e.g., bidding beyond purse, collusion, consecutive bidding, rule manipulation). Penalty: Bid cancellation, player forfeiture, heavy point deduction (-100 points).",
-                    "Severe Violations (e.g., repeated breaches, external interference). Penalty: Immediate disqualification, nullification of results.",
-                ]
-            },
-            {
-                title: "9.2 Penalty Matrix",
+                title: "8.1 Violation Matrix",
                 table: {
-                    headers: ["Category", "Violation Type", "Penalty", "Notes"],
+                    headers: ["Classification", "Violation Type", "Deduction"],
                     rows: [
-                        ["Minor", "Speaking Out of Turn", "–20 pts", "Repeated → Major"],
-                        ["Minor", "Accidental Disruption", "Warning", "Repeated: –20 pts"],
-                        ["Minor", "Late XI Submission", "–50 pts", "Auto-assignment"],
-                        ["Major", "Unauthorized Bidding", "–50 pts", "Bid cancelled"],
-                        ["Major", "Bidding Beyond Purse", "–100 pts", "Bid cancelled"],
-                        ["Major", "Collusion Attempt", "–50 pts", "Immediate Severe"],
-                        ["Major", "Floor Misconduct", "–100 pts", "Repeat → Severe"],
-                        ["Major", "Consecutive Bidding", "Warning / –50 pts", "Repeat → Severe"],
-                        ["Severe", "Repeated Violations", "Disqual.", "Final"],
-                        ["Severe", "External Assistance", "Disqual.", "Final"],
-                        ["Severe", "Refusal to Comply", "Disqual.", "Final"],
-                        ["Severe", "Public Misconduct", "Disqual.", "Result Nullified"],
-                        ["Severe", "Unauthorised Access", "Disqual.", "Immediate DQ"],
-                        ["Severe", "Meet Link Sharing", "Disqual.", "Immediate DQ"],
-                        ["Severe", "Unauthorised Representation", "Disqual.", "Immediate DQ"],
+                        ["Minor", "Speaking Out of Turn", "–20 pts"],
+                        ["Minor", "Late XI Submission", "–50 pts"],
+                        ["Major", "Bidding Beyond Purse", "–100 pts"],
+                        ["Major", "Floor Misconduct", "–100 pts"],
+                        ["Severe", "Meet Link Sharing", "Disqual."],
+                        ["Severe", "External Assistance", "Disqual."],
                     ],
                 }
-            },
-            {
-                title: "9.3 Enforcement & Escalation",
-                content: [
-                    "All penalties are applied at the discretion of the Organising Committee.",
-                    "Penalties may be imposed immediately or cumulatively, depending on severity.",
-                    "Point deductions are applied to the final team score.",
-                    "Disqualification results in: Removal from rankings, Nullification of auction outcomes, Forfeiture of prizes and certificates.",
-                    "Escalation Principle: Any repeated violation automatically escalates to the next severity level, regardless of intent.",
-                ]
             }
         ]
     }
@@ -277,13 +133,13 @@ export default function RulebookPage() {
     const activeRule = rules[activeRuleIndex];
 
     const contentVariants = {
-        hidden: { opacity: 0, x: 20 },
+        hidden: { opacity: 0, x: 5 },
         visible: { opacity: 1, x: 0 },
-        exit: { opacity: 0, x: -20 },
+        exit: { opacity: 0, x: -5 },
     };
 
     const RuleNav = () => (
-        <nav className="flex flex-col gap-1 p-2">
+        <nav className="flex flex-col gap-1 p-4">
             {rules.map((rule, index) => (
                 <button
                     key={index}
@@ -292,13 +148,13 @@ export default function RulebookPage() {
                         setIsMenuOpen(false);
                     }}
                     className={cn(
-                        "flex items-center justify-between text-left p-3 rounded-md text-sm font-medium transition-colors w-full",
+                        "flex items-center justify-between text-left px-6 py-4 transition-all w-full border-b border-foreground/5",
                         activeRuleIndex === index 
-                            ? "bg-primary text-primary-foreground shadow-lg" 
-                            : "hover:bg-primary/10 text-muted-foreground hover:text-primary"
+                            ? "bg-foreground text-white border-l-4 border-l-primary" 
+                            : "hover:bg-accent/50 text-foreground/60 hover:text-foreground"
                     )}
                 >
-                    <span className="truncate">{rule.section}</span>
+                    <span className="text-[11px] font-black uppercase tracking-[0.2em] truncate">{rule.section}</span>
                     {activeRuleIndex === index && <ChevronRight className="h-4 w-4 shrink-0 ml-2" />}
                 </button>
             ))}
@@ -307,32 +163,30 @@ export default function RulebookPage() {
 
     return (
         <motion.div
-            className="w-full max-w-6xl mx-auto px-2 sm:px-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            className="w-full max-w-7xl mx-auto px-4 py-8 sm:py-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
         >
-            <Card className="bg-card/90 backdrop-blur-sm overflow-hidden h-[85vh] sm:h-[80vh] flex flex-col ornate-border">
-                <CardHeader className="border-b border-primary/20 pb-4 flex flex-row items-center justify-between">
+            <Card className="rounded-none border-2 border-foreground bg-white shadow-[12px_12px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col md:h-[800px]">
+                <CardHeader className="border-b-2 border-foreground p-8 flex flex-row items-center justify-between bg-white z-10">
                     <div>
-                        <CardTitle className="flex items-center text-xl sm:text-3xl font-serif text-primary">
-                            <BookOpen className="mr-3 h-6 w-6 sm:h-8 sm:w-8" />
+                        <CardTitle className="flex items-center text-4xl font-headline font-black italic text-foreground tracking-tighter uppercase leading-none">
                             Official Rulebook
                         </CardTitle>
-                        <CardDescription className="hidden sm:block">IPL Auction Hub - Paradox Event</CardDescription>
+                        <CardDescription className="text-[10px] font-black uppercase tracking-[0.5em] text-foreground/30 mt-2">IPL Auction Hub // Protocol Documentation</CardDescription>
                     </div>
                     
-                    {/* Mobile Navigation Trigger */}
                     <div className="md:hidden">
                         <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                             <SheetTrigger asChild>
-                                <Button variant="outline" size="icon" className="border-primary text-primary">
+                                <Button variant="outline" size="icon" className="vector-button h-12 w-12 bg-white text-foreground">
                                     <Menu />
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="left" className="w-[300px] bg-card p-0 border-r border-primary/30">
-                                <div className="p-6 border-b border-primary/20">
-                                    <h2 className="text-xl font-serif text-primary">Sections</h2>
+                            <SheetContent side="right" className="w-[300px] bg-white p-0 border-l-2 border-foreground rounded-none">
+                                <div className="p-8 border-b-2 border-foreground">
+                                    <h2 className="text-xl font-headline font-black uppercase italic tracking-widest text-foreground">Navigation</h2>
                                 </div>
                                 <ScrollArea className="h-[calc(100vh-80px)]">
                                     <RuleNav />
@@ -342,17 +196,15 @@ export default function RulebookPage() {
                     </div>
                 </CardHeader>
 
-                <CardContent className="grid md:grid-cols-[280px_1fr] gap-0 sm:gap-8 flex-1 min-h-0 p-0">
-                    {/* Desktop Navigation Sidebar */}
-                    <aside className="hidden md:block border-r border-primary/10 h-full bg-secondary/5">
+                <CardContent className="grid md:grid-cols-[320px_1fr] gap-0 flex-1 min-h-0 p-0">
+                    <aside className="hidden md:block border-r-2 border-foreground h-full bg-accent/10">
                         <ScrollArea className="h-full">
                             <RuleNav />
                         </ScrollArea>
                     </aside>
 
-                    {/* Content Display */}
-                    <main className="relative min-h-0 flex-1 p-4 sm:p-8 overflow-hidden">
-                        <ScrollArea className="h-full pr-2 sm:pr-4">
+                    <main className="relative min-h-0 flex-1 p-8 sm:p-12 overflow-hidden bg-white">
+                        <ScrollArea className="h-full pr-4">
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={activeRuleIndex}
@@ -360,36 +212,68 @@ export default function RulebookPage() {
                                     initial="hidden"
                                     animate="visible"
                                     exit="exit"
-                                    transition={{ duration: 0.3 }}
-                                    className="space-y-6"
+                                    transition={{ duration: 0.2 }}
+                                    className="space-y-10"
                                 >
-                                    <h2 className="text-2xl sm:text-4xl font-serif text-primary border-b border-primary/10 pb-4">{activeRule.section}</h2>
+                                    <h2 className="text-5xl font-headline font-black italic text-foreground uppercase tracking-tighter border-b-4 border-primary pb-6">
+                                        {activeRule.section.split(' // ')[1]}
+                                    </h2>
                                     
-                                    <div className="space-y-4 text-muted-foreground prose prose-invert prose-p:my-2 prose-li:my-1 max-w-none">
+                                    <div className="space-y-6">
                                         {activeRule.content && activeRule.content.map((text, i) => (
-                                            <p key={i} className="ml-4 list-item list-disc list-inside text-sm sm:text-base">{text.includes(':') ? <><span className="font-bold text-foreground/90">{text.split(':')[0]}:</span>{text.substring(text.indexOf(':') + 1)}</> : text}</p>
+                                            <div key={i} className="flex gap-4 items-start group">
+                                                <Square className="h-3 w-3 mt-1.5 fill-primary text-primary shrink-0" />
+                                                <p className="text-xl font-medium text-foreground/80 leading-relaxed">
+                                                    {text.includes(':') ? (
+                                                        <>
+                                                            <span className="font-black text-foreground uppercase tracking-wider">{text.split(':')[0]}:</span>
+                                                            {text.substring(text.indexOf(':') + 1)}
+                                                        </>
+                                                    ) : text}
+                                                </p>
+                                            </div>
                                         ))}
                                         
                                         {activeRule.subsections && activeRule.subsections.map((sub, subIndex) => (
-                                            <div key={subIndex} className="ml-2 sm:ml-4 space-y-3 pt-3">
-                                                <h4 className="font-bold text-lg sm:text-xl text-foreground/90 font-serif">{sub.title}</h4>
-                                                <div className="ml-2 sm:ml-4 space-y-2 border-l-2 border-primary/20 pl-4">
+                                            <div key={subIndex} className="space-y-6 pt-4">
+                                                <h4 className="text-2xl font-headline font-black text-foreground uppercase tracking-widest bg-accent/20 px-4 py-2 italic w-fit">
+                                                    {sub.title}
+                                                </h4>
+                                                <div className="space-y-4 pl-6 border-l-2 border-primary/20 ml-2">
                                                     {sub.content && sub.content.map((text, i) => (
-                                                        <p key={i} className="list-item list-disc list-inside text-sm sm:text-base">{text.includes(':') ? <><span className="font-semibold text-foreground/90">{text.split(':')[0]}:</span>{text.substring(text.indexOf(':') + 1)}</> : text}</p>
+                                                        <div key={i} className="flex gap-3 items-start">
+                                                            <div className="h-1.5 w-1.5 rounded-none bg-primary mt-2.5 shrink-0" />
+                                                            <p className="text-lg font-medium text-foreground/70">
+                                                                {text.includes(':') ? (
+                                                                    <>
+                                                                        <span className="font-bold text-foreground uppercase text-sm tracking-wide">{text.split(':')[0]}:</span>
+                                                                        {text.substring(text.indexOf(':') + 1)}
+                                                                    </>
+                                                                ) : text}
+                                                            </p>
+                                                        </div>
                                                     ))}
                                                 </div>
                                                 {sub.table && (
-                                                    <div className="my-4 border border-primary/20 rounded-lg overflow-x-auto bg-black/20">
+                                                    <div className="my-8 border-2 border-foreground rounded-none overflow-hidden bg-white shadow-[6px_6px_0px_rgba(0,0,0,1)]">
                                                         <Table>
                                                             <TableHeader>
-                                                                <TableRow className="bg-primary/10 border-b border-primary/20">
-                                                                    {sub.table.headers.map(header => <TableHead key={header} className="text-primary font-bold text-xs uppercase">{header}</TableHead>)}
+                                                                <TableRow className="bg-foreground hover:bg-foreground">
+                                                                    {sub.table.headers.map(header => (
+                                                                        <TableHead key={header} className="text-white font-black text-[11px] uppercase tracking-[0.2em] h-12">
+                                                                            {header}
+                                                                        </TableHead>
+                                                                    ))}
                                                                 </TableRow>
                                                             </TableHeader>
                                                             <TableBody>
                                                                 {sub.table.rows.map((row, rIndex) => (
-                                                                    <TableRow key={rIndex} className="hover:bg-primary/5 transition-colors border-b border-primary/5">
-                                                                        {row.map((cell, cIndex) => <TableCell key={cIndex} className="text-xs sm:text-sm font-medium">{cell}</TableCell>)}
+                                                                    <TableRow key={rIndex} className="hover:bg-accent/30 transition-colors border-b-2 border-foreground/5">
+                                                                        {row.map((cell, cIndex) => (
+                                                                            <TableCell key={cIndex} className="text-lg font-mono font-black text-foreground py-4">
+                                                                                {cell}
+                                                                            </TableCell>
+                                                                        ))}
                                                                     </TableRow>
                                                                 ))}
                                                             </TableBody>
