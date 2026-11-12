@@ -68,7 +68,7 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid, houseName }
                   <div className="flex items-center gap-8 py-10 border-y-2 border-foreground/10">
                       <div className="h-16 w-px bg-primary" />
                       <div>
-                          <span className="block text-[10px] font-black uppercase tracking-[0.5em] text-foreground/40 mb-2">Asset Valuation Metric</span>
+                          <span className="block text-[10px] font-black uppercase tracking-[0.5em] text-foreground/40 mb-2">Performance Metric</span>
                           <span className="text-6xl font-black italic text-foreground tracking-tighter leading-none">{player.points} POINTS</span>
                       </div>
                   </div>
