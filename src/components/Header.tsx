@@ -15,7 +15,7 @@ import { getAuth, signOut } from 'firebase/auth';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { useState } from 'react';
 
-const Header = () => {
+export default function Header() {
   const { user, isUserLoading } = useUser();
   const auth = getAuth();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -121,6 +121,4 @@ const Header = () => {
       </div>
     </header>
   );
-};
-
-export default Header;
+}

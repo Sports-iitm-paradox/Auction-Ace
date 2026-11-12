@@ -1,6 +1,6 @@
 'use client';
 
-const Footer = () => {
+export default function Footer() {
   return (
     <footer className="w-full border-t-2 border-foreground bg-white py-12 mt-auto gpu-layer">
       <div className="container mx-auto px-6 flex flex-col items-center justify-center text-center space-y-8">
@@ -12,6 +12,4 @@ const Footer = () => {
       </div>
     </footer>
   );
-};
-
-export default Footer;
+}

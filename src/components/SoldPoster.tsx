@@ -29,7 +29,7 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
           </div>
       </div>
 
-      {/* Main Content Area - Player Dominance (65%+) */}
+      {/* Main Content Area - Player Dominance (68%+) */}
       <div className="flex-1 flex flex-row items-stretch z-10 relative bg-white">
           {/* Hero Section: Massive Player Portrait (68% space) */}
           <div className="w-[68%] flex items-center justify-center p-0 relative overflow-hidden bg-white border-r-[4px] border-[#0f172a]/5">
@@ -52,9 +52,17 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
           {/* Data Section */}
           <div className="w-[32%] flex flex-col justify-between p-10 pr-14 relative bg-white text-left">
               <div className="mt-8">
-                  <h2 className="text-[60px] font-black italic uppercase tracking-tighter leading-[0.9] mb-10 text-[#0f172a] break-words">
-                    {player.playerName}
-                  </h2>
+                  <div className="flex flex-col mb-10 gap-1">
+                      <h2 className="text-[72px] font-black italic uppercase tracking-tighter leading-[0.85] text-[#0f172a]">
+                        {player.firstName}
+                      </h2>
+                      {player.surname && (
+                        <h2 className="text-[72px] font-black italic uppercase tracking-tighter leading-[0.85] text-[#0f172a]">
+                          {player.surname}
+                        </h2>
+                      )}
+                  </div>
+                  
                   <div className="flex flex-col gap-3 items-start mb-12">
                       <span className="bg-[#0f172a] text-white px-5 py-2 text-[10px] font-black uppercase tracking-widest italic">{player.specialism}</span>
                       <span className="border-2 border-[#0f172a] px-5 py-2 text-[10px] font-black uppercase tracking-widest italic">{player.country}</span>
@@ -79,11 +87,11 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
                         <span className="text-[32px] font-black italic text-[#3b82f6] leading-none uppercase tracking-tighter">SOLD</span>
                       </div>
                       <div className="flex items-baseline justify-center">
-                          <span className="text-[76px] font-mono font-black italic tracking-tighter leading-none text-white">
+                          <span className="text-[64px] font-mono font-black italic tracking-tighter leading-none text-white">
                             {bid}
                           </span>
                           <div className="flex flex-col ml-2">
-                              <span className="text-xl font-black italic uppercase text-white/20 leading-none">LAKH</span>
+                              <span className="text-base font-black italic uppercase text-white/20 leading-none">LAKH</span>
                           </div>
                       </div>
                   </div>
