@@ -31,11 +31,8 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
 
       {/* Main Content Area - Player Dominance (65%+) */}
       <div className="flex-1 flex flex-row items-stretch z-10 relative bg-white">
-          {/* Side Blue Accents */}
-          <div className="absolute top-0 left-0 w-[40px] h-full bg-[#3b82f6]/5" />
-          
           {/* Hero Section: Massive Player Portrait */}
-          <div className="w-[68%] flex items-center justify-center p-0 relative overflow-hidden bg-white border-r-[4px] border-[#0f172a]/5">
+          <div className="w-[65%] flex items-center justify-center p-0 relative overflow-hidden bg-white border-r-[4px] border-[#0f172a]/5">
             {player.imageUrl ? (
               <img 
                 src={player.imageUrl} 
@@ -48,12 +45,12 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
                 <User className="h-[600px] w-[600px] text-[#0f172a] opacity-5" />
               </div>
             )}
-            {/* Visual Frame */}
+            {/* Visual Frame - Thick White Border as seen in reference */}
             <div className="absolute inset-0 border-[24px] border-white z-20" />
           </div>
 
           {/* Data Section */}
-          <div className="w-[32%] flex flex-col justify-between p-12 pr-16 relative bg-white">
+          <div className="w-[35%] flex flex-col justify-between p-12 pr-16 relative bg-white">
               <div className="mt-8">
                   <h2 className="text-[68px] font-black italic uppercase tracking-tighter leading-[0.85] mb-12 text-[#0f172a]">
                     {player.playerName}
@@ -64,6 +61,7 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
                       <span className="border-2 border-[#0f172a] px-6 py-2 text-xs font-black uppercase tracking-widest italic">{player.cua}</span>
                   </div>
 
+                  {/* Performance Metric - With Blue Vertical Bar */}
                   <div className="flex items-center gap-6 py-8 border-y-2 border-[#0f172a]/10">
                       <div className="h-16 w-[8px] bg-[#3b82f6]" />
                       <div>
@@ -73,9 +71,9 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
                   </div>
               </div>
 
-              {/* SOLD Box - Technical HUD */}
+              {/* SOLD Box - Technical HUD with Slanted Typography */}
               <div className="mt-8 relative z-30">
-                  <div className="bg-[#0f172a] text-white p-12 shadow-[20px_20px_0px_rgba(59,130,246,1)] flex flex-col items-center">
+                  <div className="bg-[#0f172a] text-white p-12 shadow-[20px_20px_0px_rgba(59,130,246,1)] flex flex-col items-center relative overflow-hidden">
                       <div className="w-full flex justify-between items-center mb-8">
                         <p className="text-[11px] font-black uppercase tracking-[0.5em] opacity-40">Final Floor Bid</p>
                         <span className="text-[42px] font-black italic text-[#3b82f6] leading-none uppercase tracking-tighter">SOLD</span>

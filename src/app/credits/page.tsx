@@ -29,24 +29,24 @@ export default function SystemNoticePage() {
               <Terminal className="h-16 w-16 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-5xl font-headline font-black text-foreground mb-4 tracking-tighter uppercase italic leading-none">
+          <CardTitle className="text-5xl font-headline font-black text-foreground mb-4 tracking-tighter uppercase italic leading-none text-center">
             Official System & IP Notice
           </CardTitle>
-          <CardDescription className="text-sm font-black text-foreground/40 tracking-[0.6em] uppercase">
+          <CardDescription className="text-sm font-black text-foreground/40 tracking-[0.6em] uppercase text-center">
             Margazhi'27 // Auction Infrastructure
           </CardDescription>
         </CardHeader>
         
         <CardContent className="pt-16 space-y-20">
           {/* Institutional Ownership */}
-          <section className="text-center space-y-8">
+          <section className="text-center space-y-8 flex flex-col items-center">
             <div className="flex items-center justify-center gap-4 mb-2">
               <div className="h-0.5 w-12 bg-primary" />
               <h2 className="text-xs font-black text-primary uppercase tracking-[0.5em]">Proprietary Rights</h2>
               <div className="h-0.5 w-12 bg-primary" />
             </div>
             
-            <div className="py-12 px-8 bg-foreground text-white shadow-[10px_10px_0px_rgba(59,130,246,1)] max-w-3xl mx-auto flex flex-col items-center">
+            <div className="py-12 px-8 bg-foreground text-white shadow-[10px_10px_0px_rgba(59,130,246,1)] max-w-3xl w-full flex flex-col items-center">
               <h3 className="text-4xl sm:text-6xl font-headline font-black italic tracking-tighter uppercase leading-none mb-4">
                 Sports Department
               </h3>
@@ -55,7 +55,7 @@ export default function SystemNoticePage() {
               </p>
             </div>
             
-            <p className="max-w-3xl mx-auto text-foreground/60 leading-relaxed text-sm sm:text-base font-medium italic">
+            <p className="max-w-3xl mx-auto text-foreground/60 leading-relaxed text-sm sm:text-base font-medium italic text-center">
               The Margazhi'27 infrastructure, including real-time synchronization, slab-based bidding increments, and the visual presentation engine, is the exclusive Intellectual Property of the Sports Department, IIT Madras. All rights reserved &copy; 2027.
             </p>
           </section>
