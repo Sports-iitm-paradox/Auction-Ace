@@ -97,21 +97,21 @@ export default function LoginPage() {
           </Link>
         </Button>
       </div>
-      <Card className="ornate-border bg-card/90 backdrop-blur-md">
+      <Card className="rounded-none border-2 border-foreground bg-white shadow-[12px_12px_0px_rgba(0,0,0,1)]">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardHeader className="text-center">
-              <CardTitle className="text-3xl flex items-center justify-center font-serif text-primary">
-                <LogIn className="mr-3 h-6 w-6" /> Admin Login
+              <CardTitle className="text-3xl flex items-center justify-center font-headline font-black italic text-primary uppercase tracking-tighter">
+                <LogIn className="mr-3 h-6 w-6" /> Admin Portal
               </CardTitle>
-              <CardDescription className="text-muted-foreground italic">
-                Secure access for Saavan '26 Administrators.
+              <CardDescription className="text-foreground/40 uppercase tracking-widest text-[10px] font-black mt-2">
+                Secure Access // Margazhi'27
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               {firebaseError && (
-                <div className="p-3 bg-destructive/20 border border-destructive/50 rounded-md">
-                  <p className="text-center text-sm font-medium text-destructive">{firebaseError}</p>
+                <div className="p-3 bg-destructive/10 border-2 border-destructive/20">
+                  <p className="text-center text-[10px] font-black uppercase text-destructive tracking-widest">{firebaseError}</p>
                 </div>
               )}
               <FormField
@@ -119,9 +119,9 @@ export default function LoginPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email Address</FormLabel>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em]">Credential Key</FormLabel>
                     <FormControl>
-                      <Input placeholder="admin@iitmparadox.org" {...field} className="bg-background/50 border-primary/30 focus:border-primary" />
+                      <Input placeholder="admin@margazhi27.org" {...field} className="rounded-none border-2 border-foreground bg-white focus:ring-0 focus:border-primary" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -132,24 +132,24 @@ export default function LoginPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em]">Security Pass</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} className="bg-background/50 border-primary/30 focus:border-primary" />
+                      <Input type="password" placeholder="••••••••" {...field} className="rounded-none border-2 border-foreground bg-white focus:ring-0 focus:border-primary" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full h-12 text-lg font-serif mt-4" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Authenticating...' : 'Enter Dashboard'}
+              <Button type="submit" className="w-full h-14 vector-button bg-foreground text-white mt-6" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Authenticating...' : 'Establish Session'}
               </Button>
             </CardContent>
           </form>
         </Form>
       </Card>
       <div className="mt-8 text-center">
-        <p className="text-xs text-muted-foreground/60 uppercase tracking-widest">
-          Public registration is disabled. Contact system administrator for access.
+        <p className="text-[10px] text-foreground/30 font-black uppercase tracking-[0.5em] italic">
+          Unauthorized entry is prohibited.
         </p>
       </div>
     </motion.div>

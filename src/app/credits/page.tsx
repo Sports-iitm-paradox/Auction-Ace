@@ -1,7 +1,8 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ShieldCheck, Mail, ArrowLeft, Info, Zap, Database, Gavel, RefreshCw, Eye, Terminal } from 'lucide-react';
+import { ShieldCheck, Mail, ArrowLeft, Zap, Database, Gavel, RefreshCw, Eye, Terminal } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -90,12 +91,12 @@ export default function SystemNoticePage() {
                   desc: "Instantly reconciles franchise purse reductions and roster points across the entire database without manual data entry."
                 }
               ].map((item, i) => (
-                <div key={i} className="p-8 bg-white border-2 border-foreground shadow-[8px_8px_0px_rgba(0,0,0,1)] group hover:-translate-x-1 hover:-translate-y-1 transition-transform">
+                <div key={i} className="p-8 bg-white border-2 border-foreground shadow-[8px_8px_0px_rgba(0,0,0,1)] group hover:-translate-x-1 hover:-translate-y-1 transition-transform h-full flex flex-col">
                   <div className="flex items-center gap-4 text-primary mb-6">
                     <item.icon className="h-6 w-6" />
                     <h3 className="font-headline font-black uppercase italic tracking-widest text-lg">{item.title}</h3>
                   </div>
-                  <p className="text-xs text-foreground/60 leading-relaxed font-medium uppercase tracking-wider">
+                  <p className="text-xs text-foreground/60 leading-relaxed font-medium uppercase tracking-wider flex-1">
                     {item.desc}
                   </p>
                 </div>
@@ -111,15 +112,15 @@ export default function SystemNoticePage() {
                   <Mail className="text-primary h-5 w-5" />
                   <h2 className="text-xs font-black text-foreground uppercase tracking-widest">Inquiry Protocol</h2>
                 </div>
-                <div className="p-8 bg-accent/10 border-2 border-foreground">
+                <div className="p-8 bg-accent/10 border-2 border-foreground h-full">
                   <p className="text-sm font-medium text-foreground/70 mb-6 uppercase tracking-wider leading-relaxed">
                     For technical verification regarding the Margazhi'27 infrastructure:
                   </p>
                   <a 
-                    href="mailto:sports@iitmparadox.org" 
+                    href="mailto:sports@margazhi27.org" 
                     className="text-primary font-black text-lg hover:underline tracking-widest flex items-center gap-3 italic"
                   >
-                    SPORTS@IITMPARADOX.ORG
+                    SPORTS@MARGAZHI27.ORG
                   </a>
                 </div>
               </div>
@@ -129,7 +130,7 @@ export default function SystemNoticePage() {
                   <ShieldCheck className="text-primary h-5 w-5" />
                   <h2 className="text-xs font-black text-foreground uppercase tracking-widest">Governance</h2>
                 </div>
-                <div className="p-8 bg-accent/10 border-2 border-foreground">
+                <div className="p-8 bg-accent/10 border-2 border-foreground h-full">
                   <p className="text-[10px] text-foreground/40 font-black uppercase tracking-[0.3em] leading-loose italic">
                     Unauthorized redistribution or commercial exploitation of this platform is strictly prohibited. Technical breaches are subject to review by the official Core Team.
                   </p>
