@@ -79,11 +79,11 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
                         <span className="text-[32px] font-black italic text-[#3b82f6] leading-none uppercase tracking-tighter">SOLD</span>
                       </div>
                       <div className="flex items-baseline justify-center">
-                          <span className="text-[90px] font-mono font-black italic tracking-tighter leading-none text-white">
+                          <span className="text-[76px] font-mono font-black italic tracking-tighter leading-none text-white">
                             {bid}
                           </span>
-                          <div className="flex flex-col ml-3">
-                              <span className="text-2xl font-black italic uppercase text-white/20 leading-none">LAKH</span>
+                          <div className="flex flex-col ml-2">
+                              <span className="text-xl font-black italic uppercase text-white/20 leading-none">LAKH</span>
                           </div>
                       </div>
                   </div>
