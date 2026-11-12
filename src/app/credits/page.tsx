@@ -60,7 +60,7 @@ export default function SystemNoticePage() {
             </p>
           </section>
 
-          {/* How It Works Section */}
+          {/* Operational Architecture */}
           <section className="space-y-12 border-t-2 border-foreground/5 pt-16">
             <div className="text-center">
               <h2 className="text-3xl font-headline font-black text-foreground uppercase tracking-tighter italic mb-4">Operational Architecture</h2>
