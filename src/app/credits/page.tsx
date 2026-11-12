@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ShieldCheck, Mail, ArrowLeft, Zap, Database, Gavel, RefreshCw, Eye, Terminal } from 'lucide-react';
+import { Mail, ArrowLeft, Zap, Gavel, RefreshCw, Eye, Terminal, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -47,7 +47,7 @@ export default function SystemNoticePage() {
               <div className="h-0.5 w-12 bg-primary" />
             </div>
             
-            <div className="py-12 px-8 bg-foreground text-white shadow-[10px_10px_0px_rgba(59,130,246,1)] max-w-3xl mx-auto">
+            <div className="py-12 px-8 bg-foreground text-white shadow-[10px_10px_0px_rgba(59,130,246,1)] max-w-3xl mx-auto flex flex-col items-center">
               <h3 className="text-4xl sm:text-6xl font-headline font-black italic tracking-tighter uppercase leading-none mb-4">
                 Sports Department
               </h3>
@@ -68,7 +68,7 @@ export default function SystemNoticePage() {
               <p className="text-[10px] font-black text-foreground/30 uppercase tracking-[0.4em]">Official Technical Specifications</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-8 px-4">
               {[
                 {
                   icon: RefreshCw,
@@ -108,17 +108,17 @@ export default function SystemNoticePage() {
           <section className="pt-12 border-t-2 border-foreground/5">
             <div className="grid md:grid-cols-2 gap-12">
               <div className="space-y-6">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 justify-center md:justify-start">
                   <Mail className="text-primary h-5 w-5" />
                   <h2 className="text-xs font-black text-foreground uppercase tracking-widest">Inquiry Protocol</h2>
                 </div>
-                <div className="p-8 bg-accent/10 border-2 border-foreground h-full">
+                <div className="p-8 bg-accent/10 border-2 border-foreground h-full text-center md:text-left flex flex-col justify-center">
                   <p className="text-sm font-medium text-foreground/70 mb-6 uppercase tracking-wider leading-relaxed">
                     For technical verification regarding the Margazhi'27 infrastructure:
                   </p>
                   <a 
                     href="mailto:sports@margazhi27.org" 
-                    className="text-primary font-black text-lg hover:underline tracking-widest flex items-center gap-3 italic"
+                    className="text-primary font-black text-lg hover:underline tracking-widest flex items-center justify-center md:justify-start gap-3 italic"
                   >
                     SPORTS@MARGAZHI27.ORG
                   </a>
@@ -126,12 +126,12 @@ export default function SystemNoticePage() {
               </div>
 
               <div className="space-y-6">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 justify-center md:justify-start">
                   <ShieldCheck className="text-primary h-5 w-5" />
                   <h2 className="text-xs font-black text-foreground uppercase tracking-widest">Governance</h2>
                 </div>
-                <div className="p-8 bg-accent/10 border-2 border-foreground h-full">
-                  <p className="text-[10px] text-foreground/40 font-black uppercase tracking-[0.3em] leading-loose italic">
+                <div className="p-8 bg-accent/10 border-2 border-foreground h-full flex flex-col justify-center">
+                  <p className="text-[10px] text-foreground/40 font-black uppercase tracking-[0.3em] text-center md:text-left leading-loose italic">
                     Unauthorized redistribution or commercial exploitation of this platform is strictly prohibited. Technical breaches are subject to review by the official Core Team.
                   </p>
                 </div>

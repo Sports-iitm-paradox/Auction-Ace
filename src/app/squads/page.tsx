@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -72,21 +73,71 @@ export default function SquadsPage() {
 
     const generatePDF = () => {
         if (!squadData) return;
-        const doc = new jsPDF();
-        doc.setFontSize(24);
-        doc.text("Official Franchise Standings", 20, 30);
-        doc.setFontSize(10);
-        doc.text(`Margazhi'27 // ${new Date().toLocaleString()}`, 20, 38);
         
-        const rows = squadData.map(s => [s.name, `${s.moneyLeft} Cr`, s.totalPoints, s.budgetStatus]);
-        (doc as any).autoTable({
-            startY: 50,
-            head: [['Franchise', 'Purse Left', 'Total Points', 'Status']],
-            body: rows,
-            headStyles: { fillColor: [59, 130, 246], fontStyle: 'bold' },
-            theme: 'grid'
+        const doc = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4'
         });
-        doc.save(`Margazhi27_Final_Standings.pdf`);
+
+        // Add Margazhi'27 Header Style
+        doc.setFillColor(15, 23, 42); // Navy background
+        doc.rect(0, 0, 210, 45, 'F');
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(28);
+        doc.text("MARGAZHI'27", 20, 25);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(59, 130, 246); // Paradox Blue
+        doc.text("OFFICIAL FRANCHISE LEDGER // LIVE SESSION RECORD", 20, 35);
+
+        // Body Content
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(8);
+        doc.text(`EXPORT DATE: ${new Date().toLocaleString().toUpperCase()}`, 20, 55);
+
+        const rows = squadData.map(s => [
+            s.name.toUpperCase(), 
+            `${s.moneyLeft.toFixed(2)} CR`, 
+            `${s.moneySpent.toFixed(2)} CR`,
+            s.totalPoints, 
+            s.budgetStatus === 'OK' ? 'ELIGIBLE' : 'OVER BUDGET'
+        ]);
+
+        (doc as any).autoTable({
+            startY: 65,
+            head: [['FRANCHISE', 'PURSE LEFT', 'MONEY SPENT', 'TOTAL POINTS', 'STATUS']],
+            body: rows,
+            headStyles: { 
+                fillColor: [15, 23, 42], 
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+                halign: 'center'
+            },
+            bodyStyles: {
+                halign: 'center',
+                font: 'courier'
+            },
+            columnStyles: {
+                0: { halign: 'left', fontStyle: 'bold' }
+            },
+            theme: 'grid',
+            margin: { left: 20, right: 20 }
+        });
+
+        // Footer
+        const pageCount = (doc as any).internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(`Official Document // Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+        }
+
+        doc.save(`Margazhi27_Squad_Ledger.pdf`);
+        toast({ title: "PDF Exported", description: "Official Franchise Ledger saved successfully." });
     };
 
     return (
@@ -115,7 +166,7 @@ export default function SquadsPage() {
                     </div>
                     {user && (
                         <Button onClick={generatePDF} className="vector-button h-14 bg-foreground text-white px-10">
-                            <FileText className="mr-3 h-4 w-4" /> Export PDF
+                            <FileText className="mr-3 h-4 w-4" /> Export Ledger PDF
                         </Button>
                     )}
                 </div>
