@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -57,7 +56,7 @@ export default function SystemNoticePage() {
             </div>
             
             <p className="max-w-3xl mx-auto text-foreground/60 leading-relaxed text-sm sm:text-base font-medium italic">
-              The IPL Auction Hub infrastructure, including real-time synchronization, slab-based bidding increments, and the visual presentation engine, is the exclusive Intellectual Property of the Sports Department, IIT Madras. All rights reserved &copy; 2027.
+              The Margazhi'27 infrastructure, including real-time synchronization, slab-based bidding increments, and the visual presentation engine, is the exclusive Intellectual Property of the Sports Department, IIT Madras. All rights reserved &copy; 2027.
             </p>
           </section>
 
@@ -137,13 +136,6 @@ export default function SystemNoticePage() {
                 </div>
               </div>
             </div>
-          </section>
-
-          {/* Development Credit */}
-          <section className="text-center pt-16 opacity-30">
-            <p className="text-[10px] font-black text-foreground uppercase tracking-[1em]">
-              Dev // KRISH GUPTA
-            </p>
           </section>
         </CardContent>
       </Card>

@@ -50,7 +50,7 @@ export default function PublicLivePage() {
 
   if (!auction || (auction.status === 'idle' && !auction.currentPlayerId)) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-12 text-center vector-grid-bg min-h-[calc(100vh-80px)]">
+      <div className="flex-1 flex flex-col items-center justify-center p-12 text-center vector-grid-bg min-h-[calc(100vh-80px-112px)]">
         <h1 className="text-8xl font-headline text-foreground mb-8 font-black uppercase tracking-tighter italic">Ledger Sync</h1>
         <p className="text-foreground/40 uppercase tracking-[1em] text-[12px] font-black">Official Broadcast Feed // Awaiting Floor Signal</p>
       </div>
@@ -60,8 +60,8 @@ export default function PublicLivePage() {
   const hammerSteps = ['Going Once', 'Going Twice', 'Final Call'];
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background vector-grid-bg relative overflow-hidden gpu-layer min-h-[calc(100vh-80px-112px)]">
-      <div className="w-full max-w-[1600px] mx-auto z-10">
+    <div className="flex-1 flex flex-col items-center justify-center bg-background vector-grid-bg relative overflow-hidden gpu-layer min-h-[calc(100vh-80px-112px)]">
+      <div className="w-full max-w-[1600px] mx-auto z-10 px-8 py-12">
         <AnimatePresence mode="wait">
           <motion.div 
             key={currentPlayer?.id || 'idle'} 
@@ -88,11 +88,6 @@ export default function PublicLivePage() {
                                           <span className="text-9xl font-mono font-black text-foreground">{auction.currentBid}</span>
                                           <span className="text-3xl font-headline font-black text-foreground/30 pt-10 italic">LAKH</span>
                                       </div>
-                                      {auction.history[auction.history.length-1]?.houseName && (
-                                        <div className="bg-primary px-8 py-3 text-white font-black uppercase tracking-widest text-lg italic">
-                                            {auction.history[auction.history.length-1].houseName}
-                                        </div>
-                                      )}
                                   </div>
                                 )}
                               </div>
@@ -130,9 +125,9 @@ export default function PublicLivePage() {
                                 </div>
                               </div>
 
-                              <div className="w-full lg:w-[52%] p-10 lg:p-16 flex flex-col justify-between h-full">
+                              <div className="w-full lg:w-[52%] p-10 lg:p-16 flex flex-col justify-between h-full text-left">
                                   <div>
-                                      <h1 className="text-6xl lg:text-8xl font-headline font-black text-foreground tracking-tighter leading-none mb-12 italic">
+                                      <h1 className="text-6xl lg:text-8xl font-headline font-black text-foreground tracking-tighter leading-none mb-12 italic text-wrap break-words">
                                         {currentPlayer.playerName}
                                       </h1>
                                       <div className="grid grid-cols-2 gap-10">
@@ -172,7 +167,7 @@ export default function PublicLivePage() {
         </AnimatePresence>
       </div>
       
-      {/* Ticker */}
+      {/* Broadcast Ticker */}
       <div className="fixed bottom-0 left-0 w-full h-28 bg-white border-t-2 border-foreground flex items-center z-[100] shadow-2xl">
           <div className="bg-foreground px-16 h-full flex items-center z-10">
               <span className="text-white font-black text-3xl uppercase tracking-[0.5em] italic whitespace-nowrap">LEDGER</span>
@@ -187,9 +182,6 @@ export default function PublicLivePage() {
                                 <span className={cn("text-[11px] font-black uppercase tracking-widest px-4 py-1.5", event.type === 'sold' ? "bg-primary text-white" : "bg-foreground text-white")}>
                                   {event.type === 'sold' ? 'SOLD' : 'UNSOLD'}
                                 </span>
-                                {event.houseName && (
-                                    <span className="bg-foreground text-white text-[10px] font-black px-3 py-1.5 uppercase tracking-widest italic">{event.houseName}</span>
-                                )}
                             </div>
                             <span className="text-foreground text-4xl font-headline font-black uppercase italic tracking-tighter">{p?.playerName || 'Roster Item'}</span>
                             {event.bid && (
