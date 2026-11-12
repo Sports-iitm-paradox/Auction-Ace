@@ -78,7 +78,7 @@ export default function SystemNoticePage() {
                 {
                   icon: Gavel,
                   title: "Slab-Based Precision",
-                  desc: "Enforces mandatory increments (5L/10L/20L/50L) directly via system logic to eliminate floor negotiation delays and human error."
+                  desc: "Enforces mandatory increments directly via system logic to eliminate floor negotiation delays and human error."
                 },
                 {
                   icon: Eye,

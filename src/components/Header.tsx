@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -97,7 +98,7 @@ const Header = () => {
     <header className="w-full border-b-2 border-foreground bg-white/95 backdrop-blur-md z-20 sticky top-0 gpu-layer">
       <div className="container mx-auto flex h-20 items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl font-headline font-black tracking-tighter text-foreground uppercase italic leading-none">IPL AUCTION HUB</span>
+          <span className="text-2xl font-headline font-black tracking-tighter text-foreground uppercase italic leading-none">Margazhi'27</span>
         </Link>
         
         <nav className="hidden md:flex items-center gap-2">

@@ -29,9 +29,9 @@ export default function Home() {
   if (isLoading && !sets) {
     return (
       <div className="w-full max-w-[1800px] mx-auto py-24 px-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-8">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-48 animate-pulse bg-foreground/5 border-2 border-foreground/10" />
+            <div key={i} className="h-64 animate-pulse bg-foreground/5 border-2 border-foreground/10" />
           ))}
         </div>
       </div>
@@ -41,33 +41,36 @@ export default function Home() {
   return (
     <div className="w-full max-w-[1800px] mx-auto py-8 sm:py-12 px-6 gpu-layer">
       <div className="mb-16 text-center">
-        <h1 className="text-4xl sm:text-6xl font-headline font-black tracking-tighter text-foreground uppercase border-b-[6px] border-primary inline-block pb-3 leading-none italic">
+        <h1 className="text-4xl sm:text-7xl font-headline font-black tracking-tighter text-foreground uppercase border-b-[8px] border-primary inline-block pb-3 leading-none italic">
           Floor Select
         </h1>
+        <p className="mt-6 text-[11px] font-black uppercase tracking-[0.8em] text-foreground/30">Official Session Broadcasts // Margazhi'27</p>
       </div>
 
       <AnimatePresence mode="wait">
         {sets && sets.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-8">
             {sets.map((set) => (
               <motion.div 
                 key={set.id}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="flex"
               >
-                <Card className="rounded-none border-2 border-foreground hover:border-primary transition-all flex flex-col h-full bg-white hover:-translate-x-1 hover:-translate-y-1 shadow-none hover:shadow-[8px_8px_0px_rgba(0,0,0,1)] group relative overflow-hidden">
-                  <div className="p-8 border-b-2 border-foreground bg-accent/20">
-                     <CardTitle className="text-5xl truncate font-headline font-black italic uppercase tracking-tighter leading-none">{set.name}</CardTitle>
+                <Card className="rounded-none border-2 border-foreground hover:border-primary transition-all flex flex-col w-full bg-white hover:-translate-x-1 hover:-translate-y-1 shadow-none hover:shadow-[10px_10px_0px_rgba(0,0,0,1)] group relative overflow-hidden">
+                  <div className="p-8 border-b-2 border-foreground bg-accent/20 text-center">
+                     <CardTitle className="text-4xl lg:text-5xl truncate font-headline font-black italic uppercase tracking-tighter leading-none">{set.name}</CardTitle>
                   </div>
-                  <CardContent className="p-8 flex-grow">
-                     <div className="flex flex-col items-start">
+                  <CardContent className="p-10 flex-grow flex flex-col items-center justify-center">
+                     <div className="flex flex-col items-center">
                         <div className="flex items-baseline gap-3">
                            <span className="text-8xl font-mono font-black text-foreground leading-none">{set.players.length}</span>
                            <span className="text-2xl font-headline font-black text-foreground/20 italic uppercase">Assets</span>
                         </div>
                      </div>
                   </CardContent>
-                  <CardFooter className="p-8 mt-auto">
+                  <CardFooter className="p-8 mt-auto border-t-2 border-foreground/5">
                      <Button asChild className="w-full vector-button h-16 text-[12px] font-black bg-foreground text-white hover:bg-foreground/90">
                         <Link href={user && user.uid === set.userId ? `/auction/present/${set.id}` : `/live/${set.id}`}>
                           {user && user.uid === set.userId ? "Open Floor" : "Watch Live"}
@@ -80,16 +83,16 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-40 border-4 border-dashed border-foreground/10 bg-white shadow-sm">
-              <h3 className="text-4xl font-headline font-black uppercase tracking-[0.4em] italic text-foreground/20 mb-12 leading-loose">Official Roster Pending</h3>
+          <div className="text-center py-48 border-4 border-dashed border-foreground/10 bg-white shadow-sm flex flex-col items-center">
+              <h3 className="text-5xl font-headline font-black uppercase tracking-[0.4em] italic text-foreground/10 mb-16 leading-loose">Official Roster Pending</h3>
               
               {!user && !isUserLoading && (
-                <Button asChild className="vector-button px-16 h-14 text-sm bg-foreground text-white">
+                <Button asChild className="vector-button px-20 h-16 text-sm bg-foreground text-white shadow-[8px_8px_0px_rgba(59,130,246,1)]">
                     <Link href="/login">Admin Portal</Link>
                 </Button>
               )}
                {user && !isLoadingSets && (
-                <Button asChild className="vector-button px-16 h-14 text-sm bg-foreground text-white">
+                <Button asChild className="vector-button px-20 h-16 text-sm bg-foreground text-white shadow-[8px_8px_0px_rgba(59,130,246,1)]">
                     <Link href="/import">Sync Ledger</Link>
                 </Button>
               )}
