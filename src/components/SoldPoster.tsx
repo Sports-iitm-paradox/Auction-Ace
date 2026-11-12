@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -10,6 +11,17 @@ interface SoldPosterProps {
 }
 
 export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
+  // Helper to dynamically calculate font size based on text length to prevent overflow
+  const getDynamicFontSize = (text: string, baseSize: number, containerWidth: number) => {
+    const estimatedCharWidth = baseSize * 0.65; // Oxanium bold italic is wide
+    const textWidth = text.length * estimatedCharWidth;
+    if (textWidth <= containerWidth) return `${baseSize}px`;
+    return `${Math.max((containerWidth / text.length) / 0.65, 24)}px`;
+  };
+
+  const nameContainerWidth = 280; // Approximate available width in the 32% data column
+  const bidFontSize = bid.toString().length > 4 ? '42px' : '52px';
+
   return (
     <div 
       id={`sold-poster-${player.id}`}
@@ -51,13 +63,19 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
 
           {/* Data Section */}
           <div className="w-[32%] flex flex-col justify-between p-10 pr-14 relative bg-white text-left overflow-hidden">
-              <div className="mt-8 overflow-hidden">
+              <div className="mt-8">
                   <div className="flex flex-col mb-10 gap-1 overflow-hidden">
-                      <h2 className="text-[52px] font-black italic uppercase tracking-tighter leading-none text-[#0f172a] truncate">
+                      <h2 
+                        className="font-black italic uppercase tracking-tighter leading-none text-[#0f172a] whitespace-nowrap"
+                        style={{ fontSize: getDynamicFontSize(player.firstName, 52, nameContainerWidth) }}
+                      >
                         {player.firstName}
                       </h2>
                       {player.surname && (
-                        <h2 className="text-[52px] font-black italic uppercase tracking-tighter leading-none text-[#0f172a] truncate">
+                        <h2 
+                          className="font-black italic uppercase tracking-tighter leading-none text-[#0f172a] whitespace-nowrap"
+                          style={{ fontSize: getDynamicFontSize(player.surname, 52, nameContainerWidth) }}
+                        >
                           {player.surname}
                         </h2>
                       )}
@@ -79,7 +97,7 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
                   </div>
               </div>
 
-              {/* SOLD Box - Optimized for robust text fit */}
+              {/* SOLD Box - Optimized with flexible font size for bid amount */}
               <div className="mt-8 relative z-30 w-full">
                   <div className="bg-[#0f172a] text-white p-6 shadow-[16px_16px_0px_rgba(59,130,246,1)] flex flex-col items-center relative overflow-hidden w-full">
                       <div className="w-full flex justify-between items-center mb-4">
@@ -87,7 +105,10 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid }) => {
                         <span className="text-[24px] font-black italic text-[#3b82f6] leading-none uppercase tracking-tighter">SOLD</span>
                       </div>
                       <div className="flex items-center justify-center gap-2 w-full overflow-hidden">
-                          <span className="text-[52px] font-mono font-black italic tracking-tighter leading-none text-white truncate">
+                          <span 
+                            className="font-mono font-black italic tracking-tighter leading-none text-white"
+                            style={{ fontSize: bidFontSize }}
+                          >
                             {bid}
                           </span>
                           <span className="text-[12px] font-black italic uppercase text-white/30 pt-4">LAKH</span>
