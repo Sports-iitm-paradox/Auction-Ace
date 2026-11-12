@@ -80,25 +80,23 @@ export default function SquadsPage() {
             format: 'a4'
         });
 
-        // Add Margazhi'27 Header Style
-        doc.setFillColor(15, 23, 42); // Navy background
-        doc.rect(0, 0, 210, 45, 'F');
-        
-        doc.setTextColor(255, 255, 255);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(28);
-        doc.text("MARGAZHI'27", 20, 25);
-        
-        doc.setFontSize(10);
-        doc.setTextColor(59, 130, 246); // Paradox Blue
-        doc.text("OFFICIAL FRANCHISE LEDGER // LIVE SESSION RECORD", 20, 35);
+        // Margazhi'27 Master Header
+        const addHeader = (pageTitle: string) => {
+            doc.setFillColor(15, 23, 42); 
+            doc.rect(0, 0, 210, 45, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(26);
+            doc.text("MARGAZHI'27", 20, 25);
+            doc.setFontSize(10);
+            doc.setTextColor(59, 130, 246);
+            doc.text(pageTitle.toUpperCase(), 20, 35);
+        };
 
-        // Body Content
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(8);
-        doc.text(`EXPORT DATE: ${new Date().toLocaleString().toUpperCase()}`, 20, 55);
+        addHeader("Official Franchise Ledger // Summary Standings");
 
-        const rows = squadData.map(s => [
+        // Summary Statistics Table
+        const summaryRows = squadData.map(s => [
             s.name.toUpperCase(), 
             `${s.moneyLeft.toFixed(2)} CR`, 
             `${s.moneySpent.toFixed(2)} CR`,
@@ -107,37 +105,55 @@ export default function SquadsPage() {
         ]);
 
         (doc as any).autoTable({
-            startY: 65,
+            startY: 55,
             head: [['FRANCHISE', 'PURSE LEFT', 'MONEY SPENT', 'TOTAL POINTS', 'STATUS']],
-            body: rows,
-            headStyles: { 
-                fillColor: [15, 23, 42], 
-                textColor: [255, 255, 255],
-                fontStyle: 'bold',
-                halign: 'center'
-            },
-            bodyStyles: {
-                halign: 'center',
-                font: 'courier'
-            },
-            columnStyles: {
-                0: { halign: 'left', fontStyle: 'bold' }
-            },
+            body: summaryRows,
+            headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+            bodyStyles: { halign: 'center', fontSize: 9 },
+            columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
             theme: 'grid',
             margin: { left: 20, right: 20 }
         });
 
-        // Footer
+        // Detailed Roster per Squad
+        squadData.forEach((s) => {
+            doc.addPage();
+            addHeader(`Franchise Roster // ${s.name}`);
+            
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.text(`FRANCHISE: ${s.name.toUpperCase()}`, 20, 55);
+            doc.text(`TOTAL POINTS: ${s.totalPoints}`, 20, 60);
+            doc.text(`REMAINING PURSE: ${s.moneyLeft.toFixed(2)} CR`, 20, 65);
+
+            const players = s.playersList?.split(';').filter(Boolean).map(p => {
+                const parts = p.split(':');
+                return [parts[0], `${parts[1]} CR`, parts[2], parts[3]];
+            }) || [];
+
+            (doc as any).autoTable({
+                startY: 75,
+                head: [['PLAYER NAME', 'PRICE', 'ROLE', 'CATEGORY']],
+                body: players.length > 0 ? players : [['NO ASSETS ACQUIRED', '-', '-', '-']],
+                headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+                bodyStyles: { halign: 'center', fontSize: 9 },
+                columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
+                theme: 'striped',
+                margin: { left: 20, right: 20 }
+            });
+        });
+
+        // Add page numbers
         const pageCount = (doc as any).internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(8);
             doc.setTextColor(150);
-            doc.text(`Official Document // Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+            doc.text(`Margazhi'27 Official Documentation // Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
         }
 
         doc.save(`Margazhi27_Squad_Ledger.pdf`);
-        toast({ title: "PDF Exported", description: "Official Franchise Ledger saved successfully." });
+        toast({ title: "PDF Exported", description: "Comprehensive Franchise Ledger saved successfully." });
     };
 
     return (
