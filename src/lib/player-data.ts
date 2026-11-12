@@ -30,6 +30,7 @@ export interface ActionEvent {
   type: 'sold' | 'unsold';
   playerId: string;
   bid?: number;
+  houseName?: string;
   timestamp: string;
 }
 

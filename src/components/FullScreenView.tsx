@@ -1,19 +1,29 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { X, Undo2, Loader2, Volume2, VolumeX, ListRestart, ArrowRight } from 'lucide-react';
-import { Player, PlayerSet, ActiveAuctionState, ActionEvent } from '@/lib/player-data';
+import { X, Undo2, Loader2, Volume2, VolumeX, ListRestart, ArrowRight, Download, ImageIcon, Check } from 'lucide-react';
+import { Player, PlayerSet, ActiveAuctionState, ActionEvent, Squad } from '@/lib/player-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn, shuffleArray } from '@/lib/utils';
 import Image from 'next/image';
-import { useFirestore, useUser, useDoc, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { doc, serverTimestamp, DocumentReference } from 'firebase/firestore';
+import { useFirestore, useUser, useDoc, useCollection, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { doc, serverTimestamp, DocumentReference, collection, query, orderBy } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import confetti from 'canvas-confetti';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from '@/components/ui/badge';
+import { toPng } from 'html-to-image';
+import { SoldPoster } from './SoldPoster';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const SOUNDS = {
     REVEAL: 'https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-beep-221.mp3',
@@ -38,9 +48,18 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
   const [timer, setTimer] = useState<number>(DEFAULT_TIMER);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [winningHouse, setWinningHouse] = useState<string>("");
 
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
   const hammerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const squadsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'squads'), orderBy('order'));
+  }, [firestore]);
+
+  const { data: squads } = useCollection<Squad>(squadsQuery);
 
   const auctionRef = useMemoFirebase(() => {
     if (!firestore || !set) return null;
@@ -107,6 +126,7 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
     if (!auction || !auction.undrawnIds || auction.undrawnIds.length === 0 || auction.status === 'drawing' || !auctionRef) return;
     
     clearHammerSequence();
+    setWinningHouse("");
     const undrawn = [...auction.undrawnIds];
     const nextId = undrawn[0]; 
     const remaining = undrawn.slice(1);
@@ -188,6 +208,19 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
     runStep(1);
   };
 
+  const assignWinningHouse = (houseName: string) => {
+      if (!auction || !auctionRef) return;
+      setWinningHouse(houseName);
+      const history = [...auction.history];
+      if (history.length > 0) {
+          const lastIndex = history.length - 1;
+          if (history[lastIndex].playerId === auction.currentPlayerId) {
+              history[lastIndex].houseName = houseName;
+              updateDocumentNonBlocking(auctionRef, { history, lastUpdated: serverTimestamp() });
+          }
+      }
+  };
+
   const handleUnsold = () => {
     if (!auction || !auctionRef || !currentPlayer) return;
     setIsTimerActive(false);
@@ -218,6 +251,25 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
     handleDrawPlayer();
   };
 
+  const exportSoldGraphic = async (playerId: string) => {
+    const node = document.getElementById(`sold-poster-${playerId}`);
+    if (!node) return;
+    
+    setIsExporting(true);
+    try {
+      const dataUrl = await toPng(node, { quality: 0.95, pixelRatio: 2 });
+      const link = document.createElement('a');
+      link.download = `SOLD_${playerId}_Announcement.png`;
+      link.href = dataUrl;
+      link.click();
+      toast({ title: "Graphic Exported", description: "Official Vector-Art poster saved successfully." });
+    } catch (err) {
+      toast({ title: "Export Failed", variant: "destructive" });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleUndo = () => {
     if (!auction || !auctionRef || auction.history.length === 0) return;
     const history = [...auction.history];
@@ -239,7 +291,7 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
 
   const hardResetAuction = () => {
     if (!auctionRef || !user || !set) return;
-    if (confirm("Reset official session for this set? This will clear all ledger entries and reshuffle assets.")) {
+    if (confirm("Reset official session? This will clear all ledger entries and reshuffle assets.")) {
         setDocumentNonBlocking(auctionRef, {
             currentPlayerId: "",
             currentBid: 0,
@@ -291,6 +343,22 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
       </div>
 
       <div className="flex flex-1 w-full relative overflow-hidden">
+        {/* Hidden Export Cache */}
+        <div className="absolute top-0 left-0 pointer-events-none opacity-0 z-[-100]">
+            {set.players.map(p => {
+              const histItem = auction.history.find(h => h.playerId === p.id && h.type === 'sold');
+              return (
+                <div key={`export-${p.id}`} className="fixed top-0 left-0">
+                  <SoldPoster 
+                    player={p} 
+                    bid={histItem?.bid || 0} 
+                    houseName={histItem?.houseName} 
+                  />
+                </div>
+              );
+            })}
+        </div>
+
         {/* Ledger Sidebar */}
         <AnimatePresence>
           {isHistoryOpen && (
@@ -306,12 +374,25 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                   <ScrollArea className="flex-1 -mr-4 pr-4">
                       <div className="space-y-4">
                           {auction.history.slice().reverse().map((p, i) => (
-                              <div key={i} className="bg-white border-2 border-foreground p-5 transition-all hover:bg-accent/30">
+                              <div key={i} className="bg-white border-2 border-foreground p-5 transition-all hover:bg-accent/30 group">
                                   <div className="flex justify-between items-start mb-2">
                                     <span className={cn("text-[9px] font-black uppercase tracking-widest px-2 py-0.5", p.type === 'sold' ? "bg-primary text-white" : "bg-foreground text-white")}>{p.type === 'sold' ? 'SOLD' : 'UNSOLD'}</span>
                                     {p.bid && <span className="text-sm font-mono font-black">{p.bid}L</span>}
                                   </div>
-                                  <p className="text-[12px] font-black text-foreground uppercase truncate tracking-tight">{set.players.find(pl => pl.id === p.playerId)?.playerName}</p>
+                                  <p className="text-[12px] font-black text-foreground uppercase truncate tracking-tight mb-2">{set.players.find(pl => pl.id === p.playerId)?.playerName}</p>
+                                  {p.type === 'sold' && (
+                                    <div className="flex items-center justify-between mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span className="text-[9px] font-black text-foreground/40 uppercase tracking-widest">{p.houseName || 'Floor Sale'}</span>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            onClick={() => exportSoldGraphic(p.playerId)} 
+                                            className="h-8 w-8 border border-foreground/10 hover:bg-white"
+                                        >
+                                            <ImageIcon size={14} />
+                                        </Button>
+                                    </div>
+                                  )}
                               </div>
                           ))}
                           {auction.history.length === 0 && (
@@ -346,9 +427,33 @@ export default function FullScreenView({ set }: { set: PlayerSet }) {
                                     {currentPlayer.playerName}
                                   </h3>
                                   {auction.isSold && (
-                                    <div className="flex items-center justify-center gap-4">
-                                      <span className="text-8xl font-mono font-black">{auction.currentBid}</span>
-                                      <span className="text-2xl font-headline font-black italic text-foreground/30 pt-8">LAKH</span>
+                                    <div className="flex flex-col items-center gap-8">
+                                        <div className="flex items-center justify-center gap-4">
+                                            <span className="text-8xl font-mono font-black">{auction.currentBid}</span>
+                                            <span className="text-2xl font-headline font-black italic text-foreground/30 pt-8">LAKH</span>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-4 w-full max-w-sm">
+                                            <Select value={winningHouse} onValueChange={assignWinningHouse}>
+                                                <SelectTrigger className="h-12 border-2 border-foreground rounded-none font-black uppercase text-[10px] tracking-widest">
+                                                    <SelectValue placeholder="Assign Franchise" />
+                                                </SelectTrigger>
+                                                <SelectContent className="rounded-none border-2 border-foreground shadow-[6px_6px_0px_rgba(0,0,0,1)]">
+                                                    {squads?.map(s => (
+                                                        <SelectItem key={s.id} value={s.name} className="font-black uppercase tracking-widest text-[10px] h-12 cursor-pointer">
+                                                            {s.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <Button 
+                                                onClick={() => exportSoldGraphic(currentPlayer.id)} 
+                                                className="h-12 w-12 vector-button bg-primary text-white"
+                                                disabled={isExporting}
+                                            >
+                                                {isExporting ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
+                                            </Button>
+                                        </div>
                                     </div>
                                   )}
                                 </div>

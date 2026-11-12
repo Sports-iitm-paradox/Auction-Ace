@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useMemo } from 'react';
@@ -91,13 +92,20 @@ export default function PublicLivePage() {
                                 <h2 className={cn("text-7xl font-headline font-black uppercase tracking-tighter mb-4", auction.isSold ? "text-primary" : "text-foreground")}>
                                   {auction.isSold ? 'SOLD' : 'UNSOLD'}
                                 </h2>
-                                <h3 className="text-3xl font-headline text-foreground uppercase tracking-widest border-y-2 border-foreground/10 py-8 my-8 font-black">
+                                <h3 className="text-3xl font-headline text-foreground uppercase tracking-widest border-y-2 border-foreground/10 py-8 my-4 font-black">
                                   {currentPlayer?.playerName}
                                 </h3>
                                 {auction.isSold && (
-                                  <div className="flex items-center justify-center gap-4">
-                                      <span className="text-9xl font-mono font-black text-foreground">{auction.currentBid}</span>
-                                      <span className="text-3xl font-headline font-black text-foreground/30 pt-10 italic">LAKH</span>
+                                  <div className="flex flex-col items-center gap-4">
+                                      <div className="flex items-center justify-center gap-4">
+                                          <span className="text-9xl font-mono font-black text-foreground">{auction.currentBid}</span>
+                                          <span className="text-3xl font-headline font-black text-foreground/30 pt-10 italic">LAKH</span>
+                                      </div>
+                                      {auction.history[auction.history.length-1]?.houseName && (
+                                        <div className="bg-primary px-8 py-3 text-white font-black uppercase tracking-widest text-lg italic">
+                                            {auction.history[auction.history.length-1].houseName}
+                                        </div>
+                                      )}
                                   </div>
                                 )}
                               </div>
@@ -188,9 +196,14 @@ export default function PublicLivePage() {
                       const p = set?.players.find(pl => pl.id === event.playerId);
                       return (
                         <div key={`event-${i}`} className="flex items-center gap-10 shrink-0">
-                            <span className={cn("text-[11px] font-black uppercase tracking-widest px-4 py-1.5", event.type === 'sold' ? "bg-primary text-white" : "bg-foreground text-white")}>
-                              {event.type === 'sold' ? 'SOLD' : 'UNSOLD'}
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <span className={cn("text-[11px] font-black uppercase tracking-widest px-4 py-1.5", event.type === 'sold' ? "bg-primary text-white" : "bg-foreground text-white")}>
+                                  {event.type === 'sold' ? 'SOLD' : 'UNSOLD'}
+                                </span>
+                                {event.houseName && (
+                                    <span className="bg-foreground text-white text-[10px] font-black px-3 py-1.5 uppercase tracking-widest italic">{event.houseName}</span>
+                                )}
+                            </div>
                             <span className="text-foreground text-4xl font-headline font-black uppercase italic tracking-tighter">{p?.playerName || 'Roster Item'}</span>
                             {event.bid && (
                                 <div className="flex items-baseline gap-3">
