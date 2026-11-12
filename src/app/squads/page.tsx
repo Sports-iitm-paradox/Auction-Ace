@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Squad, Player } from '@/lib/player-data';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
-import { jsPDF } from 'jsPDF';
+import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { toPng } from 'html-to-image';
 import { SquadPoster } from '@/components/SquadPoster';
@@ -177,15 +177,15 @@ export default function SquadsPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-wrap lg:flex-nowrap items-center gap-x-12 gap-y-6 lg:gap-x-16 shrink-0">
-                                                <div className="border-l-2 border-foreground/10 pl-8 min-w-[140px]">
+                                            <div className="flex flex-wrap lg:flex-nowrap items-center gap-x-12 gap-y-6 lg:gap-x-16 shrink-0 h-full">
+                                                <div className="border-l-2 border-foreground/10 pl-8 min-w-[140px] flex flex-col justify-center">
                                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40 block mb-2">Purse Left</span>
                                                     <div className="flex items-baseline gap-2">
                                                         <span className="font-mono text-5xl font-black text-primary italic leading-none">{house.moneyLeft}</span>
                                                         <span className="text-[12px] font-black text-foreground/20 italic uppercase">Cr</span>
                                                     </div>
                                                 </div>
-                                                <div className="border-l-2 border-foreground/10 pl-8 min-w-[100px]">
+                                                <div className="border-l-2 border-foreground/10 pl-8 min-w-[100px] flex flex-col justify-center">
                                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40 block mb-2">Points</span>
                                                     <span className="font-mono text-5xl font-black text-foreground italic leading-none">{house.totalPoints}</span>
                                                 </div>
