@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -32,9 +31,9 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
   return (
     <div 
       id={`poster-${squad.id}`}
-      className="w-[1080px] h-[1350px] bg-[#1a0202] text-white p-10 relative flex flex-col items-center justify-between overflow-hidden"
+      className="w-[1080px] h-[1350px] bg-[#020a1a] text-white p-10 relative flex flex-col items-center justify-between overflow-hidden"
       style={{
-        backgroundImage: 'radial-gradient(circle at center, #3a0505 0%, #1a0202 100%)',
+        backgroundImage: 'radial-gradient(circle at center, #05183a 0%, #020a1a 100%)',
       }}
     >
       {/* Decorative Borders */}
@@ -44,14 +43,14 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
       {/* Header */}
       <div className="text-center z-10 w-full mt-4">
         <div className="flex justify-center mb-4">
-          <Trophy className="h-16 w-16 text-primary drop-shadow-[0_0_20px_rgba(255,215,0,0.5)]" />
+          <Trophy className="h-16 w-16 text-primary drop-shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
         </div>
         <h1 className="text-7xl font-serif font-black text-primary uppercase tracking-[0.2em] mb-2 italic">
           {squad.name}
         </h1>
         <div className="h-1 w-64 bg-primary mx-auto mb-4" />
         <p className="text-lg font-serif text-white/60 tracking-[0.5em] uppercase">
-          Official SAAVAN '26 Squad
+          Official Margazhi '27 Squad
         </p>
       </div>
 
@@ -91,7 +90,7 @@ export const SquadPoster: React.FC<SquadPosterProps> = ({ squad, allPlayers }) =
              </div>
           </div>
         ))}
-        {/* Fill the remaining grid with placeholders to maintain layout */}
+        {/* Fill the remaining grid with placeholders */}
         {playerEntries.length < 15 && Array.from({ length: 15 - playerEntries.length }).map((_, i) => (
            <div key={`empty-${i}`} className="bg-black/20 border border-white/5 p-3 flex flex-col items-center justify-center opacity-20 aspect-[3/4.5]">
               <Shield className="h-10 w-10 text-white/10" />

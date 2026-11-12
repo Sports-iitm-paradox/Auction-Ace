@@ -26,7 +26,7 @@ export default function SystemNoticePage() {
         <CardHeader className="text-center border-b border-primary/20 pb-12 relative">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
           <div className="flex justify-center mb-6">
-            <ShieldCheck className="h-20 w-20 text-primary drop-shadow-[0_0_15px_rgba(255,215,0,0.4)]" />
+            <ShieldCheck className="h-20 w-20 text-primary drop-shadow-[0_0_15px_rgba(59,130,246,0.4)]" />
           </div>
           <CardTitle className="text-4xl font-serif text-primary mb-2 tracking-widest uppercase italic">
             Official System & IP Notice
@@ -54,7 +54,7 @@ export default function SystemNoticePage() {
             </div>
             
             <p className="max-w-3xl mx-auto text-muted-foreground leading-relaxed text-sm sm:text-base italic">
-              The IPL Auction Hub infrastructure, including its real-time synchronization architecture, proprietary bidding logic, and visual presentation systems, is the exclusive Intellectual Property of the Sports Department, IIT Madras Paradox. All rights reserved &copy; 2026.
+              The IPL Auction Hub infrastructure, including its real-time synchronization architecture, proprietary bidding logic, and visual presentation systems, is the exclusive Intellectual Property of the Sports Department, IIT Madras Paradox. All rights reserved &copy; 2027.
             </p>
           </section>
 

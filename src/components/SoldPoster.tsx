@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -60,10 +59,18 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid, houseName }
                   <h2 className="text-7xl font-black italic uppercase tracking-tighter leading-[0.9] mb-8 text-foreground">
                     {player.playerName}
                   </h2>
-                  <div className="flex gap-4 flex-wrap">
+                  <div className="flex gap-4 flex-wrap mb-8">
                       <span className="border-2 border-foreground px-4 py-1.5 text-xs font-black uppercase tracking-widest">{player.specialism}</span>
                       <span className="border-2 border-foreground px-4 py-1.5 text-xs font-black uppercase tracking-widest">{player.country}</span>
                       <span className="border-2 border-foreground px-4 py-1.5 text-xs font-black uppercase tracking-widest">{player.cua}</span>
+                  </div>
+
+                  <div className="flex items-center gap-4 py-6 border-y-2 border-foreground/10">
+                      <div className="h-10 w-px bg-foreground/20" />
+                      <div>
+                          <span className="block text-[10px] font-black uppercase tracking-widest text-foreground/40 mb-1">Performance Metric</span>
+                          <span className="text-4xl font-black italic text-foreground tracking-tighter">{player.points} POINTS</span>
+                      </div>
                   </div>
               </div>
 
@@ -89,7 +96,7 @@ export const SoldPoster: React.FC<SoldPosterProps> = ({ player, bid, houseName }
       {/* Footer Branding */}
       <div className="p-10 border-t-[10px] border-foreground flex items-center justify-center text-center bg-white z-10 box-border">
           <p className="text-[10px] font-black uppercase tracking-[0.8em] text-foreground/40 leading-none">
-            Matgazhi '27 Paradox // Official Broadcast Feed
+            Margazhi '27 Paradox // Official Broadcast Feed
           </p>
       </div>
 
